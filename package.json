@@ -1,0 +1,19 @@
+{
+  "name": "demo-erp",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "client"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:client": "cd client && npm run dev",
+    "dev:server": "cd server && mvn spring-boot:run",
+    "build:client": "cd client && npm run build",
+    "build:server": "cd server && mvn clean package",
+    "install:all": "npm install"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  }
+}
