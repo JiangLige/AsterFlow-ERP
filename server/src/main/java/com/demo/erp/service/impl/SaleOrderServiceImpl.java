@@ -12,11 +12,13 @@ import com.demo.erp.dto.sale.SaleOrderItemRequest;
 import com.demo.erp.dto.sale.SaleOrderItemResponse;
 import com.demo.erp.dto.sale.SaleOrderResponse;
 import com.demo.erp.enums.SaleOrderStatus;
+import com.demo.erp.mapper.CustomerMapper;
 import com.demo.erp.mapper.ProductMapper;
 import com.demo.erp.mapper.SaleOrderItemMapper;
 import com.demo.erp.mapper.SaleOrderMapper;
 import com.demo.erp.service.InventoryService;
 import com.demo.erp.service.SaleOrderService;
+import entity.Customer;
 import entity.Product;
 import entity.SaleOrder;
 import entity.SaleOrderItem;
@@ -30,16 +32,19 @@ public class SaleOrderServiceImpl implements SaleOrderService {
 
     private final SaleOrderMapper saleOrderMapper;
     private final SaleOrderItemMapper saleOrderItemMapper;
+    private final CustomerMapper customerMapper;
     private final ProductMapper productMapper;
     private final OrderNoGenerator orderNoGenerator;
     private final InventoryService inventoryService;
 
     public SaleOrderServiceImpl(SaleOrderMapper saleOrderMapper,
                                 SaleOrderItemMapper saleOrderItemMapper,
+                                CustomerMapper customerMapper,
                                 ProductMapper productMapper,
                                 OrderNoGenerator orderNoGenerator, InventoryService inventoryService) {
         this.saleOrderMapper = saleOrderMapper;
         this.saleOrderItemMapper = saleOrderItemMapper;
+        this.customerMapper = customerMapper;
         this.productMapper = productMapper;
         this.orderNoGenerator = orderNoGenerator;
         this.inventoryService = inventoryService;
@@ -48,9 +53,12 @@ public class SaleOrderServiceImpl implements SaleOrderService {
     @Override
     @Transactional
     public SaleOrderResponse create(SaleOrderCreateRequest request) {
+        Customer customer = getActiveCustomer(request.getCustomerId());
+
         SaleOrder saleOrder = new SaleOrder();
         saleOrder.setOrderNo(orderNoGenerator.generate("SO"));
-        saleOrder.setCustomerName(request.getCustomerName());
+        saleOrder.setCustomerId(customer.getId());
+        saleOrder.setCustomerName(customer.getName());
         saleOrder.setStatus(SaleOrderStatus.DRAFT.name());
         saleOrder.setRemark(request.getRemark());
         saleOrder.setTotalAmount(BigDecimal.ZERO);
@@ -109,6 +117,7 @@ public class SaleOrderServiceImpl implements SaleOrderService {
         SaleOrderResponse response = new SaleOrderResponse();
         response.setId(saleOrder.getId());
         response.setOrderNo(saleOrder.getOrderNo());
+        response.setCustomerId(saleOrder.getCustomerId());
         response.setCustomerName(saleOrder.getCustomerName());
         response.setTotalAmount(saleOrder.getTotalAmount());
         response.setStatus(saleOrder.getStatus());
@@ -140,6 +149,20 @@ public class SaleOrderServiceImpl implements SaleOrderService {
         response.setPrice(item.getPrice());
         response.setAmount(item.getAmount());
         return response;
+    }
+
+    private Customer getActiveCustomer(Long customerId) {
+        Customer customer = customerMapper.selectById(customerId);
+
+        if (customer == null) {
+            throw new BusinessException("客户不存在");
+        }
+
+        if (!"ACTIVE".equals(customer.getStatus())) {
+            throw new BusinessException("客户已停用");
+        }
+
+        return customer;
     }
 
     @Override
@@ -186,6 +209,7 @@ public class SaleOrderServiceImpl implements SaleOrderService {
         SaleOrderResponse response = new SaleOrderResponse();
         response.setId(saleOrder.getId());
         response.setOrderNo(saleOrder.getOrderNo());
+        response.setCustomerId(saleOrder.getCustomerId());
         response.setCustomerName(saleOrder.getCustomerName());
         response.setTotalAmount(saleOrder.getTotalAmount());
         response.setStatus(saleOrder.getStatus());
@@ -283,7 +307,10 @@ public class SaleOrderServiceImpl implements SaleOrderService {
         }
 
 
-        saleOrder.setCustomerName(request.getCustomerName());
+        Customer customer = getActiveCustomer(request.getCustomerId());
+
+        saleOrder.setCustomerId(customer.getId());
+        saleOrder.setCustomerName(customer.getName());
         saleOrder.setRemark(request.getRemark());
 
         saleOrderItemMapper.delete(

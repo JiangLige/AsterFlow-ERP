@@ -8,9 +8,9 @@
   "scripts": {
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "dev:client": "cd client && npm run dev",
-    "dev:server": "cd server && mvn spring-boot:run",
+    "dev:server": "cd server && mvnw.cmd spring-boot:run",
     "build:client": "cd client && npm run build",
-    "build:server": "cd server && mvn clean package",
+    "build:server": "cd server && mvnw.cmd clean package",
     "install:all": "npm install"
   },
   "devDependencies": {

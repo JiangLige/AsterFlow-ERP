@@ -1,6 +1,7 @@
 package com.demo.erp.util;
 
 import com.demo.erp.common.BusinessException;
+import com.demo.erp.common.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 
 public class AuthUtil {
@@ -12,7 +13,7 @@ public class AuthUtil {
         String role = (String) request.getAttribute("role");
 
         if (!"ADMIN".equals(role)) {
-            throw new BusinessException("无权限操作");
+            throw new BusinessException(ErrorCode.FORBIDDEN, "无权限操作");
         }
     }
 }

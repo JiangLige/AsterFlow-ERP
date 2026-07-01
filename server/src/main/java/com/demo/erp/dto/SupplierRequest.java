@@ -1,10 +1,13 @@
 package com.demo.erp.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+@Schema(description = "供应商创建或编辑请求")
 public class SupplierRequest {
 
+    @Schema(description = "供应商编码，业务唯一", example = "SUP-10001")
     @NotBlank(message = "供应商编码不能为空")
     private String supplierCode;
 

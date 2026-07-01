@@ -1,30 +1,30 @@
 package com.demo.erp.dto.sale;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import java.util.List;
 
 public class SaleOrderCreateRequest {
 
-    @NotBlank(message = "客户名称不能为空")
-    private String customerName;
+    @NotNull(message = "客户不能为空")
+    private Long customerId;
 
     @Size(max = 500, message = "备注不能超过500个字符")
     private String remark;
 
     @Valid
-    @NotEmpty(message = "销售商品明细不能为空")
+    @NotEmpty(message = "销售单明细不能为空")
     private List<SaleOrderItemRequest> items;
 
-    public String getCustomerName() {
-        return customerName;
+    public Long getCustomerId() {
+        return customerId;
     }
 
-    public void setCustomerName(String customerName) {
-        this.customerName = customerName;
+    public void setCustomerId(Long customerId) {
+        this.customerId = customerId;
     }
 
     public String getRemark() {
@@ -42,6 +42,4 @@ public class SaleOrderCreateRequest {
     public void setItems(List<SaleOrderItemRequest> items) {
         this.items = items;
     }
-
-    // 生成 getter / setter
 }

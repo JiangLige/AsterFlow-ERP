@@ -1,20 +1,33 @@
 server:
-  port: 3001
+  port: ${SERVER_PORT:3001}
 
 spring:
   application:
     name: demo-erp-server
+
   datasource:
-    url: jdbc:mysql://localhost:3306/demo_erp?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8
-    username: root
-    password: root
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${DB_URL:jdbc:mysql://localhost:3306/demo_erp?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:root}
+    driver-class-name: ${DB_DRIVER:com.mysql.cj.jdbc.Driver}
+
+  data:
     redis:
-      host: localhost
-      port: 6379
-      database: 0
-      timeout: 3s
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      database: ${REDIS_DATABASE:0}
+      timeout: ${REDIS_TIMEOUT:3s}
 
 jwt:
-  secret: demo-erp-secret-key-change-me
-  expire-hours: 24
+  secret: ${JWT_SECRET:demo-erp-secret-key-change-me}
+  expire-hours: ${JWT_EXPIRE_HOURS:24}
+
+erp:
+  cache:
+    type: ${ERP_CACHE_TYPE:local}
+
+springdoc:
+  api-docs:
+    enabled: ${SPRINGDOC_API_DOCS_ENABLED:true}
+  swagger-ui:
+    enabled: ${SPRINGDOC_SWAGGER_UI_ENABLED:true}

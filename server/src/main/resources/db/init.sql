@@ -18,6 +18,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS t_stock_record;
 DROP TABLE IF EXISTS t_sale_order_item;
 DROP TABLE IF EXISTS t_sale_order;
+DROP TABLE IF EXISTS t_customer;
 DROP TABLE IF EXISTS t_purchase_order_item;
 DROP TABLE IF EXISTS t_purchase_order;
 DROP TABLE IF EXISTS t_order_sequence;
@@ -60,6 +61,23 @@ CREATE TABLE t_supplier (
     KEY idx_supplier_name (name),
     KEY idx_supplier_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='供应商表';
+
+CREATE TABLE t_customer (
+    id BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+    customer_code VARCHAR(50) NOT NULL COMMENT '客户编码',
+    name VARCHAR(100) NOT NULL COMMENT '客户名称',
+    contact_name VARCHAR(50) NULL COMMENT '联系人',
+    phone VARCHAR(30) NULL COMMENT '联系电话',
+    address VARCHAR(255) NULL COMMENT '地址',
+    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' COMMENT '状态: ACTIVE/INACTIVE',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    deleted TINYINT NOT NULL DEFAULT 0 COMMENT '逻辑删除: 0未删除, 1已删除',
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_customer_code (customer_code),
+    KEY idx_customer_name (name),
+    KEY idx_customer_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='客户表';
 
 CREATE TABLE t_product (
     id BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
@@ -142,6 +160,7 @@ CREATE TABLE t_purchase_order_item (
 CREATE TABLE t_sale_order (
     id BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
     order_no VARCHAR(50) NOT NULL COMMENT '销售单号',
+    customer_id BIGINT NOT NULL COMMENT '客户ID',
     customer_name VARCHAR(100) NOT NULL COMMENT '客户名称',
     total_amount DECIMAL(14, 2) NOT NULL DEFAULT 0.00 COMMENT '总金额',
     status VARCHAR(20) NOT NULL DEFAULT 'DRAFT' COMMENT '状态: DRAFT/APPROVED/CANCELED',
@@ -152,9 +171,11 @@ CREATE TABLE t_sale_order (
     version INT NOT NULL DEFAULT 0 COMMENT '乐观锁版本号',
     PRIMARY KEY (id),
     UNIQUE KEY uk_sale_order_no (order_no),
-    KEY idx_sale_order_customer (customer_name),
+    KEY idx_sale_order_customer_id (customer_id),
+    KEY idx_sale_order_customer_name (customer_name),
     KEY idx_sale_order_status (status),
-    KEY idx_sale_order_created_at (created_at)
+    KEY idx_sale_order_created_at (created_at),
+    CONSTRAINT fk_sale_order_customer FOREIGN KEY (customer_id) REFERENCES t_customer (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='销售订单表';
 
 CREATE TABLE t_sale_order_item (
@@ -212,6 +233,13 @@ VALUES
     ('SUP-001', '华东电子供应链有限公司', '张敏', '13800000001', '上海市浦东新区张江路88号', 'ACTIVE', NOW(), NOW(), 0, 0),
     ('SUP-002', '北方办公设备有限公司', '李强', '13800000002', '北京市海淀区中关村大街20号', 'ACTIVE', NOW(), NOW(), 0, 0),
     ('SUP-003', '南方仓储耗材有限公司', '王芳', '13800000003', '广州市天河区体育西路66号', 'INACTIVE', NOW(), NOW(), 0, 0);
+
+INSERT INTO t_customer
+    (customer_code, name, contact_name, phone, address, status, created_at, updated_at, deleted)
+VALUES
+    ('CUS-001', '上海零售客户有限公司', '陈晨', '13900000001', '上海市徐汇区漕溪北路18号', 'ACTIVE', NOW(), NOW(), 0),
+    ('CUS-002', '杭州办公采购有限公司', '赵磊', '13900000002', '杭州市西湖区文三路88号', 'ACTIVE', NOW(), NOW(), 0),
+    ('CUS-003', '广州渠道客户有限公司', '刘洋', '13900000003', '广州市天河区珠江新城66号', 'INACTIVE', NOW(), NOW(), 0);
 
 INSERT INTO t_product
     (product_code, name, category, unit, price, cost, stock, status, description, min_stock, version, created_at, updated_at, deleted)

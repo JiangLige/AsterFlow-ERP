@@ -63,4 +63,6 @@ public class SaleOrderController {
         saleOrderService.cancel(id);
         return ApiResponse.success();
     }
+
+
 }

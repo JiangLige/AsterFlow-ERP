@@ -1,17 +1,17 @@
 import { NextPage } from 'next';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import Layout from '@/components/Layout';
+import { apiRequest } from '@/lib/api';
 
 type DashboardSummary = {
     productCount: number;
     warningProductCount: number;
-
     purchaseApprovedCount: number;
     purchaseCanceledCount: number;
     purchaseDraftCount: number;
     todayPurchaseOrderCount: number;
     todayPurchaseAmount: number;
     todayInQuantity: number;
-
     saleApprovedCount: number;
     saleCanceledCount: number;
     saleDraftCount: number;
@@ -21,103 +21,51 @@ type DashboardSummary = {
 };
 
 const Home: NextPage = () => {
-    const [username, setUsername] = useState('admin');
-    const [password, setPassword] = useState('admin123');
-    const [token, setToken] = useState('');
     const [data, setData] = useState<DashboardSummary | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
-    const loadDashboard = async (loginToken: string) => {
-        const res = await fetch('/api/dashboard-summary', {
-            headers: {
-                Authorization: `Bearer ${loginToken}`,
-            },
-        });
-
-        const result = await res.json();
-
-        if (!res.ok || !result.success) {
-            throw new Error(result.message || 'Dashboard 加载失败');
-        }
-
-        setData(result.data);
-    };
-
-    const handleLogin = async () => {
+    async function loadDashboard() {
         setLoading(true);
         setError('');
-        setData(null);
-
-
-
-        setLoading(true);
-        setError('');
-        setData(null);
 
         try {
-            const res = await fetch('/api/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    username,
-                    password,
-                }),
-            });
-
-            const result = await res.json();
-
-            if (!res.ok || !result.success) {
-                throw new Error(result.message || '登录失败');
-            }
-
-            const loginToken = result.data.token;
-            setToken(loginToken);
-
-            await loadDashboard(loginToken);
-        } catch (e: any) {
-            setError(e.message || '请求失败');
+            const summary = await apiRequest<DashboardSummary>('/api/dashboard-summary');
+            setData(summary);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Dashboard 加载失败');
         } finally {
             setLoading(false);
         }
-    };
+    }
+
+    useEffect(() => {
+        loadDashboard();
+    }, []);
 
     return (
-        <main style={{ padding: '2rem', fontFamily: 'Arial, sans-serif' }}>
+        <Layout>
             <h1>Demo ERP Dashboard</h1>
 
-            <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
-                <input
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder="用户名"
-                />
-
-                <input
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    type="password"
-                    placeholder="密码"
-                />
-
-                <button onClick={handleLogin} disabled={loading}>
-                    {loading ? '加载中...' : '登录并加载 Dashboard'}
-                </button>
-            </div>
+            <button onClick={loadDashboard} disabled={loading}>
+                {loading ? '刷新中...' : '刷新 Dashboard'}
+            </button>
 
             {error && (
-                <p style={{ marginTop: '1rem', color: 'red' }}>
+                <div
+                    style={{
+                        marginTop: '1rem',
+                        padding: '0.75rem 1rem',
+                        background: '#fee2e2',
+                        color: '#991b1b',
+                        border: '1px solid #fecaca',
+                        borderRadius: 6,
+                    }}
+                >
                     {error}
-                </p>
+                </div>
             )}
 
-            {token && (
-                <p style={{ marginTop: '1rem', color: 'green' }}>
-                    已登录
-                </p>
-            )}
             {data && (
                 <div style={{ marginTop: '1rem' }}>
                     <section>
@@ -146,9 +94,8 @@ const Home: NextPage = () => {
                         <p>今日出库数量：{data.todayOutQuantity}</p>
                     </section>
                 </div>
-
             )}
-        </main>
+        </Layout>
     );
 };
 

@@ -8,6 +8,7 @@ public class SaleOrderResponse {
 
     private Long id;
     private String orderNo;
+    private Long customerId;
     private String customerName;
     private BigDecimal totalAmount;
     private String status;
@@ -30,6 +31,14 @@ public class SaleOrderResponse {
 
     public void setOrderNo(String orderNo) {
         this.orderNo = orderNo;
+    }
+
+    public Long getCustomerId() {
+        return customerId;
+    }
+
+    public void setCustomerId(Long customerId) {
+        this.customerId = customerId;
     }
 
     public String getCustomerName() {

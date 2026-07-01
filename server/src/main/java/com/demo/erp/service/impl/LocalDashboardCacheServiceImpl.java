@@ -2,12 +2,14 @@ package com.demo.erp.service.impl;
 
 import com.demo.erp.dto.dashboard.DashboardSummaryResponse;
 import com.demo.erp.service.DashboardCacheService;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 
 @Service
+@ConditionalOnProperty(name = "erp.cache.type", havingValue = "local", matchIfMissing = true)
 public class LocalDashboardCacheServiceImpl implements DashboardCacheService {
 
     private static final Duration TTL = Duration.ofSeconds(60);

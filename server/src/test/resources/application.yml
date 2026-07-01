@@ -8,3 +8,17 @@ spring:
     hibernate:
       ddl-auto: create-drop
     show-sql: false
+
+jwt:
+  secret: test-secret-key
+  expire-hours: 24
+
+erp:
+  cache:
+    type: local
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
