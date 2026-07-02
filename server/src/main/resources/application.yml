@@ -3,10 +3,10 @@ server:
 
 spring:
   application:
-    name: demo-erp-server
+    name: asterflow-erp-server
 
   datasource:
-    url: ${DB_URL:jdbc:mysql://localhost:3306/demo_erp?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8}
+    url: ${DB_URL:jdbc:mysql://localhost:3306/asterflow_erp?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8}
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:root}
     driver-class-name: ${DB_DRIVER:com.mysql.cj.jdbc.Driver}
@@ -19,7 +19,7 @@ spring:
       timeout: ${REDIS_TIMEOUT:3s}
 
 jwt:
-  secret: ${JWT_SECRET:demo-erp-secret-key-change-me}
+  secret: ${JWT_SECRET:asterflow-erp-secret-key-change-me}
   expire-hours: ${JWT_EXPIRE_HOURS:24}
 
 erp:

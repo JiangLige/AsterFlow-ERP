@@ -29,6 +29,7 @@ export default function CustomersPage() {
     const [page, setPage] = useState(1);
     const [pages, setPages] = useState(1);
     const [total, setTotal] = useState(0);
+    const [role, setRole] = useState('');
 
     async function loadCustomers(targetPage = page) {
         setLoading(true);
@@ -56,7 +57,28 @@ export default function CustomersPage() {
         }
     }
 
+    async function handleDelete(id: number) {
+        const ok = window.confirm('确定要删除这个客户吗？');
+
+        if (!ok) {
+            return;
+        }
+
+        setError('');
+
+        try {
+            await apiRequest(`/api/customers/${id}`, {
+                method: 'DELETE',
+            });
+
+            loadCustomers(page);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : '删除客户失败');
+        }
+    }
+
     useEffect(() => {
+        setRole(localStorage.getItem('role') || '');
         loadCustomers(1);
     }, []);
 
@@ -132,9 +154,17 @@ export default function CustomersPage() {
                         <td>{customer.address}</td>
                         <td>{customer.status}</td>
                         <td>
-                            <Link href={`/customers/${customer.id}/edit`}>
-                                编辑
-                            </Link>
+                            <td style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                <Link href={`/customers/${customer.id}/edit`}>
+                                    编辑
+                                </Link>
+
+                                {role === 'ADMIN' && (
+                                    <button onClick={() => handleDelete(customer.id)}>
+                                        删除
+                                    </button>
+                                )}
+                            </td>
                         </td>
                     </tr>
                 ))}

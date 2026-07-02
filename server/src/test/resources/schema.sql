@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS t_audit_log;
 DROP TABLE IF EXISTS t_stock_record;
 DROP TABLE IF EXISTS t_sale_order_item;
 DROP TABLE IF EXISTS t_sale_order;
@@ -140,6 +141,20 @@ CREATE TABLE t_stock_record (
     source_type VARCHAR(50),
     source_id BIGINT,
     source_no VARCHAR(50),
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE t_audit_log (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    operator_id BIGINT,
+    operator_name VARCHAR(100),
+    operator_role VARCHAR(50),
+    action VARCHAR(50) NOT NULL,
+    target_type VARCHAR(50) NOT NULL,
+    target_id BIGINT,
+    target_no VARCHAR(100),
+    description VARCHAR(500),
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id)
 );

@@ -60,7 +60,7 @@ export default function Layout({ children }: LayoutProps) {
                 <Link href="/inventory-warnings">库存预警</Link>
                 <Link href="/customers">客户管理</Link>
                 <Link href="/stock-records">库存流水</Link>
-
+                <Link href="/audit-logs">审计日志</Link>
 
                 <span style={{ marginLeft: 'auto' }}>
     {displayName || '当前用户'} {role && `(${role})`}

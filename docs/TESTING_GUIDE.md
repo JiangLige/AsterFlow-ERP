@@ -1,4 +1,4 @@
-# Demo ERP Testing Guide
+# AsterFlow ERP Testing Guide
 
 This document explains the testing files added while hardening the ERP project from a runnable demo into a more interview-ready engineering project.
 

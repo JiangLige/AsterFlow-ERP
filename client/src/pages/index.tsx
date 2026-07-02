@@ -45,7 +45,7 @@ const Home: NextPage = () => {
 
     return (
         <Layout>
-            <h1>Demo ERP Dashboard</h1>
+            <h1>AsterFlow ERP Dashboard</h1>
 
             <button onClick={loadDashboard} disabled={loading}>
                 {loading ? '刷新中...' : '刷新 Dashboard'}

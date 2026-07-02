@@ -1,4 +1,4 @@
-# Demo ERP 项目完善路线
+# AsterFlow ERP 项目完善路线
 
 这份路线按“能跑起来 -> 业务闭环 -> 工程质量 -> Spring AI 加分项”的顺序推进。你现在的项目已经有 Controller、Service、Mapper、DTO、实体、JWT、库存流水和采购/销售核心流程，下一步重点不是盲目加功能，而是把业务逻辑打磨到面试可讲、代码可演示。
 
@@ -37,7 +37,7 @@ mysql -uroot -proot < server/src/main/resources/db/init.sql
 ```yaml
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/demo_erp?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8
+    url: jdbc:mysql://localhost:3306/asterflow_erp?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8
     username: root
     password: root
 ```
@@ -249,4 +249,3 @@ public class AiAssistantService {
 第四天：接入 Spring AI 做一个最小可用的库存分析接口。
 
 第五天：写 README、接口说明、项目亮点和常见面试问答。
-

@@ -33,6 +33,7 @@ export default function ProductsPage() {
     const [page, setPage] = useState(1);
     const [pages, setPages] = useState(1);
     const [total, setTotal] = useState(0);
+    const [role, setRole] = useState('');
 
     const loadProducts = async (targetPage = page) => {
         setLoading(true);
@@ -61,6 +62,7 @@ export default function ProductsPage() {
     };
 
     useEffect(() => {
+        setRole(localStorage.getItem('role') || '');
         const handleFocus = () => {
             loadProducts(page);
         };
@@ -183,9 +185,11 @@ export default function ProductsPage() {
                                 库存调整
                             </Link>
 
-                            <button onClick={() => handleDelete(product.id)}>
-                                停用
-                            </button>
+                            {role === 'ADMIN' && (
+                                <button onClick={() => handleDelete(product.id)}>
+                                    停用
+                                </button>
+                            )}
                         </td>
                     </tr>
                 ))}

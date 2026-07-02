@@ -5,9 +5,11 @@ import com.demo.erp.dto.CustomerRequest;
 import com.demo.erp.dto.CustomerResponse;
 import com.demo.erp.dto.PageResponse;
 import com.demo.erp.service.CustomerService;
+import com.demo.erp.util.AuthUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
@@ -65,7 +67,9 @@ public class CustomerController {
     @Operation(summary = "删除客户", description = "删除客户资料。")
     public ApiResponse<Void> delete(
             @Parameter(description = "客户ID", example = "1")
-            @PathVariable Long id) {
+            @PathVariable Long id,
+            HttpServletRequest request) {
+        AuthUtil.requireAdmin(request);
         customerService.delete(id);
         return ApiResponse.success();
     }

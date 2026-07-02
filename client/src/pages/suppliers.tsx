@@ -29,6 +29,7 @@ export default function SuppliersPage() {
     const [page, setPage] = useState(1);
     const [pages, setPages] = useState(1);
     const [total, setTotal] = useState(0);
+    const [role, setRole] = useState('');
 
     async function loadSuppliers(targetPage = page) {
         setLoading(true);
@@ -56,7 +57,31 @@ export default function SuppliersPage() {
         }
     }
 
+    async function handleChangeStatus(id: number, nextStatus: 'ACTIVE' | 'INACTIVE') {
+        const actionText = nextStatus === 'ACTIVE' ? '启用' : '停用';
+        const ok = window.confirm(`确定要${actionText}这个供应商吗？`);
+
+        if (!ok) {
+            return;
+        }
+
+        setError('');
+
+        try {
+            const action = nextStatus === 'ACTIVE' ? 'active' : 'inactive';
+
+            await apiRequest(`/api/suppliers/${id}/${action}`, {
+                method: 'PATCH',
+            });
+
+            loadSuppliers(page);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : `${actionText}供应商失败`);
+        }
+    }
+
     useEffect(() => {
+        setRole(localStorage.getItem('role') || '');
         loadSuppliers(1);
     }, []);
 
@@ -132,9 +157,23 @@ export default function SuppliersPage() {
                         <td>{supplier.address}</td>
                         <td>{supplier.status}</td>
                         <td>
-                            <Link href={`/suppliers/${supplier.id}/edit`}>
-                                编辑
-                            </Link>
+                            <td style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                <Link href={`/suppliers/${supplier.id}/edit`}>
+                                    编辑
+                                </Link>
+
+                                {role === 'ADMIN' && supplier.status === 'ACTIVE' && (
+                                    <button onClick={() => handleChangeStatus(supplier.id, 'INACTIVE')}>
+                                        停用
+                                    </button>
+                                )}
+
+                                {role === 'ADMIN' && supplier.status === 'INACTIVE' && (
+                                    <button onClick={() => handleChangeStatus(supplier.id, 'ACTIVE')}>
+                                        启用
+                                    </button>
+                                )}
+                            </td>
                         </td>
                     </tr>
                 ))}

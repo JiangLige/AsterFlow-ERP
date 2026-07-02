@@ -11,11 +11,11 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.demo.erp</groupId>
-    <artifactId>demo-erp-server</artifactId>
+    <groupId>com.asterflow.erp</groupId>
+    <artifactId>asterflow-erp-server</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>Demo ERP Server</name>
-    <description>Spring Boot backend for the Demo ERP system</description>
+    <name>AsterFlow ERP Server</name>
+    <description>Spring Boot backend for the AsterFlow ERP system</description>
 
     <properties>
         <java.version>21</java.version>

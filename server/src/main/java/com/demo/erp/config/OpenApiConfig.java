@@ -17,7 +17,7 @@ public class OpenApiConfig {
     public OpenAPI demoErpOpenApi() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Demo ERP API")
+                        .title("AsterFlow ERP API")
                         .version("1.0.0")
                         .description("Interview-ready ERP API for products, inventory, purchase orders, sale orders, customers, and dashboard data."))
                 .addSecurityItem(new SecurityRequirement().addList(BEARER_AUTH))

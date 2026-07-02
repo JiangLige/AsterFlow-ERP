@@ -55,14 +55,16 @@ public class SupplierController {
 
     @Operation(summary = "启用供应商", description = "将停用供应商恢复为可用状态。")
     @PatchMapping("/{id}/active")
-    public ApiResponse<Void> active(@PathVariable Long id) {
+    public ApiResponse<Void> active(@PathVariable Long id, HttpServletRequest request) {
+        AuthUtil.requireAdmin(request);
         supplierService.active(id);
         return ApiResponse.success();
     }
 
     @Operation(summary = "停用供应商", description = "停用供应商后，业务侧应避免继续用于新的采购。")
     @PatchMapping("/{id}/inactive")
-    public ApiResponse<Void> inactive(@PathVariable Long id) {
+    public ApiResponse<Void> inactive(@PathVariable Long id, HttpServletRequest request) {
+        AuthUtil.requireAdmin(request);
         supplierService.inactive(id);
         return ApiResponse.success();
     }

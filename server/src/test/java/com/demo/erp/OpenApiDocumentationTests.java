@@ -29,7 +29,7 @@ class OpenApiDocumentationTests {
 
         assertThat(response.statusCode()).isEqualTo(200);
         assertThat(response.body()).contains("\"openapi\"");
-        assertThat(response.body()).contains("\"title\":\"Demo ERP API\"");
+        assertThat(response.body()).contains("\"title\":\"AsterFlow ERP API\"");
         assertThat(response.body()).contains("\"bearerAuth\"");
         assertThat(response.body()).contains("\"type\":\"http\"");
     }

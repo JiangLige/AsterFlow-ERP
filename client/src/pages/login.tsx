@@ -46,7 +46,7 @@ export default function LoginPage() {
 
     return (
         <main style={{ padding: '2rem', fontFamily: 'Arial, sans-serif' }}>
-            <h1>Demo ERP 登录</h1>
+            <h1>AsterFlow ERP 登录</h1>
 
             <form onSubmit={handleLogin} style={{ marginTop: '1rem' }}>
                 <div>

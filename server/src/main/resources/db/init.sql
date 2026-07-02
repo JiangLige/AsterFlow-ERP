@@ -1,20 +1,22 @@
--- Demo ERP MySQL initialization script.
+
+-- AsterFlow ERP MySQL initialization script.
 -- Target database configuration:
---   jdbc:mysql://localhost:3306/demo_erp?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8
+--   jdbc:mysql://localhost:3306/asterflow_erp?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8
 --
 -- Default accounts:
 --   admin / admin123
 --   staff / user123
 
-CREATE DATABASE IF NOT EXISTS demo_erp
+CREATE DATABASE IF NOT EXISTS asterflow_erp
     DEFAULT CHARACTER SET utf8mb4
     DEFAULT COLLATE utf8mb4_unicode_ci;
 
-USE demo_erp;
+USE asterflow_erp;
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
+DROP TABLE IF EXISTS t_audit_log;
 DROP TABLE IF EXISTS t_stock_record;
 DROP TABLE IF EXISTS t_sale_order_item;
 DROP TABLE IF EXISTS t_sale_order;
@@ -255,3 +257,21 @@ VALUES
     ('PO', DATE_FORMAT(CURDATE(), '%Y%m%d'), 0),
     ('SO', DATE_FORMAT(CURDATE(), '%Y%m%d'), 0)
 ON DUPLICATE KEY UPDATE current_value = VALUES(current_value);
+
+CREATE TABLE t_audit_log (
+    id BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+    operator_id BIGINT NULL COMMENT '操作人ID',
+    operator_name VARCHAR(100) NULL COMMENT '操作人名称',
+    operator_role VARCHAR(50) NULL COMMENT '操作人角色',
+    action VARCHAR(50) NOT NULL COMMENT '操作类型',
+    target_type VARCHAR(50) NOT NULL COMMENT '业务对象类型',
+    target_id BIGINT NULL COMMENT '业务对象ID',
+    target_no VARCHAR(100) NULL COMMENT '业务对象编号',
+    description VARCHAR(500) NULL COMMENT '操作描述',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    PRIMARY KEY (id),
+    KEY idx_audit_log_created_at (created_at),
+    KEY idx_audit_log_operator_id (operator_id),
+    KEY idx_audit_log_target (target_type, target_id),
+    KEY idx_audit_log_action (action)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='操作审计日志表';

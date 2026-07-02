@@ -32,7 +32,7 @@ export default function PurchaseOrdersPage() {
     const [total, setTotal] = useState(0);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-
+    const [role, setRole] = useState('');
     const loadOrders = async (targetPage = page) => {
         setLoading(true);
         setError('');
@@ -126,6 +126,7 @@ export default function PurchaseOrdersPage() {
     }
 
     useEffect(() => {
+        setRole(localStorage.getItem('role') || '');
         loadOrders();
     }, []);
 
@@ -191,7 +192,7 @@ export default function PurchaseOrdersPage() {
                                         审核入库
                                     </button>
                                 )}
-                                {order.status === 'DRAFT' && (
+                                {role === 'ADMIN' && order.status === 'DRAFT' && (
                                     <button onClick={() => handleDelete(order.id)}>
                                         删除
                                     </button>

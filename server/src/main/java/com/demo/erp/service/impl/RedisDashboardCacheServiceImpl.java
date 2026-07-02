@@ -13,7 +13,7 @@ import java.time.Duration;
 @ConditionalOnProperty(name = "erp.cache.type", havingValue = "redis")
 public class RedisDashboardCacheServiceImpl implements DashboardCacheService {
 
-    private static final String KEY = "demo-erp:dashboard:summary";
+    private static final String KEY = "asterflow-erp:dashboard:summary";
     private static final Duration TTL = Duration.ofSeconds(60);
 
     private final StringRedisTemplate stringRedisTemplate;
