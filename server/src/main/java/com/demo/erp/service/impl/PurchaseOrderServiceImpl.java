@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.demo.erp.common.BusinessException;
+import com.demo.erp.common.EnumValidator;
 import com.demo.erp.common.OrderNoGenerator;
 import com.demo.erp.dto.*;
 import com.demo.erp.dto.inventory.InventoryChangeCommand;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
+import com.demo.erp.common.PageRequestUtil;
 
 @Service
 public class PurchaseOrderServiceImpl implements PurchaseOrderService {
@@ -161,14 +163,22 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
                     .like(PurchaseOrder::getSupplierName, keyword));
         }
 
-        if (status != null && !status.isBlank()) {
-            wrapper.eq(PurchaseOrder::getStatus, status);
-        }
+        String validStatus = EnumValidator.requireValid(
+                PurchaseOrderStatus.class,
+                status,
+                "采购单状态不合法"
+        );
 
+        if (validStatus != null && !validStatus.isBlank()) {
+            wrapper.eq(PurchaseOrder::getStatus, validStatus);
+        }
         wrapper.orderByDesc(PurchaseOrder::getCreatedAt)
                 .orderByDesc(PurchaseOrder::getId);
 
-        Page<PurchaseOrder> purchaseOrderPage = new Page<>(page, size);
+        Page<PurchaseOrder> purchaseOrderPage = new Page<>(
+                PageRequestUtil.normalizePage(page),
+                PageRequestUtil.normalizeSize(size)
+        );
 
         Page<PurchaseOrder> result = purchaseOrderMapper.selectPage(purchaseOrderPage, wrapper);
 

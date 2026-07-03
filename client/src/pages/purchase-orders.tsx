@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
 import { apiRequest } from '@/lib/api';
+import EmptyState from '@/components/EmptyState';
+import ErrorMessage from '@/components/ErrorMessage';
 
 type PurchaseOrder = {
     id: number;
@@ -101,6 +103,9 @@ export default function PurchaseOrdersPage() {
         try {
             await apiRequest(`/api/purchase-orders/${id}`, {
                 method: 'DELETE',
+                headers: {
+                    'Idempotency-Key': crypto.randomUUID(),
+                },
             });
 
             loadOrders(page, keyword, status);
@@ -121,6 +126,9 @@ export default function PurchaseOrdersPage() {
         try {
             await apiRequest(`/api/purchase-orders/${id}/cancel`, {
                 method: 'PATCH',
+                headers: {
+                    'Idempotency-Key': crypto.randomUUID(),
+                },
             });
 
             loadOrders(page, keyword, status);
@@ -133,6 +141,8 @@ export default function PurchaseOrdersPage() {
         setRole(localStorage.getItem('role') || '');
         loadOrders(1, '', '');
     }, [loadOrders]);
+
+
 
     return (
         <Layout>
@@ -159,58 +169,69 @@ export default function PurchaseOrdersPage() {
                 </button>
             </div>
 
-            {error && <div style={{ color: 'red', marginTop: '1rem' }}>{error}</div>}
+            <ErrorMessage message={error} />
+
+            {!loading && orders.length === 0 && (
+                <EmptyState
+                    title="暂无采购单数据"
+                    description="可以点击新增采购单创建第一条记录。"
+                />
+            )}
 
             <div style={{ marginTop: '1rem' }}>
                 第 {page} / {pages} 页，共 {total} 条
             </div>
 
-            <table style={{ marginTop: '1rem', width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                    <tr>
-                        <th>单号</th>
-                        <th>供应商</th>
-                        <th>金额</th>
-                        <th>状态</th>
-                        <th>备注</th>
-                        <th>创建时间</th>
-                        <th>操作</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {orders.map((order) => (
-                        <tr key={order.id}>
-                            <td>{order.orderNo}</td>
-                            <td>{order.supplierName}</td>
-                            <td>{order.totalAmount}</td>
-                            <td>{order.status}</td>
-                            <td>{order.remark}</td>
-                            <td>{order.createdAt}</td>
-                            <td style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                                <Link href={`/purchase-orders/${order.id}`}>详情</Link>
-                                {order.status === 'DRAFT' && (
-                                    <Link href={`/purchase-orders/${order.id}/edit`}>编辑</Link>
-                                )}
-                                {order.status === 'DRAFT' && (
-                                    <button onClick={() => handleApprove(order.id)}>
-                                        审核入库
-                                    </button>
-                                )}
-                                {role === 'ADMIN' && order.status === 'DRAFT' && (
-                                    <button onClick={() => handleDelete(order.id)}>
-                                        删除
-                                    </button>
-                                )}
-                                {order.status === 'APPROVED' && (
-                                    <button onClick={() => handleCancel(order.id)}>
-                                        取消采购单
-                                    </button>
-                                )}
-                            </td>
+            {orders.length > 0 && (
+                <table style={{ marginTop: '1rem', width: '100%', borderCollapse: 'collapse' }}>
+                    <table style={{ marginTop: '1rem', width: '100%', borderCollapse: 'collapse' }}>
+                        <thead>
+                        <tr>
+                            <th>单号</th>
+                            <th>供应商</th>
+                            <th>金额</th>
+                            <th>状态</th>
+                            <th>备注</th>
+                            <th>创建时间</th>
+                            <th>操作</th>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
+                        </thead>
+                        <tbody>
+                        {orders.map((order) => (
+                            <tr key={order.id}>
+                                <td>{order.orderNo}</td>
+                                <td>{order.supplierName}</td>
+                                <td>{order.totalAmount}</td>
+                                <td>{order.status}</td>
+                                <td>{order.remark}</td>
+                                <td>{order.createdAt}</td>
+                                <td style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                    <Link href={`/purchase-orders/${order.id}`}>详情</Link>
+                                    {order.status === 'DRAFT' && (
+                                        <Link href={`/purchase-orders/${order.id}/edit`}>编辑</Link>
+                                    )}
+                                    {order.status === 'DRAFT' && (
+                                        <button onClick={() => handleApprove(order.id)}>
+                                            审核入库
+                                        </button>
+                                    )}
+                                    {role === 'ADMIN' && order.status === 'DRAFT' && (
+                                        <button onClick={() => handleDelete(order.id)}>
+                                            删除
+                                        </button>
+                                    )}
+                                    {order.status === 'APPROVED' && (
+                                        <button onClick={() => handleCancel(order.id)}>
+                                            取消采购单
+                                        </button>
+                                    )}
+                                </td>
+                            </tr>
+                        ))}
+                        </tbody>
+                    </table>
+                </table>
+            )}
 
             <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
                 <button onClick={() => loadOrders(page - 1, keyword, status)} disabled={loading || page <= 1}>

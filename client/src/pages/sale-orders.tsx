@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
 import { apiRequest } from '@/lib/api';
+import EmptyState from '@/components/EmptyState';
 
 type SaleOrder = {
     id: number;
@@ -81,6 +82,9 @@ export default function SaleOrdersPage() {
         try {
             await apiRequest(`/api/sale-orders/${id}/approve`, {
                 method: 'PATCH',
+                headers: {
+                    'Idempotency-Key': crypto.randomUUID(),
+                },
             });
 
             loadOrders(page, keyword, status);
@@ -101,6 +105,9 @@ export default function SaleOrdersPage() {
         try {
             await apiRequest(`/api/sale-orders/${id}/cancel`, {
                 method: 'PATCH',
+                headers: {
+                    'Idempotency-Key': crypto.randomUUID(),
+                },
             });
 
             loadOrders(page, keyword, status);
@@ -160,6 +167,13 @@ export default function SaleOrdersPage() {
             </div>
 
             {error && <div style={{ color: 'red', marginTop: '1rem' }}>{error}</div>}
+
+            {!loading && orders.length === 0 && (
+                <EmptyState
+                    title="暂无销售单数据"
+                    description="可以点击新增销售单创建第一条记录。"
+                />
+            )}
 
             <div style={{ marginTop: '1rem' }}>
                 第 {page} / {pages} 页，共 {total} 条

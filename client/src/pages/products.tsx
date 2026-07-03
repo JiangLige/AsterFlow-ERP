@@ -2,7 +2,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { apiRequest } from '@/lib/api';
 import Layout from "@/components/Layout";
 import Link from 'next/link';
-
+import EmptyState from '@/components/EmptyState';
+import ErrorMessage from '@/components/ErrorMessage';
 
 type Product = {
     id: number;
@@ -135,66 +136,88 @@ export default function ProductsPage() {
                 </div>
             </div>
 
+            <ErrorMessage message={error} />
 
-
-            {error && (
-                <div style={{ marginTop: '1rem', color: 'red' }}>
-                    {error}
-                </div>
+            {!loading && products.length === 0 && (
+                <EmptyState
+                    title="暂无商品数据"
+                    description="可以点击新增商品创建第一条记录。"
+                />
             )}
 
-            <table
-                style={{
-                    marginTop: '1rem',
-                    width: '100%',
-                    borderCollapse: 'collapse',
-                }}
-            >
-                <thead>
-                <tr>
-                    <th>编码</th>
-                    <th>名称</th>
-                    <th>分类</th>
-                    <th>单位</th>
-                    <th>售价</th>
-                    <th>成本</th>
-                    <th>库存</th>
-                    <th>最低库存</th>
-                    <th>状态</th>
-                    <th>操作</th>
 
-                </tr>
-                </thead>
-                <tbody>
-                {products.map((product) => (
-                    <tr key={product.id}>
-                        <td>{product.productCode}</td>
-                        <td>{product.name}</td>
-                        <td>{product.category}</td>
-                        <td>{product.unit}</td>
-                        <td>{product.price}</td>
-                        <td>{product.cost}</td>
-                        <td>{product.stock}</td>
-                        <td>{product.minStock}</td>
-                        <td>{product.status}</td>
-                        <td>
-                            <Link href={`/products/${product.id}/edit`}>
-                                编辑
-                            </Link>
-                            <Link href={`/products/${product.id}/stock`}>
-                                库存调整
-                            </Link>
+            {products.length > 0 && (
+                <table
+                    style={{
+                        marginTop: '1rem',
+                        width: '100%',
+                        borderCollapse: 'collapse',
+                    }}
+                >
+                    {products.length > 0 && (
+                        <table
+                            style={{
+                                marginTop: '1rem',
+                                width: '100%',
+                                borderCollapse: 'collapse',
+                            }}
+                        >
+                            <table
+                                style={{
+                                    marginTop: '1rem',
+                                    width: '100%',
+                                    borderCollapse: 'collapse',
+                                }}
+                            >
+                                <thead>
+                                <tr>
+                                    <th>编码</th>
+                                    <th>名称</th>
+                                    <th>分类</th>
+                                    <th>单位</th>
+                                    <th>售价</th>
+                                    <th>成本</th>
+                                    <th>库存</th>
+                                    <th>最低库存</th>
+                                    <th>状态</th>
+                                    <th>操作</th>
 
-                            {role === 'ADMIN' && (
-                                <button onClick={() => handleDelete(product.id)}>
-                                    停用
-                                </button>
-                            )}
-                        </td>
-                    </tr>
-                ))}
-                </tbody>
-            </table>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {products.map((product) => (
+                                    <tr key={product.id}>
+                                        <td>{product.productCode}</td>
+                                        <td>{product.name}</td>
+                                        <td>{product.category}</td>
+                                        <td>{product.unit}</td>
+                                        <td>{product.price}</td>
+                                        <td>{product.cost}</td>
+                                        <td>{product.stock}</td>
+                                        <td>{product.minStock}</td>
+                                        <td>{product.status}</td>
+                                        <td>
+                                            <Link href={`/products/${product.id}/edit`}>
+                                                编辑
+                                            </Link>
+                                            <Link href={`/products/${product.id}/stock`}>
+                                                库存调整
+                                            </Link>
+
+                                            {role === 'ADMIN' && (
+                                                <button onClick={() => handleDelete(product.id)}>
+                                                    停用
+                                                </button>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
+                                </tbody>
+                            </table>
+                        </table>
+                    )}
+                </table>
+            )}
         </Layout>
     );
 }

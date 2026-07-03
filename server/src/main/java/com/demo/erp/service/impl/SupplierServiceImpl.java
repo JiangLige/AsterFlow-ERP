@@ -3,6 +3,7 @@ package com.demo.erp.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.demo.erp.common.BusinessException;
+import com.demo.erp.common.EnumValidator;
 import com.demo.erp.dto.PageResponse;
 import com.demo.erp.dto.SupplierRequest;
 import com.demo.erp.dto.SupplierResponse;
@@ -12,7 +13,7 @@ import com.demo.erp.service.SupplierService;
 import entity.Supplier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import com.demo.erp.common.PageRequestUtil;
 import java.util.List;
 
 @Service
@@ -92,14 +93,23 @@ public class SupplierServiceImpl implements SupplierService {
                     .like(Supplier::getPhone, keyword));
         }
 
-        if (status != null && !status.isBlank()) {
-            wrapper.eq(Supplier::getStatus, status);
+        String validStatus = EnumValidator.requireValid(
+                SupplierStatus.class,
+                status,
+                "供应商状态不合法"
+        );
+
+        if (validStatus != null && !validStatus.isBlank()) {
+            wrapper.eq(Supplier::getStatus, validStatus);
         }
 
         wrapper.orderByDesc(Supplier::getCreatedAt)
                 .orderByDesc(Supplier::getId);
 
-        Page<Supplier> supplierPage = new Page<>(page, size);
+        Page<Supplier> supplierPage = new Page<>(
+                PageRequestUtil.normalizePage(page),
+                PageRequestUtil.normalizeSize(size)
+        );
 
         Page<Supplier> result = supplierMapper.selectPage(supplierPage, wrapper);
 
@@ -142,8 +152,14 @@ public class SupplierServiceImpl implements SupplierService {
         supplier.setPhone(request.getPhone());
         supplier.setAddress(request.getAddress());
 
-        if (request.getStatus() != null && !request.getStatus().isBlank()) {
-            supplier.setStatus(request.getStatus());
+        String validStatus = EnumValidator.requireValid(
+                SupplierStatus.class,
+                request.getStatus(),
+                "供应商状态不合法"
+        );
+
+        if (validStatus != null && !validStatus.isBlank()) {
+            supplier.setStatus(validStatus);
         }
 
         supplierMapper.updateById(supplier);

@@ -1,6 +1,5 @@
 package com.demo.erp.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.demo.erp.common.BusinessException;
 import com.demo.erp.dto.inventory.InventoryChangeCommand;
 import com.demo.erp.enums.StockChangeType;
@@ -51,12 +50,7 @@ public class InventoryServiceImpl implements InventoryService {
 
         int changeQuantity = command.getQuantity();
 
-        int rows = productMapper.update(
-                null,
-                new LambdaUpdateWrapper<Product>()
-                        .eq(Product::getId, product.getId())
-                        .setSql("stock = stock + " + changeQuantity)
-        );
+        int rows = productMapper.increaseStock(product.getId(), changeQuantity);
 
         if (rows == 0) {
             throw new BusinessException("商品库存更新失败：" + product.getName());
@@ -116,13 +110,7 @@ public class InventoryServiceImpl implements InventoryService {
             throw new BusinessException("商品库存不足：" + product.getName());
         }
 
-        int rows = productMapper.update(
-                null,
-                new LambdaUpdateWrapper<Product>()
-                        .eq(Product::getId, product.getId())
-                        .ge(Product::getStock, changeQuantity)
-                        .setSql("stock = stock - " + changeQuantity)
-        );
+        int rows = productMapper.deductStockIfEnough(product.getId(), changeQuantity);
 
         if (rows == 0) {
             throw new BusinessException("商品库存不足：" + product.getName());

@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
 import { apiRequest } from '@/lib/api';
+import EmptyState from '@/components/EmptyState';
+import ErrorMessage from '@/components/ErrorMessage';
 
 type Supplier = {
     id: number;
@@ -123,62 +125,73 @@ export default function SuppliersPage() {
                 </button>
             </div>
 
-            {error && (
-                <div style={{ marginTop: '1rem', color: 'red' }}>
-                    {error}
-                </div>
+            <ErrorMessage message={error} />
+
+            {!loading && suppliers.length === 0 && (
+                <EmptyState
+                    title="暂无供应商数据"
+                    description="可以点击新增供应商创建第一条记录。"
+                />
             )}
 
-            <table
-                style={{
-                    marginTop: '1rem',
-                    width: '100%',
-                    borderCollapse: 'collapse',
-                }}
-            >
-                <thead>
-                <tr>
-                    <th>编码</th>
-                    <th>名称</th>
-                    <th>联系人</th>
-                    <th>电话</th>
-                    <th>地址</th>
-                    <th>状态</th>
-                    <th>操作</th>
-                </tr>
-                </thead>
-                <tbody>
-                {suppliers.map((supplier) => (
-                    <tr key={supplier.id}>
-                        <td>{supplier.supplierCode}</td>
-                        <td>{supplier.name}</td>
-                        <td>{supplier.contactName}</td>
-                        <td>{supplier.phone}</td>
-                        <td>{supplier.address}</td>
-                        <td>{supplier.status}</td>
-                        <td>
-                            <td style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                                <Link href={`/suppliers/${supplier.id}/edit`}>
-                                    编辑
-                                </Link>
+            {suppliers.length > 0 && (
+                <table
+                    style={{
+                        marginTop: '1rem',
+                        width: '100%',
+                        borderCollapse: 'collapse',
+                    }}
+                >
+                    <table
+                        style={{
+                            marginTop: '1rem',
+                            width: '100%',
+                            borderCollapse: 'collapse',
+                        }}
+                    >
+                        <thead>
+                        <tr>
+                            <th>编码</th>
+                            <th>名称</th>
+                            <th>联系人</th>
+                            <th>电话</th>
+                            <th>地址</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {suppliers.map((supplier) => (
+                            <tr key={supplier.id}>
+                                <td>{supplier.supplierCode}</td>
+                                <td>{supplier.name}</td>
+                                <td>{supplier.contactName}</td>
+                                <td>{supplier.phone}</td>
+                                <td>{supplier.address}</td>
+                                <td>{supplier.status}</td>
+                                    <td style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                        <Link href={`/suppliers/${supplier.id}/edit`}>
+                                            编辑
+                                        </Link>
 
-                                {role === 'ADMIN' && supplier.status === 'ACTIVE' && (
-                                    <button onClick={() => handleChangeStatus(supplier.id, 'INACTIVE')}>
-                                        停用
-                                    </button>
-                                )}
+                                        {role === 'ADMIN' && supplier.status === 'ACTIVE' && (
+                                            <button onClick={() => handleChangeStatus(supplier.id, 'INACTIVE')}>
+                                                停用
+                                            </button>
+                                        )}
 
-                                {role === 'ADMIN' && supplier.status === 'INACTIVE' && (
-                                    <button onClick={() => handleChangeStatus(supplier.id, 'ACTIVE')}>
-                                        启用
-                                    </button>
-                                )}
-                            </td>
-                        </td>
-                    </tr>
-                ))}
-                </tbody>
-            </table>
+                                        {role === 'ADMIN' && supplier.status === 'INACTIVE' && (
+                                            <button onClick={() => handleChangeStatus(supplier.id, 'ACTIVE')}>
+                                                启用
+                                            </button>
+                                        )}
+                                    </td>
+                            </tr>
+                        ))}
+                        </tbody>
+                    </table>
+                </table>
+            )}
         </Layout>
     );
 }

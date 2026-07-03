@@ -28,6 +28,8 @@ erp:
     session-store: ${ERP_AUTH_SESSION_STORE:redis}
   cache:
     type: ${ERP_CACHE_TYPE:local}
+  idempotency:
+    store: ${ERP_IDEMPOTENCY_STORE:local}
 
 springdoc:
   api-docs:

@@ -9,15 +9,18 @@ import com.demo.erp.util.AuthUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
+import com.demo.erp.service.IdempotencyService;
 
 @RestController
 @RequestMapping("/api/purchase-orders")
 public class PurchaseOrderController {
 
     private final PurchaseOrderService purchaseOrderService;
+    private final IdempotencyService idempotencyService;
 
-    public PurchaseOrderController(PurchaseOrderService purchaseOrderService) {
+    public PurchaseOrderController(PurchaseOrderService purchaseOrderService, IdempotencyService idempotencyService) {
         this.purchaseOrderService = purchaseOrderService;
+        this.idempotencyService = idempotencyService;
     }
 
     @PostMapping
@@ -41,7 +44,12 @@ public class PurchaseOrderController {
     }
 
     @PatchMapping("/{id}/approve")
-    public ApiResponse<Void> approve(@PathVariable Long id, HttpServletRequest request) {
+    public ApiResponse<Void> approve(
+            @PathVariable Long id,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
+            HttpServletRequest request
+    ) {
+        idempotencyService.requireFirstExecution("purchase-order-approve:" + id, idempotencyKey);
         purchaseOrderService.approve(id, AuthUtil.currentOperator(request));
         return ApiResponse.success();
     }
@@ -61,9 +69,13 @@ public class PurchaseOrderController {
     }
 
     @PatchMapping("/{id}/cancel")
-    public ApiResponse<Void> cancel(@PathVariable Long id, HttpServletRequest request) {
+    public ApiResponse<Void> cancel(
+            @PathVariable Long id,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
+            HttpServletRequest request
+    ) {
+        idempotencyService.requireFirstExecution("purchase-order-cancel:" + id, idempotencyKey);
         purchaseOrderService.cancel(id, AuthUtil.currentOperator(request));
         return ApiResponse.success();
     }
-
 }

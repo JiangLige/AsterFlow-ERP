@@ -3,6 +3,7 @@ package com.demo.erp.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.demo.erp.common.BusinessException;
+import com.demo.erp.common.EnumValidator;
 import com.demo.erp.dto.*;
 import com.demo.erp.dto.inventory.InventoryChangeCommand;
 import com.demo.erp.enums.ProductStatus;
@@ -17,7 +18,7 @@ import entity.Product;
 import entity.StockRecord;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import com.demo.erp.common.PageRequestUtil;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -257,14 +258,23 @@ public class ProductServiceImpl implements ProductService {
                     .like(Product::getCategory, keyword);
         }
 
-        if (status != null && !status.isBlank()) {
-            wrapper.eq(Product::getStatus, status);
+        String validStatus = EnumValidator.requireValid(
+                ProductStatus.class,
+                status,
+                "商品状态不合法"
+        );
+
+        if (validStatus != null && !validStatus.isBlank()) {
+            wrapper.eq(Product::getStatus, validStatus);
         }
 
         wrapper.orderByDesc(Product::getCreatedAt)
                 .orderByDesc(Product::getId);
 
-        Page<Product> productPage = new Page<>(page, size);
+        Page<Product> productPage = new Page<>(
+                PageRequestUtil.normalizePage(page),
+                PageRequestUtil.normalizeSize(size)
+        );
 
         Page<Product> result = productMapper.selectPage(productPage, wrapper);
 
@@ -292,13 +302,12 @@ public class ProductServiceImpl implements ProductService {
             throw new BusinessException("商品不存在");
         }
 
-        if (request.getStatus() != null && !request.getStatus().isBlank()) {
-            try {
-                ProductStatus.valueOf(request.getStatus());
-            } catch (IllegalArgumentException e) {
-                throw new BusinessException("商品状态不合法");
-            }
-        }
+        String validStatus = EnumValidator.requireValid(
+                ProductStatus.class,
+                request.getStatus(),
+                "商品状态不合法"
+        );
+
         Product existing = productMapper.selectOne(
                 new LambdaQueryWrapper<Product>()
                         .eq(Product::getProductCode, request.getProductCode())
@@ -315,8 +324,8 @@ public class ProductServiceImpl implements ProductService {
         product.setUnit(request.getUnit());
         product.setPrice(request.getPrice());
         product.setCost(request.getCost());
-        if (request.getStatus() != null && !request.getStatus().isBlank()) {
-            product.setStatus(request.getStatus());
+        if (validStatus != null && !validStatus.isBlank()) {
+            product.setStatus(validStatus);
         }
         product.setDescription(request.getDescription());
         product.setMinStock(request.getMinStock() == null ? 0 : request.getMinStock());

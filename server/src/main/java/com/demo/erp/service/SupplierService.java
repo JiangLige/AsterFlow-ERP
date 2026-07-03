@@ -3,6 +3,8 @@ package com.demo.erp.service;
 import com.demo.erp.dto.PageResponse;
 import com.demo.erp.dto.SupplierRequest;
 import com.demo.erp.dto.SupplierResponse;
+import com.demo.erp.common.EnumValidator;
+import com.demo.erp.enums.CustomerStatus;
 
 public interface SupplierService {
 

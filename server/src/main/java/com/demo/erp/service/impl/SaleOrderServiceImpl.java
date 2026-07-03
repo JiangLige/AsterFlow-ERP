@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.demo.erp.common.BusinessException;
+import com.demo.erp.common.EnumValidator;
 import com.demo.erp.common.OrderNoGenerator;
 import com.demo.erp.dto.AuditOperator;
 import com.demo.erp.dto.PageResponse;
@@ -28,6 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
+import com.demo.erp.common.PageRequestUtil;
 
 @Service
 public class SaleOrderServiceImpl implements SaleOrderService {
@@ -182,10 +184,14 @@ public class SaleOrderServiceImpl implements SaleOrderService {
         }
 
         if (status != null && !status.isBlank()) {
-            try {
-                SaleOrderStatus.valueOf(status);
-            } catch (IllegalArgumentException e) {
-                throw new BusinessException("销售单状态不合法");
+            String validStatus = EnumValidator.requireValid(
+                    SaleOrderStatus.class,
+                    status,
+                    "销售单状态不合法"
+            );
+
+            if (validStatus != null && !validStatus.isBlank()) {
+                wrapper.eq(SaleOrder::getStatus, validStatus);
             }
 
             wrapper.eq(SaleOrder::getStatus, status);
@@ -194,7 +200,10 @@ public class SaleOrderServiceImpl implements SaleOrderService {
         wrapper.orderByDesc(SaleOrder::getCreatedAt)
                 .orderByDesc(SaleOrder::getId);
 
-        Page<SaleOrder> saleOrderPage = new Page<>(page, size);
+        Page<SaleOrder> saleOrderPage = new Page<>(
+                PageRequestUtil.normalizePage(page),
+                PageRequestUtil.normalizeSize(size)
+        );;
         Page<SaleOrder> result = saleOrderMapper.selectPage(saleOrderPage, wrapper);
 
         List<SaleOrderResponse> records = result.getRecords()

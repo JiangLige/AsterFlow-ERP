@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
 import { apiRequest } from '@/lib/api';
+import EmptyState from '@/components/EmptyState';
+import ErrorMessage from '@/components/ErrorMessage';
 
 type Customer = {
     id: number;
@@ -120,10 +122,13 @@ export default function CustomersPage() {
                 </button>
             </div>
 
-            {error && (
-                <div style={{ marginTop: '1rem', color: 'red' }}>
-                    {error}
-                </div>
+            <ErrorMessage message={error} />
+
+            {!loading && customers.length === 0 && (
+                <EmptyState
+                    title="暂无客户数据"
+                    description="可以点击新增客户创建第一条记录。"
+                />
             )}
 
             <table

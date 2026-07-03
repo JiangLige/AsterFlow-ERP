@@ -2,6 +2,7 @@ package com.demo.erp.controller;
 
 import com.demo.erp.common.ApiResponse;
 import com.demo.erp.dto.*;
+import com.demo.erp.service.IdempotencyService;
 import com.demo.erp.service.ProductService;
 import com.demo.erp.util.AuthUtil;
 import io.swagger.v3.oas.annotations.Operation;
@@ -21,9 +22,11 @@ import java.util.List;
 public class ProductController {
 
     private final ProductService productService;
+    private final IdempotencyService idempotencyService;
 
-    public ProductController(ProductService productService) {
+    public ProductController(ProductService productService, IdempotencyService idempotencyService) {
         this.productService = productService;
+        this.idempotencyService = idempotencyService;
     }
 
     @PostMapping
@@ -63,8 +66,11 @@ public class ProductController {
     public ApiResponse<Void> adjustStock(
             @Parameter(description = "商品ID", example = "1")
             @PathVariable Long id,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
             @Valid @RequestBody StockAdjustRequest stockRequest,
-            HttpServletRequest httpRequest) {
+            HttpServletRequest httpRequest
+    ) {
+        idempotencyService.requireFirstExecution("product-stock-adjust:" + id, idempotencyKey);
         productService.adjustStock(id, stockRequest, AuthUtil.currentOperator(httpRequest));
         return ApiResponse.success();
     }

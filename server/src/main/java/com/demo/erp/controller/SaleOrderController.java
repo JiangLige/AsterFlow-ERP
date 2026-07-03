@@ -4,6 +4,7 @@ import com.demo.erp.common.ApiResponse;
 import com.demo.erp.dto.PageResponse;
 import com.demo.erp.dto.sale.SaleOrderCreateRequest;
 import com.demo.erp.dto.sale.SaleOrderResponse;
+import com.demo.erp.service.IdempotencyService;
 import com.demo.erp.service.SaleOrderService;
 import com.demo.erp.util.AuthUtil;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,9 +16,11 @@ import org.springframework.web.bind.annotation.*;
 public class SaleOrderController {
 
     private final SaleOrderService saleOrderService;
+    private final IdempotencyService idempotencyService;
 
-    public SaleOrderController(SaleOrderService saleOrderService) {
+    public SaleOrderController(SaleOrderService saleOrderService, IdempotencyService idempotencyService) {
         this.saleOrderService = saleOrderService;
+        this.idempotencyService = idempotencyService;
     }
 
     @PostMapping
@@ -40,7 +43,12 @@ public class SaleOrderController {
     }
 
     @PatchMapping("/{id}/approve")
-    public ApiResponse<Void> approve(@PathVariable Long id, HttpServletRequest request) {
+    public ApiResponse<Void> approve(
+            @PathVariable Long id,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
+            HttpServletRequest request
+    ) {
+        idempotencyService.requireFirstExecution("sale-order-approve:" + id, idempotencyKey);
         saleOrderService.approve(id, AuthUtil.currentOperator(request));
         return ApiResponse.success();
     }
@@ -59,7 +67,12 @@ public class SaleOrderController {
     }
 
     @PatchMapping("/{id}/cancel")
-    public ApiResponse<Void> cancel(@PathVariable Long id, HttpServletRequest request) {
+    public ApiResponse<Void> cancel(
+            @PathVariable Long id,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
+            HttpServletRequest request
+    ) {
+        idempotencyService.requireFirstExecution("sale-order-cancel:" + id, idempotencyKey);
         saleOrderService.cancel(id, AuthUtil.currentOperator(request));
         return ApiResponse.success();
     }

@@ -2,6 +2,12 @@ import Link from 'next/link';
 import {useRouter} from 'next/router';
 import type {ReactNode} from 'react';
 import {useEffect, useState} from 'react';
+import {
+    clearAuthStorage,
+    getAccessToken,
+    getCurrentUserDisplay,
+    getRefreshToken,
+} from '@/lib/auth';
 
 type LayoutProps = {
     children: ReactNode;
@@ -13,21 +19,22 @@ export default function Layout({ children }: LayoutProps) {
     const [displayName, setDisplayName] = useState('');
     const [role, setRole] = useState('');
     useEffect(() => {
-        const token = localStorage.getItem('token');
+        const token = getAccessToken();
 
         if (!token) {
             router.replace('/login');
             return;
         }
 
-        setDisplayName(localStorage.getItem('realName') || localStorage.getItem('username') || '');
-        setRole(localStorage.getItem('role') || '');
+        const currentUser = getCurrentUserDisplay();
+        setDisplayName(currentUser.displayName);
+        setRole(currentUser.role);
         setReady(true);
     }, [router]);
 
     async function handleLogout() {
-        const accessToken = localStorage.getItem('accessToken') || localStorage.getItem('token') || '';
-        const refreshToken = localStorage.getItem('refreshToken') || '';
+        const accessToken = getAccessToken();
+        const refreshToken = getRefreshToken();
 
         try {
             await fetch('/api/auth/logout', {
@@ -44,13 +51,7 @@ export default function Layout({ children }: LayoutProps) {
             // Local logout should continue even if the server is unreachable.
         }
 
-        localStorage.removeItem('token');
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('username');
-        localStorage.removeItem('realName');
-        localStorage.removeItem('role');
-        router.replace('/login');
+        clearAuthStorage();
     }
 
     if (!ready) {

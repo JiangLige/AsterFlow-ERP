@@ -90,6 +90,9 @@ export default function ProductStockAdjustPage() {
                     changeQuantity,
                     remark,
                 }),
+                headers: {
+                    'Idempotency-Key': crypto.randomUUID(),
+                },
             });
 
             setSuccess('库存调整成功，已生成库存流水');
