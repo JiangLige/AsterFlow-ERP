@@ -16,19 +16,28 @@ public class JwtUtil {
     @Value("${jwt.secret}")
     private String secret;
 
-    @Value("${jwt.expire-hours}")
-    private Long expireHours;
+    @Value("${jwt.access-token-expire-minutes:30}")
+    private Long accessTokenExpireMinutes;
 
     public String generateToken(Long userId, String username, String role) {
+        return generateAccessToken(userId, username, role, null);
+    }
+
+    public String generateAccessToken(Long userId, String username, String role, String sessionId) {
         Instant now = Instant.now();
 
-        return JWT.create()
+        var builder = JWT.create()
                 .withSubject(String.valueOf(userId))
                 .withClaim("username", username)
                 .withClaim("role", role)
                 .withIssuedAt(Date.from(now))
-                .withExpiresAt(Date.from(now.plus(expireHours, ChronoUnit.HOURS)))
-                .sign(Algorithm.HMAC256(secret));
+                .withExpiresAt(Date.from(now.plus(accessTokenExpireMinutes, ChronoUnit.MINUTES)));
+
+        if (sessionId != null && !sessionId.isBlank()) {
+            builder.withClaim("sessionId", sessionId);
+        }
+
+        return builder.sign(Algorithm.HMAC256(secret));
     }
 
     public DecodedJWT verifyToken(String token) {
@@ -50,5 +59,14 @@ public class JwtUtil {
     public String getRole(String token) {
         DecodedJWT jwt = verifyToken(token);
         return jwt.getClaim("role").asString();
+    }
+
+    public String getSessionId(String token) {
+        DecodedJWT jwt = verifyToken(token);
+        return jwt.getClaim("sessionId").asString();
+    }
+
+    public Long getAccessTokenExpiresInSeconds() {
+        return accessTokenExpireMinutes * 60;
     }
 }

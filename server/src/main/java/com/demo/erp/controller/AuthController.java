@@ -4,9 +4,11 @@ import com.demo.erp.common.ApiResponse;
 import com.demo.erp.dto.auth.CurrentUserResponse;
 import com.demo.erp.dto.auth.LoginRequest;
 import com.demo.erp.dto.auth.LoginResponse;
+import com.demo.erp.dto.auth.RefreshTokenRequest;
 import com.demo.erp.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -22,6 +24,18 @@ public class AuthController {
     @PostMapping("/login")
     public ApiResponse<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         return ApiResponse.success(userService.login(request));
+    }
+
+    @PostMapping("/refresh")
+    public ApiResponse<LoginResponse> refresh(@Valid @RequestBody RefreshTokenRequest request) {
+        return ApiResponse.success(userService.refresh(request.getRefreshToken()));
+    }
+
+    @PostMapping("/logout")
+    public ApiResponse<Void> logout(@RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorization,
+                                    @RequestBody(required = false) RefreshTokenRequest request) {
+        userService.logout(authorization, request == null ? null : request.getRefreshToken());
+        return ApiResponse.success();
     }
 
     @GetMapping("/me")

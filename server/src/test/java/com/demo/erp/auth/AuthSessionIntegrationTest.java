@@ -3,11 +3,13 @@ package com.demo.erp.auth;
 import com.demo.erp.common.ApiResponse;
 import com.demo.erp.dto.auth.LoginRequest;
 import com.demo.erp.dto.auth.LoginResponse;
+import com.demo.erp.service.impl.InMemoryAuthSessionService;
 import com.demo.erp.util.JwtUtil;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.context.annotation.Import;
 import tools.jackson.databind.ObjectMapper;
 
 import java.net.URI;
@@ -19,6 +21,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Import(InMemoryAuthSessionService.class)
 class AuthSessionIntegrationTest {
 
     @LocalServerPort

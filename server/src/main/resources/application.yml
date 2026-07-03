@@ -20,9 +20,12 @@ spring:
 
 jwt:
   secret: ${JWT_SECRET:asterflow-erp-secret-key-change-me}
-  expire-hours: ${JWT_EXPIRE_HOURS:24}
+  access-token-expire-minutes: ${JWT_ACCESS_TOKEN_EXPIRE_MINUTES:30}
+  refresh-token-expire-days: ${JWT_REFRESH_TOKEN_EXPIRE_DAYS:7}
 
 erp:
+  auth:
+    session-store: ${ERP_AUTH_SESSION_STORE:redis}
   cache:
     type: ${ERP_CACHE_TYPE:local}
 

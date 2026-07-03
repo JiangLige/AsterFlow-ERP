@@ -11,9 +11,12 @@ spring:
 
 jwt:
   secret: test-secret-key
-  expire-hours: 24
+  access-token-expire-minutes: 30
+  refresh-token-expire-days: 7
 
 erp:
+  auth:
+    session-store: redis
   cache:
     type: local
 

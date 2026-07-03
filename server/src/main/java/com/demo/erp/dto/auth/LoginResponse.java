@@ -3,6 +3,9 @@ package com.demo.erp.dto.auth;
 public class LoginResponse {
 
     private String token;
+    private String accessToken;
+    private String refreshToken;
+    private Long expiresInSeconds;
     private Long userId;
     private String username;
     private String realName;
@@ -14,6 +17,30 @@ public class LoginResponse {
 
     public void setToken(String token) {
         this.token = token;
+    }
+
+    public String getAccessToken() {
+        return accessToken;
+    }
+
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
+    }
+
+    public String getRefreshToken() {
+        return refreshToken;
+    }
+
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
+    }
+
+    public Long getExpiresInSeconds() {
+        return expiresInSeconds;
+    }
+
+    public void setExpiresInSeconds(Long expiresInSeconds) {
+        this.expiresInSeconds = expiresInSeconds;
     }
 
     public Long getUserId() {
