@@ -9,6 +9,7 @@ import com.demo.erp.dto.*;
 import com.demo.erp.dto.inventory.InventoryChangeCommand;
 import com.demo.erp.enums.PurchaseOrderStatus;
 import com.demo.erp.mapper.*;
+import com.demo.erp.service.AuditLogService;
 import com.demo.erp.service.InventoryService;
 import com.demo.erp.service.PurchaseOrderService;
 import entity.*;
@@ -26,19 +27,23 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
     private final ProductMapper productMapper;
     private final OrderNoGenerator orderNoGenerator;
     private final InventoryService inventoryService;
+    private final AuditLogService auditLogService;
 
 
     public PurchaseOrderServiceImpl(PurchaseOrderMapper purchaseOrderMapper,
                                     PurchaseOrderItemMapper purchaseOrderItemMapper,
                                     SupplierMapper supplierMapper,
                                     ProductMapper productMapper,
-                                    OrderNoGenerator orderNoGenerator, InventoryService inventoryService) {
+                                    OrderNoGenerator orderNoGenerator,
+                                    InventoryService inventoryService,
+                                    AuditLogService auditLogService) {
         this.purchaseOrderMapper = purchaseOrderMapper;
         this.purchaseOrderItemMapper = purchaseOrderItemMapper;
         this.supplierMapper = supplierMapper;
         this.productMapper = productMapper;
         this.orderNoGenerator = orderNoGenerator;
         this.inventoryService = inventoryService;
+        this.auditLogService = auditLogService;
     }
 
     @Override
@@ -184,6 +189,27 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
     @Override
     @Transactional
     public void approve(Long id) {
+        approveInternal(id);
+    }
+
+    @Override
+    @Transactional
+    public void approve(Long id, AuditOperator operator) {
+        PurchaseOrder purchaseOrder = approveInternal(id);
+
+        auditLogService.record(
+                operator.userId(),
+                operator.username(),
+                operator.role(),
+                "PURCHASE_APPROVE",
+                "PURCHASE_ORDER",
+                id,
+                purchaseOrder.getOrderNo(),
+                "审核采购单并入库"
+        );
+    }
+
+    private PurchaseOrder approveInternal(Long id) {
         PurchaseOrder purchaseOrder = purchaseOrderMapper.selectById(id);
 
         if (purchaseOrder == null) {
@@ -232,6 +258,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
             throw new BusinessException("采购单状态已变化，请刷新后重试");
         }
 
+        return purchaseOrder;
     }
 
     @Override
@@ -319,6 +346,27 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
     @Override
     @Transactional
     public void cancel(Long id) {
+        cancelInternal(id);
+    }
+
+    @Override
+    @Transactional
+    public void cancel(Long id, AuditOperator operator) {
+        PurchaseOrder purchaseOrder = cancelInternal(id);
+
+        auditLogService.record(
+                operator.userId(),
+                operator.username(),
+                operator.role(),
+                "PURCHASE_CANCEL",
+                "PURCHASE_ORDER",
+                id,
+                purchaseOrder.getOrderNo(),
+                "取消采购单并扣回库存"
+        );
+    }
+
+    private PurchaseOrder cancelInternal(Long id) {
         PurchaseOrder purchaseOrder = purchaseOrderMapper.selectById(id);
 
         if (purchaseOrder == null) {
@@ -366,6 +414,8 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
                     "采购取消出库：" + purchaseOrder.getOrderNo()
             ));
         }
+
+        return purchaseOrder;
     }
 
     private PurchaseOrderResponse toSimpleResponse(PurchaseOrder purchaseOrder) {

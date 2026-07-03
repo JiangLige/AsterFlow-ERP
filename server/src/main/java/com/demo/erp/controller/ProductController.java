@@ -2,7 +2,6 @@ package com.demo.erp.controller;
 
 import com.demo.erp.common.ApiResponse;
 import com.demo.erp.dto.*;
-import com.demo.erp.service.AuditLogService;
 import com.demo.erp.service.ProductService;
 import com.demo.erp.util.AuthUtil;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,11 +21,9 @@ import java.util.List;
 public class ProductController {
 
     private final ProductService productService;
-    private final AuditLogService auditLogService;
 
-    public ProductController(ProductService productService, AuditLogService auditLogService) {
+    public ProductController(ProductService productService) {
         this.productService = productService;
-        this.auditLogService = auditLogService;
     }
 
     @PostMapping
@@ -68,21 +65,7 @@ public class ProductController {
             @PathVariable Long id,
             @Valid @RequestBody StockAdjustRequest stockRequest,
             HttpServletRequest httpRequest) {
-        productService.adjustStock(id, stockRequest);
-
-        ProductResponse product = productService.getById(id);
-
-        auditLogService.record(
-                (Long) httpRequest.getAttribute("userId"),
-                (String) httpRequest.getAttribute("username"),
-                (String) httpRequest.getAttribute("role"),
-                "STOCK_ADJUST",
-                "PRODUCT",
-                id,
-                product.getProductCode(),
-                "手工调整商品库存，变化数量：" + stockRequest.getChangeQuantity()
-        );
-
+        productService.adjustStock(id, stockRequest, AuthUtil.currentOperator(httpRequest));
         return ApiResponse.success();
     }
 

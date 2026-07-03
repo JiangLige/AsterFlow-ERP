@@ -23,6 +23,8 @@ public interface ProductService {
 
     void adjustStock(Long productId, StockAdjustRequest request);
 
+    void adjustStock(Long productId, StockAdjustRequest request, AuditOperator operator);
+
     List<ProductResponse> warningList();
 
     PageResponse<StockRecordResponse> pageStockRecords(

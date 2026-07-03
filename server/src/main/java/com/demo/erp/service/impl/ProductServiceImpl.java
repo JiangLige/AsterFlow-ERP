@@ -9,6 +9,7 @@ import com.demo.erp.enums.ProductStatus;
 import com.demo.erp.enums.StockChangeType;
 import com.demo.erp.mapper.ProductMapper;
 import com.demo.erp.mapper.StockRecordMapper;
+import com.demo.erp.service.AuditLogService;
 import com.demo.erp.service.DashboardCacheService;
 import com.demo.erp.service.InventoryService;
 import com.demo.erp.service.ProductService;
@@ -27,13 +28,18 @@ public class ProductServiceImpl implements ProductService {
     private final StockRecordMapper stockRecordMapper;
     private final InventoryService inventoryService;
     private final DashboardCacheService dashboardCacheService;
+    private final AuditLogService auditLogService;
 
     public ProductServiceImpl(ProductMapper productMapper,
-                              StockRecordMapper stockRecordMapper, InventoryService inventoryService, DashboardCacheService dashboardCacheService) {
+                              StockRecordMapper stockRecordMapper,
+                              InventoryService inventoryService,
+                              DashboardCacheService dashboardCacheService,
+                              AuditLogService auditLogService) {
         this.productMapper = productMapper;
         this.stockRecordMapper = stockRecordMapper;
         this.inventoryService = inventoryService;
         this.dashboardCacheService = dashboardCacheService;
+        this.auditLogService = auditLogService;
     }
 
     @Override
@@ -97,7 +103,33 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public void adjustStock(Long productId, StockAdjustRequest request) {
+        adjustStockInternal(productId, request);
+    }
 
+    @Override
+    @Transactional
+    public void adjustStock(Long productId, StockAdjustRequest request, AuditOperator operator) {
+        adjustStockInternal(productId, request);
+
+        Product product = productMapper.selectById(productId);
+
+        if (product == null) {
+            throw new BusinessException("商品不存在");
+        }
+
+        auditLogService.record(
+                operator.userId(),
+                operator.username(),
+                operator.role(),
+                "STOCK_ADJUST",
+                "PRODUCT",
+                productId,
+                product.getProductCode(),
+                "手工调整商品库存，变化数量：" + request.getChangeQuantity()
+        );
+    }
+
+    private void adjustStockInternal(Long productId, StockAdjustRequest request) {
         StockChangeType type;
 
         try {
@@ -283,8 +315,9 @@ public class ProductServiceImpl implements ProductService {
         product.setUnit(request.getUnit());
         product.setPrice(request.getPrice());
         product.setCost(request.getCost());
-        product.setStock(request.getStock());
-        product.setStatus(request.getStatus());
+        if (request.getStatus() != null && !request.getStatus().isBlank()) {
+            product.setStatus(request.getStatus());
+        }
         product.setDescription(request.getDescription());
         product.setMinStock(request.getMinStock() == null ? 0 : request.getMinStock());
 

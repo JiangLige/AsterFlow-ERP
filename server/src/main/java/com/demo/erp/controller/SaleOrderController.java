@@ -4,7 +4,6 @@ import com.demo.erp.common.ApiResponse;
 import com.demo.erp.dto.PageResponse;
 import com.demo.erp.dto.sale.SaleOrderCreateRequest;
 import com.demo.erp.dto.sale.SaleOrderResponse;
-import com.demo.erp.service.AuditLogService;
 import com.demo.erp.service.SaleOrderService;
 import com.demo.erp.util.AuthUtil;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,11 +15,9 @@ import org.springframework.web.bind.annotation.*;
 public class SaleOrderController {
 
     private final SaleOrderService saleOrderService;
-    private final AuditLogService auditLogService;
 
-    public SaleOrderController(SaleOrderService saleOrderService, AuditLogService auditLogService) {
+    public SaleOrderController(SaleOrderService saleOrderService) {
         this.saleOrderService = saleOrderService;
-        this.auditLogService = auditLogService;
     }
 
     @PostMapping
@@ -44,21 +41,7 @@ public class SaleOrderController {
 
     @PatchMapping("/{id}/approve")
     public ApiResponse<Void> approve(@PathVariable Long id, HttpServletRequest request) {
-        saleOrderService.approve(id);
-
-        SaleOrderResponse order = saleOrderService.getById(id);
-
-        auditLogService.record(
-                (Long) request.getAttribute("userId"),
-                (String) request.getAttribute("username"),
-                (String) request.getAttribute("role"),
-                "SALE_APPROVE",
-                "SALE_ORDER",
-                id,
-                order.getOrderNo(),
-                "审核销售单并出库"
-        );
-
+        saleOrderService.approve(id, AuthUtil.currentOperator(request));
         return ApiResponse.success();
     }
 
@@ -77,21 +60,7 @@ public class SaleOrderController {
 
     @PatchMapping("/{id}/cancel")
     public ApiResponse<Void> cancel(@PathVariable Long id, HttpServletRequest request) {
-        saleOrderService.cancel(id);
-
-        SaleOrderResponse order = saleOrderService.getById(id);
-
-        auditLogService.record(
-                (Long) request.getAttribute("userId"),
-                (String) request.getAttribute("username"),
-                (String) request.getAttribute("role"),
-                "SALE_CANCEL",
-                "SALE_ORDER",
-                id,
-                order.getOrderNo(),
-                "取消销售单并恢复库存"
-        );
-
+        saleOrderService.cancel(id, AuthUtil.currentOperator(request));
         return ApiResponse.success();
     }
 }

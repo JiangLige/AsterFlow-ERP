@@ -4,7 +4,6 @@ import com.demo.erp.common.ApiResponse;
 import com.demo.erp.dto.PageResponse;
 import com.demo.erp.dto.PurchaseOrderCreateRequest;
 import com.demo.erp.dto.PurchaseOrderResponse;
-import com.demo.erp.service.AuditLogService;
 import com.demo.erp.service.PurchaseOrderService;
 import com.demo.erp.util.AuthUtil;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,11 +15,9 @@ import org.springframework.web.bind.annotation.*;
 public class PurchaseOrderController {
 
     private final PurchaseOrderService purchaseOrderService;
-    private final AuditLogService auditLogService;
 
-    public PurchaseOrderController(PurchaseOrderService purchaseOrderService, AuditLogService auditLogService) {
+    public PurchaseOrderController(PurchaseOrderService purchaseOrderService) {
         this.purchaseOrderService = purchaseOrderService;
-        this.auditLogService = auditLogService;
     }
 
     @PostMapping
@@ -45,21 +42,7 @@ public class PurchaseOrderController {
 
     @PatchMapping("/{id}/approve")
     public ApiResponse<Void> approve(@PathVariable Long id, HttpServletRequest request) {
-        purchaseOrderService.approve(id);
-
-        PurchaseOrderResponse order = purchaseOrderService.getById(id);
-
-        auditLogService.record(
-                (Long) request.getAttribute("userId"),
-                (String) request.getAttribute("username"),
-                (String) request.getAttribute("role"),
-                "PURCHASE_APPROVE",
-                "PURCHASE_ORDER",
-                id,
-                order.getOrderNo(),
-                "审核采购单并入库"
-        );
-
+        purchaseOrderService.approve(id, AuthUtil.currentOperator(request));
         return ApiResponse.success();
     }
 
@@ -79,21 +62,7 @@ public class PurchaseOrderController {
 
     @PatchMapping("/{id}/cancel")
     public ApiResponse<Void> cancel(@PathVariable Long id, HttpServletRequest request) {
-        purchaseOrderService.cancel(id);
-
-        PurchaseOrderResponse order = purchaseOrderService.getById(id);
-
-        auditLogService.record(
-                (Long) request.getAttribute("userId"),
-                (String) request.getAttribute("username"),
-                (String) request.getAttribute("role"),
-                "PURCHASE_CANCEL",
-                "PURCHASE_ORDER",
-                id,
-                order.getOrderNo(),
-                "取消采购单并扣回库存"
-        );
-
+        purchaseOrderService.cancel(id, AuthUtil.currentOperator(request));
         return ApiResponse.success();
     }
 

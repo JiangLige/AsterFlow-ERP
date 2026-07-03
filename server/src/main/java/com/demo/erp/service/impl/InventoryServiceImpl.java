@@ -49,9 +49,7 @@ public class InventoryServiceImpl implements InventoryService {
             throw new BusinessException("商品不存在");
         }
 
-        int beforeStock = product.getStock();
         int changeQuantity = command.getQuantity();
-        int afterStock = beforeStock + changeQuantity;
 
         int rows = productMapper.update(
                 null,
@@ -63,6 +61,15 @@ public class InventoryServiceImpl implements InventoryService {
         if (rows == 0) {
             throw new BusinessException("商品库存更新失败：" + product.getName());
         }
+
+        Product updatedProduct = productMapper.selectById(product.getId());
+
+        if (updatedProduct == null) {
+            throw new BusinessException("商品不存在");
+        }
+
+        int afterStock = updatedProduct.getStock();
+        int beforeStock = afterStock - changeQuantity;
 
         StockRecord stockRecord = new StockRecord();
         stockRecord.setProductId(product.getId());
@@ -103,11 +110,9 @@ public class InventoryServiceImpl implements InventoryService {
             throw new BusinessException("商品不存在");
         }
 
-        int beforeStock = product.getStock();
         int changeQuantity = command.getQuantity();
-        int afterStock = beforeStock - changeQuantity;
 
-        if (afterStock < 0) {
+        if (product.getStock() < changeQuantity) {
             throw new BusinessException("商品库存不足：" + product.getName());
         }
 
@@ -116,12 +121,21 @@ public class InventoryServiceImpl implements InventoryService {
                 new LambdaUpdateWrapper<Product>()
                         .eq(Product::getId, product.getId())
                         .ge(Product::getStock, changeQuantity)
-                        .set(Product::getStock, afterStock)
+                        .setSql("stock = stock - " + changeQuantity)
         );
 
         if (rows == 0) {
             throw new BusinessException("商品库存不足：" + product.getName());
         }
+
+        Product updatedProduct = productMapper.selectById(product.getId());
+
+        if (updatedProduct == null) {
+            throw new BusinessException("商品不存在");
+        }
+
+        int afterStock = updatedProduct.getStock();
+        int beforeStock = afterStock + changeQuantity;
 
         StockRecord stockRecord = new StockRecord();
         stockRecord.setProductId(product.getId());
