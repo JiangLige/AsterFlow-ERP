@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 export default function LoginPage() {
     const router = useRouter();
     const [username, setUsername] = useState('admin');
-    const [password, setPassword] = useState('123456');
+    const [password, setPassword] = useState('admin123');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
@@ -31,7 +31,11 @@ export default function LoginPage() {
                 throw new Error(result.message || '登录失败');
             }
 
-            localStorage.setItem('token', result.data.token);
+            const accessToken = result.data.accessToken || result.data.token;
+
+            localStorage.setItem('token', accessToken);
+            localStorage.setItem('accessToken', accessToken);
+            localStorage.setItem('refreshToken', result.data.refreshToken || '');
             localStorage.setItem('username', result.data.username || '');
             localStorage.setItem('realName', result.data.realName || '');
             localStorage.setItem('role', result.data.role || '');

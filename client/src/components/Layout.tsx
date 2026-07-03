@@ -25,8 +25,28 @@ export default function Layout({ children }: LayoutProps) {
         setReady(true);
     }, [router]);
 
-    function handleLogout() {
+    async function handleLogout() {
+        const accessToken = localStorage.getItem('accessToken') || localStorage.getItem('token') || '';
+        const refreshToken = localStorage.getItem('refreshToken') || '';
+
+        try {
+            await fetch('/api/auth/logout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+                },
+                body: JSON.stringify({
+                    refreshToken,
+                }),
+            });
+        } catch {
+            // Local logout should continue even if the server is unreachable.
+        }
+
         localStorage.removeItem('token');
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
         localStorage.removeItem('username');
         localStorage.removeItem('realName');
         localStorage.removeItem('role');
