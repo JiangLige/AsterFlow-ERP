@@ -13,7 +13,11 @@
     "build:server": "cd server && mvnw.cmd clean package",
     "install:all": "npm install"
   },
+  "overrides": {
+    "postcss": "8.5.10"
+  },
   "devDependencies": {
-    "concurrently": "^8.2.0"
+    "concurrently": "^8.2.0",
+    "postcss": "8.5.10"
   }
 }
