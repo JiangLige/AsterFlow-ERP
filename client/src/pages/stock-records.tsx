@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
 import { apiRequest } from '@/lib/api';
 
@@ -55,7 +55,11 @@ export default function StockRecordsPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
-    const loadRecords = async (targetPage = page) => {
+    const loadRecords = useCallback(async (
+        targetPage: number,
+        currentKeyword: string,
+        currentType: string
+    ) => {
         setLoading(true);
         setError('');
 
@@ -64,12 +68,12 @@ export default function StockRecordsPage() {
             query.set('page', String(targetPage));
             query.set('size', '10');
 
-            if (keyword.trim()) {
-                query.set('keyword', keyword.trim());
+            if (currentKeyword.trim()) {
+                query.set('keyword', currentKeyword.trim());
             }
 
-            if (type) {
-                query.set('type', type);
+            if (currentType) {
+                query.set('type', currentType);
             }
 
             const data = await apiRequest<PageResponse<StockRecord>>(
@@ -85,11 +89,11 @@ export default function StockRecordsPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
-        loadRecords(1);
-    }, []);
+        loadRecords(1, '', '');
+    }, [loadRecords]);
 
     return (
         <Layout>
@@ -109,7 +113,7 @@ export default function StockRecordsPage() {
                     <option value="ADJUST">调整</option>
                 </select>
 
-                <button onClick={() => loadRecords(1)} disabled={loading}>
+                <button onClick={() => loadRecords(1, keyword, type)} disabled={loading}>
                     {loading ? '加载中...' : '查询'}
                 </button>
             </div>
@@ -158,10 +162,10 @@ export default function StockRecordsPage() {
             )}
 
             <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
-                <button onClick={() => loadRecords(page - 1)} disabled={loading || page <= 1}>
+                <button onClick={() => loadRecords(page - 1, keyword, type)} disabled={loading || page <= 1}>
                     上一页
                 </button>
-                <button onClick={() => loadRecords(page + 1)} disabled={loading || page >= pages}>
+                <button onClick={() => loadRecords(page + 1, keyword, type)} disabled={loading || page >= pages}>
                     下一页
                 </button>
             </div>

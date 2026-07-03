@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
 import { apiRequest } from '@/lib/api';
@@ -31,7 +31,7 @@ export default function CustomersPage() {
     const [total, setTotal] = useState(0);
     const [role, setRole] = useState('');
 
-    async function loadCustomers(targetPage = page) {
+    const loadCustomers = useCallback(async (targetPage: number, currentKeyword: string) => {
         setLoading(true);
         setError('');
 
@@ -40,8 +40,8 @@ export default function CustomersPage() {
             query.set('page', String(targetPage));
             query.set('size', '10');
 
-            if (keyword.trim()) {
-                query.set('keyword', keyword.trim());
+            if (currentKeyword.trim()) {
+                query.set('keyword', currentKeyword.trim());
             }
 
             const data = await apiRequest<PageResponse<Customer>>(`/api/customers?${query.toString()}`);
@@ -55,7 +55,7 @@ export default function CustomersPage() {
         } finally {
             setLoading(false);
         }
-    }
+    }, []);
 
     async function handleDelete(id: number) {
         const ok = window.confirm('确定要删除这个客户吗？');
@@ -71,7 +71,7 @@ export default function CustomersPage() {
                 method: 'DELETE',
             });
 
-            loadCustomers(page);
+            loadCustomers(page, keyword);
         } catch (err) {
             setError(err instanceof Error ? err.message : '删除客户失败');
         }
@@ -79,8 +79,8 @@ export default function CustomersPage() {
 
     useEffect(() => {
         setRole(localStorage.getItem('role') || '');
-        loadCustomers(1);
-    }, []);
+        loadCustomers(1, '');
+    }, [loadCustomers]);
 
     return (
         <Layout>
@@ -97,12 +97,12 @@ export default function CustomersPage() {
                     placeholder="输入客户编码/名称/电话"
                 />
 
-                <button onClick={() => loadCustomers(1)} disabled={loading}>
+                <button onClick={() => loadCustomers(1, keyword)} disabled={loading}>
                     {loading ? '查询中...' : '查询'}
                 </button>
 
                 <button
-                    onClick={() => loadCustomers(page - 1)}
+                    onClick={() => loadCustomers(page - 1, keyword)}
                     disabled={loading || page <= 1}
                 >
                     上一页
@@ -113,7 +113,7 @@ export default function CustomersPage() {
                 </span>
 
                 <button
-                    onClick={() => loadCustomers(page + 1)}
+                    onClick={() => loadCustomers(page + 1, keyword)}
                     disabled={loading || page >= pages}
                 >
                     下一页

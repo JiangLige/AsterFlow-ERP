@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -30,26 +30,26 @@ export default function ProductStockAdjustPage() {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
-    async function loadProduct() {
-        if (!productId) return;
+    const loadProduct = useCallback(async (currentProductId: string) => {
+        if (!currentProductId) return;
 
         setLoading(true);
         setError('');
 
         try {
-            const data = await apiRequest<Product>(`/api/products/${productId}`);
+            const data = await apiRequest<Product>(`/api/products/${currentProductId}`);
             setProduct(data);
         } catch (err) {
             setError(err instanceof Error ? err.message : '加载商品失败');
         } finally {
             setLoading(false);
         }
-    }
+    }, []);
 
     useEffect(() => {
         if (!router.isReady || !productId) return;
-        loadProduct();
-    }, [router.isReady, productId]);
+        loadProduct(productId);
+    }, [router.isReady, productId, loadProduct]);
 
     function getChangeQuantity() {
         const value = Number(quantity);
@@ -95,7 +95,7 @@ export default function ProductStockAdjustPage() {
             setSuccess('库存调整成功，已生成库存流水');
             setQuantity('');
             setRemark('');
-            await loadProduct();
+            await loadProduct(productId);
         } catch (err) {
             setError(err instanceof Error ? err.message : '库存调整失败');
         } finally {

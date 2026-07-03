@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
 import { apiRequest } from '@/lib/api';
@@ -31,7 +31,7 @@ export default function SuppliersPage() {
     const [total, setTotal] = useState(0);
     const [role, setRole] = useState('');
 
-    async function loadSuppliers(targetPage = page) {
+    const loadSuppliers = useCallback(async (targetPage: number, currentKeyword: string) => {
         setLoading(true);
         setError('');
 
@@ -40,8 +40,8 @@ export default function SuppliersPage() {
             query.set('page', String(targetPage));
             query.set('size', '10');
 
-            if (keyword.trim()) {
-                query.set('keyword', keyword.trim());
+            if (currentKeyword.trim()) {
+                query.set('keyword', currentKeyword.trim());
             }
 
             const data = await apiRequest<PageResponse<Supplier>>(`/api/suppliers?${query.toString()}`);
@@ -55,7 +55,7 @@ export default function SuppliersPage() {
         } finally {
             setLoading(false);
         }
-    }
+    }, []);
 
     async function handleChangeStatus(id: number, nextStatus: 'ACTIVE' | 'INACTIVE') {
         const actionText = nextStatus === 'ACTIVE' ? '启用' : '停用';
@@ -74,7 +74,7 @@ export default function SuppliersPage() {
                 method: 'PATCH',
             });
 
-            loadSuppliers(page);
+            loadSuppliers(page, keyword);
         } catch (err) {
             setError(err instanceof Error ? err.message : `${actionText}供应商失败`);
         }
@@ -82,8 +82,8 @@ export default function SuppliersPage() {
 
     useEffect(() => {
         setRole(localStorage.getItem('role') || '');
-        loadSuppliers(1);
-    }, []);
+        loadSuppliers(1, '');
+    }, [loadSuppliers]);
 
     return (
         <Layout>
@@ -100,12 +100,12 @@ export default function SuppliersPage() {
                     placeholder="输入供应商编码/名称/电话"
                 />
 
-                <button onClick={() => loadSuppliers(1)} disabled={loading}>
+                <button onClick={() => loadSuppliers(1, keyword)} disabled={loading}>
                     {loading ? '查询中...' : '查询'}
                 </button>
 
                 <button
-                    onClick={() => loadSuppliers(page - 1)}
+                    onClick={() => loadSuppliers(page - 1, keyword)}
                     disabled={loading || page <= 1}
                 >
                     上一页
@@ -116,7 +116,7 @@ export default function SuppliersPage() {
                 </span>
 
                 <button
-                    onClick={() => loadSuppliers(page + 1)}
+                    onClick={() => loadSuppliers(page + 1, keyword)}
                     disabled={loading || page >= pages}
                 >
                     下一页

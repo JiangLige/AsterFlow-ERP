@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { apiRequest } from '@/lib/api';
 import Layout from "@/components/Layout";
 import Link from 'next/link';
@@ -35,7 +35,7 @@ export default function ProductsPage() {
     const [total, setTotal] = useState(0);
     const [role, setRole] = useState('');
 
-    const loadProducts = async (targetPage = page) => {
+    const loadProducts = useCallback(async (targetPage: number, currentKeyword: string) => {
         setLoading(true);
         setError('');
 
@@ -44,8 +44,8 @@ export default function ProductsPage() {
             query.set('page', String(targetPage));
             query.set('size', '10');
 
-            if (keyword.trim()) {
-                query.set('keyword', keyword.trim());
+            if (currentKeyword.trim()) {
+                query.set('keyword', currentKeyword.trim());
             }
 
             const data = await apiRequest<PageResponse<Product>>(`/api/products?${query.toString()}`);
@@ -59,12 +59,12 @@ export default function ProductsPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
         setRole(localStorage.getItem('role') || '');
         const handleFocus = () => {
-            loadProducts(page);
+            loadProducts(page, keyword);
         };
 
         window.addEventListener('focus', handleFocus);
@@ -72,7 +72,7 @@ export default function ProductsPage() {
         return () => {
             window.removeEventListener('focus', handleFocus);
         };
-    }, [page, keyword]);
+    }, [page, keyword, loadProducts]);
 
     async function handleDelete(id: number) {
         const ok = window.confirm('确定要停用这个商品吗？');
@@ -88,7 +88,7 @@ export default function ProductsPage() {
                 method: 'DELETE',
             });
 
-            loadProducts(page);
+            loadProducts(page, keyword);
         } catch (err) {
             setError(err instanceof Error ? err.message : '停用失败');
         }
@@ -109,13 +109,13 @@ export default function ProductsPage() {
                     onChange={(e) => setKeyword(e.target.value)}
                     placeholder="输入商品编码/名称/分类"
                 />
-                <button onClick={() => loadProducts(1)} disabled={loading}>
+                <button onClick={() => loadProducts(1, keyword)} disabled={loading}>
                     {loading ? '查询中...' : '查询'}
                 </button>
 
                 <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                     <button
-                        onClick={() => loadProducts(page - 1)}
+                        onClick={() => loadProducts(page - 1, keyword)}
                         disabled={loading || page <= 1}
                     >
                         上一页
@@ -126,7 +126,7 @@ export default function ProductsPage() {
     </span>
 
                     <button
-                        onClick={() => loadProducts(page + 1)}
+                        onClick={() => loadProducts(page + 1, keyword)}
                         disabled={loading || page >= pages}
                     >
                         下一页

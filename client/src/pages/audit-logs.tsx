@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
 import { apiRequest } from '@/lib/api';
 
@@ -56,7 +56,12 @@ export default function AuditLogsPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
-    async function loadLogs(targetPage = page) {
+    const loadLogs = useCallback(async (
+        targetPage: number,
+        currentKeyword: string,
+        currentAction: string,
+        currentTargetType: string
+    ) => {
         setLoading(true);
         setError('');
 
@@ -65,16 +70,16 @@ export default function AuditLogsPage() {
             query.set('page', String(targetPage));
             query.set('size', '10');
 
-            if (keyword.trim()) {
-                query.set('keyword', keyword.trim());
+            if (currentKeyword.trim()) {
+                query.set('keyword', currentKeyword.trim());
             }
 
-            if (action) {
-                query.set('action', action);
+            if (currentAction) {
+                query.set('action', currentAction);
             }
 
-            if (targetType) {
-                query.set('targetType', targetType);
+            if (currentTargetType) {
+                query.set('targetType', currentTargetType);
             }
 
             const data = await apiRequest<PageResponse<AuditLog>>(
@@ -90,11 +95,11 @@ export default function AuditLogsPage() {
         } finally {
             setLoading(false);
         }
-    }
+    }, []);
 
     useEffect(() => {
-        loadLogs(1);
-    }, []);
+        loadLogs(1, '', '', '');
+    }, [loadLogs]);
 
     return (
         <Layout>
@@ -123,7 +128,7 @@ export default function AuditLogsPage() {
                     <option value="SALE_ORDER">销售单</option>
                 </select>
 
-                <button onClick={() => loadLogs(1)} disabled={loading}>
+                <button onClick={() => loadLogs(1, keyword, action, targetType)} disabled={loading}>
                     {loading ? '加载中...' : '查询'}
                 </button>
             </div>
@@ -166,10 +171,10 @@ export default function AuditLogsPage() {
             )}
 
             <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
-                <button onClick={() => loadLogs(page - 1)} disabled={loading || page <= 1}>
+                <button onClick={() => loadLogs(page - 1, keyword, action, targetType)} disabled={loading || page <= 1}>
                     上一页
                 </button>
-                <button onClick={() => loadLogs(page + 1)} disabled={loading || page >= pages}>
+                <button onClick={() => loadLogs(page + 1, keyword, action, targetType)} disabled={loading || page >= pages}>
                     下一页
                 </button>
             </div>
