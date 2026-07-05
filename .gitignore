@@ -1,0 +1,19 @@
+node_modules/
+.next/
+out/
+dist/
+target/
+client/tsconfig.tsbuildinfo
+
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+*.log
+
+.idea/
+
+# Build/test artifacts
+output/
+server/.m2/
