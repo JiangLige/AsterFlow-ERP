@@ -19,25 +19,21 @@ public class JwtUtil {
     @Value("${jwt.access-token-expire-minutes:30}")
     private Long accessTokenExpireMinutes;
 
-    public String generateToken(Long userId, String username, String role) {
-        return generateAccessToken(userId, username, role, null);
-    }
-
-    public String generateAccessToken(Long userId, String username, String role, String sessionId) {
+    public String generateToken(Long userId, String username, String role, String sessionId) {
         Instant now = Instant.now();
 
-        var builder = JWT.create()
+        return JWT.create()
                 .withSubject(String.valueOf(userId))
                 .withClaim("username", username)
                 .withClaim("role", role)
+                .withClaim("sessionId", sessionId)
                 .withIssuedAt(Date.from(now))
-                .withExpiresAt(Date.from(now.plus(accessTokenExpireMinutes, ChronoUnit.MINUTES)));
+                .withExpiresAt(Date.from(now.plus(accessTokenExpireMinutes, ChronoUnit.MINUTES)))
+                .sign(Algorithm.HMAC256(secret));
+    }
 
-        if (sessionId != null && !sessionId.isBlank()) {
-            builder.withClaim("sessionId", sessionId);
-        }
-
-        return builder.sign(Algorithm.HMAC256(secret));
+    public String generateToken(Long userId, String username, String role) {
+        return generateToken(userId, username, role, null);
     }
 
     public DecodedJWT verifyToken(String token) {

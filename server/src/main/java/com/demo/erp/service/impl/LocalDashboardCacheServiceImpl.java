@@ -4,7 +4,7 @@ import com.demo.erp.dto.dashboard.DashboardSummaryResponse;
 import com.demo.erp.service.DashboardCacheService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
-
+import org.springframework.beans.factory.annotation.Value;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
@@ -12,10 +12,16 @@ import java.time.LocalDateTime;
 @ConditionalOnProperty(name = "erp.cache.type", havingValue = "local", matchIfMissing = true)
 public class LocalDashboardCacheServiceImpl implements DashboardCacheService {
 
-    private static final Duration TTL = Duration.ofSeconds(60);
+    private final Duration ttl;
 
     private DashboardSummaryResponse cachedSummary;
     private LocalDateTime expireAt;
+
+    public LocalDashboardCacheServiceImpl(
+            @Value("${erp.cache.dashboard-summary-ttl-seconds:60}") long ttlSeconds
+    ) {
+        this.ttl = Duration.ofSeconds(ttlSeconds);
+    }
 
     @Override
     public DashboardSummaryResponse getSummary() {
@@ -34,7 +40,7 @@ public class LocalDashboardCacheServiceImpl implements DashboardCacheService {
     @Override
     public void setSummary(DashboardSummaryResponse summary) {
         this.cachedSummary = summary;
-        this.expireAt = LocalDateTime.now().plus(TTL);
+        this.expireAt = LocalDateTime.now().plus(ttl);
     }
 
     @Override

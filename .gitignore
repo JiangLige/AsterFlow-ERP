@@ -13,3 +13,7 @@ client/tsconfig.tsbuildinfo
 *.log
 
 .idea/
+
+# Build/test artifacts
+output/
+server/.m2/

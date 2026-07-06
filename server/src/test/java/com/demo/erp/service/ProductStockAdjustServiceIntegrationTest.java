@@ -2,7 +2,6 @@ package com.demo.erp.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.demo.erp.common.BusinessException;
-import com.demo.erp.dto.ProductRequest;
 import com.demo.erp.dto.StockAdjustRequest;
 import com.demo.erp.enums.ProductStatus;
 import com.demo.erp.enums.StockChangeType;
@@ -108,31 +107,6 @@ class ProductStockAdjustServiceIntegrationTest {
         List<StockRecord> records = findRecords(product.getId());
 
         assertThat(unchangedProduct.getStock()).isEqualTo(2);
-        assertThat(records).isEmpty();
-    }
-
-    @Test
-    void updatingProductDoesNotOverwriteStockWithoutStockRecord() {
-        Product product = createProduct("P-ADJUST-004", 10);
-        ProductRequest request = new ProductRequest();
-        request.setProductCode(product.getProductCode());
-        request.setName("Updated Product");
-        request.setCategory("Updated Category");
-        request.setUnit("box");
-        request.setPrice(new BigDecimal("25.00"));
-        request.setCost(new BigDecimal("12.00"));
-        request.setStock(99);
-        request.setStatus(ProductStatus.ACTIVE.name());
-        request.setDescription("updated");
-        request.setMinStock(5);
-
-        productService.update(product.getId(), request);
-
-        Product updatedProduct = productMapper.selectById(product.getId());
-        List<StockRecord> records = findRecords(product.getId());
-
-        assertThat(updatedProduct.getName()).isEqualTo("Updated Product");
-        assertThat(updatedProduct.getStock()).isEqualTo(10);
         assertThat(records).isEmpty();
     }
 

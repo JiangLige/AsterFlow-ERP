@@ -11,7 +11,8 @@ public interface ProductMapper extends BaseMapper<Product> {
 
     @Update("""
             UPDATE t_product
-            SET stock = stock - #{quantity}
+            SET stock = stock - #{quantity},
+                updated_at = NOW()
             WHERE id = #{productId}
               AND stock >= #{quantity}
               AND deleted = 0
@@ -21,7 +22,8 @@ public interface ProductMapper extends BaseMapper<Product> {
 
     @Update("""
             UPDATE t_product
-            SET stock = stock + #{quantity}
+            SET stock = stock + #{quantity},
+                updated_at = NOW()
             WHERE id = #{productId}
               AND deleted = 0
             """)

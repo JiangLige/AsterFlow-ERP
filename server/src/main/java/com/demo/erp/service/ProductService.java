@@ -1,8 +1,7 @@
 package com.demo.erp.service;
 
 import com.demo.erp.dto.*;
-import com.demo.erp.common.EnumValidator;
-import com.demo.erp.enums.CustomerStatus;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -23,8 +22,6 @@ public interface ProductService {
     void delete(Long id);
 
     void adjustStock(Long productId, StockAdjustRequest request);
-
-    void adjustStock(Long productId, StockAdjustRequest request, AuditOperator operator);
 
     List<ProductResponse> warningList();
 

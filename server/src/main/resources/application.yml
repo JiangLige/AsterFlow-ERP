@@ -18,18 +18,31 @@ spring:
       database: ${REDIS_DATABASE:0}
       timeout: ${REDIS_TIMEOUT:3s}
 
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:local-dev-placeholder}
+      chat:
+        model: ${OPENAI_CHAT_MODEL:gpt-5-mini}
+
 jwt:
   secret: ${JWT_SECRET:asterflow-erp-secret-key-change-me}
+  expire-hours: ${JWT_EXPIRE_HOURS:24}
   access-token-expire-minutes: ${JWT_ACCESS_TOKEN_EXPIRE_MINUTES:30}
   refresh-token-expire-days: ${JWT_REFRESH_TOKEN_EXPIRE_DAYS:7}
 
 erp:
   auth:
-    session-store: ${ERP_AUTH_SESSION_STORE:redis}
+    session-store: ${ERP_AUTH_SESSION_STORE:local}
   cache:
     type: ${ERP_CACHE_TYPE:local}
+    dashboard-summary-ttl-seconds: ${ERP_DASHBOARD_SUMMARY_TTL_SECONDS:60}
   idempotency:
     store: ${ERP_IDEMPOTENCY_STORE:local}
+  rate-limit:
+    enabled: ${ERP_RATE_LIMIT_ENABLED:false}
+    window-seconds: ${ERP_RATE_LIMIT_WINDOW_SECONDS:60}
+    login-limit: ${ERP_RATE_LIMIT_LOGIN_LIMIT:10}
+    api-limit: ${ERP_RATE_LIMIT_API_LIMIT:120}
 
 springdoc:
   api-docs:

@@ -25,6 +25,21 @@ type SaleOrder = {
     items: SaleOrderItem[];
 };
 
+function formatStatus(status: string) {
+    if (status === 'DRAFT') return '草稿';
+    if (status === 'APPROVED') return '已审核';
+    if (status === 'CANCELED') return '已取消';
+    return status;
+}
+
+function formatCurrency(value: number) {
+    return new Intl.NumberFormat('zh-CN', {
+        style: 'currency',
+        currency: 'CNY',
+        maximumFractionDigits: 2,
+    }).format(value || 0);
+}
+
 export default function SaleOrderDetailPage() {
     const router = useRouter();
     const saleOrderId = typeof router.query.id === 'string' ? router.query.id : '';
@@ -57,21 +72,48 @@ export default function SaleOrderDetailPage() {
 
     return (
         <Layout>
-            <h1>销售单详情</h1>
+            <section className="page-hero">
+                <div>
+                    <p className="eyebrow">销售出库</p>
+                    <h1>销售单详情</h1>
+                    <p className="muted">查看销售单头信息和商品明细。</p>
+                </div>
+            </section>
 
-            {loading && <p>加载中...</p>}
-            {error && <p style={{ color: 'red' }}>{error}</p>}
+            {loading && <div className="empty-state">加载中...</div>}
+            {error && <div className="alert alert-danger">{error}</div>}
 
             {order && (
-                <div style={{ marginTop: '1rem' }}>
-                    <p>单号：{order.orderNo}</p>
-                    <p>客户：{order.customerName}</p>
-                    <p>状态：{order.status}</p>
-                    <p>总金额：{order.totalAmount}</p>
-                    <p>备注：{order.remark}</p>
+                <>
+                    <section className="detail-grid">
+                        <div className="detail-item">
+                            <p className="detail-label">单号</p>
+                            <p className="detail-value">{order.orderNo}</p>
+                        </div>
+                        <div className="detail-item">
+                            <p className="detail-label">客户</p>
+                            <p className="detail-value">{order.customerName}</p>
+                        </div>
+                        <div className="detail-item">
+                            <p className="detail-label">状态</p>
+                            <p className="detail-value">{formatStatus(order.status)}</p>
+                        </div>
+                        <div className="detail-item">
+                            <p className="detail-label">总金额</p>
+                            <p className="detail-value">{formatCurrency(order.totalAmount)}</p>
+                        </div>
+                        <div className="detail-item">
+                            <p className="detail-label">创建时间</p>
+                            <p className="detail-value">{order.createdAt}</p>
+                        </div>
+                        <div className="detail-item">
+                            <p className="detail-label">备注</p>
+                            <p className="detail-value">{order.remark || '-'}</p>
+                        </div>
+                    </section>
 
-                    <h2 style={{ marginTop: '1rem' }}>销售明细</h2>
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <h2>销售明细</h2>
+                    <table>
                         <thead>
                             <tr>
                                 <th>商品编码</th>
@@ -87,13 +129,13 @@ export default function SaleOrderDetailPage() {
                                     <td>{item.productCode}</td>
                                     <td>{item.productName}</td>
                                     <td>{item.quantity}</td>
-                                    <td>{item.price}</td>
-                                    <td>{item.amount}</td>
+                                    <td>{formatCurrency(item.price)}</td>
+                                    <td>{formatCurrency(item.amount)}</td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
-                </div>
+                </>
             )}
         </Layout>
     );

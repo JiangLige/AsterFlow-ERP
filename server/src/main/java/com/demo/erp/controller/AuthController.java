@@ -8,7 +8,6 @@ import com.demo.erp.dto.auth.RefreshTokenRequest;
 import com.demo.erp.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -32,9 +31,11 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ApiResponse<Void> logout(@RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorization,
-                                    @RequestBody(required = false) RefreshTokenRequest request) {
-        userService.logout(authorization, request == null ? null : request.getRefreshToken());
+    public ApiResponse<Void> logout(
+            @RequestHeader(value = "Authorization", required = false) String authorization,
+            @Valid @RequestBody RefreshTokenRequest request
+    ) {
+        userService.logout(authorization, request.getRefreshToken());
         return ApiResponse.success();
     }
 

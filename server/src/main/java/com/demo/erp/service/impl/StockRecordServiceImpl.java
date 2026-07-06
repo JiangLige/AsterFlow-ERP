@@ -3,7 +3,6 @@ package com.demo.erp.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.demo.erp.common.BusinessException;
-import com.demo.erp.common.EnumValidator;
 import com.demo.erp.dto.PageResponse;
 import com.demo.erp.dto.StockRecordResponse;
 import com.demo.erp.enums.StockChangeType;
@@ -11,7 +10,7 @@ import com.demo.erp.mapper.StockRecordMapper;
 import com.demo.erp.service.StockRecordService;
 import entity.StockRecord;
 import org.springframework.stereotype.Service;
-import com.demo.erp.common.PageRequestUtil;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -42,14 +41,10 @@ public class StockRecordServiceImpl implements StockRecordService {
         }
 
         if (type != null && !type.isBlank()) {
-            String validType = EnumValidator.requireValid(
-                    StockChangeType.class,
-                    type,
-                    "库存变化类型不合法"
-            );
-
-            if (validType != null && !validType.isBlank()) {
-                wrapper.eq(StockRecord::getType, validType);
+            try {
+                StockChangeType.valueOf(type);
+            } catch (IllegalArgumentException e) {
+                throw new BusinessException("库存变化类型不合法");
             }
 
             wrapper.eq(StockRecord::getType, type);
@@ -66,10 +61,7 @@ public class StockRecordServiceImpl implements StockRecordService {
         wrapper.orderByDesc(StockRecord::getCreatedAt)
                 .orderByDesc(StockRecord::getId);
 
-        Page<StockRecord> stockRecordPage = new Page<>(
-                PageRequestUtil.normalizePage(page),
-                PageRequestUtil.normalizeSize(size)
-        );
+        Page<StockRecord> stockRecordPage = new Page<>(page, size);
 
         Page<StockRecord> result = stockRecordMapper.selectPage(stockRecordPage, wrapper);
 

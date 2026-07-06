@@ -13,7 +13,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
-@ConditionalOnProperty(name = "erp.auth.session-store", havingValue = "redis", matchIfMissing = true)
+@ConditionalOnProperty(name = "erp.auth.session-store", havingValue = "redis")
 public class RedisAuthSessionServiceImpl implements AuthSessionService {
 
     private static final String SESSION_KEY_PREFIX = "asterflow-erp:auth:session:";

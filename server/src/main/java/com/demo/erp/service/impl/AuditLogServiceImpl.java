@@ -8,7 +8,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.demo.erp.dto.AuditLogResponse;
 import com.demo.erp.dto.PageResponse;
-import com.demo.erp.common.PageRequestUtil;
+
 import java.util.List;
 
 @Service
@@ -73,11 +73,7 @@ public class AuditLogServiceImpl implements AuditLogService {
         wrapper.orderByDesc(AuditLog::getCreatedAt)
                 .orderByDesc(AuditLog::getId);
 
-        Page<AuditLog> auditLogPage = new Page<>(
-                PageRequestUtil.normalizePage(page),
-                PageRequestUtil.normalizeSize(size)
-        );
-
+        Page<AuditLog> auditLogPage = new Page<>(page, size);
         Page<AuditLog> result = auditLogMapper.selectPage(auditLogPage, wrapper);
 
         List<AuditLogResponse> records = result.getRecords()

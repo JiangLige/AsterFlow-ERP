@@ -8,15 +8,17 @@ spring:
     hibernate:
       ddl-auto: create-drop
     show-sql: false
+  ai:
+    openai:
+      api-key: test-placeholder
+      chat:
+        model: gpt-5-mini
 
 jwt:
   secret: test-secret-key
-  access-token-expire-minutes: 30
-  refresh-token-expire-days: 7
+  expire-hours: 24
 
 erp:
-  auth:
-    session-store: redis
   cache:
     type: local
 

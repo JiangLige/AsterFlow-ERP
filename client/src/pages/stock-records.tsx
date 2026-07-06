@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
 import { apiRequest } from '@/lib/api';
 
@@ -33,6 +33,12 @@ function formatType(type: string) {
     return type;
 }
 
+function typeTone(type: string) {
+    if (type === 'IN') return 'success';
+    if (type === 'OUT') return 'warning';
+    return '';
+}
+
 function formatSource(record: StockRecord) {
     if (record.sourceNo) {
         return record.sourceNo;
@@ -55,11 +61,7 @@ export default function StockRecordsPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
-    const loadRecords = useCallback(async (
-        targetPage: number,
-        currentKeyword: string,
-        currentType: string
-    ) => {
+    const loadRecords = async (targetPage = page) => {
         setLoading(true);
         setError('');
 
@@ -68,12 +70,12 @@ export default function StockRecordsPage() {
             query.set('page', String(targetPage));
             query.set('size', '10');
 
-            if (currentKeyword.trim()) {
-                query.set('keyword', currentKeyword.trim());
+            if (keyword.trim()) {
+                query.set('keyword', keyword.trim());
             }
 
-            if (currentType) {
-                query.set('type', currentType);
+            if (type) {
+                query.set('type', type);
             }
 
             const data = await apiRequest<PageResponse<StockRecord>>(
@@ -89,17 +91,23 @@ export default function StockRecordsPage() {
         } finally {
             setLoading(false);
         }
-    }, []);
+    };
 
     useEffect(() => {
-        loadRecords(1, '', '');
-    }, [loadRecords]);
+        loadRecords(1);
+    }, []);
 
     return (
         <Layout>
-            <h1>库存流水</h1>
+            <section className="page-hero">
+                <div>
+                    <p className="eyebrow">库存追踪</p>
+                    <h1>库存流水</h1>
+                    <p className="muted">查看入库、出库和调整记录，追溯来源单据。</p>
+                </div>
+            </section>
 
-            <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <div className="toolbar">
                 <input
                     value={keyword}
                     onChange={(e) => setKeyword(e.target.value)}
@@ -113,59 +121,65 @@ export default function StockRecordsPage() {
                     <option value="ADJUST">调整</option>
                 </select>
 
-                <button onClick={() => loadRecords(1, keyword, type)} disabled={loading}>
+                <button onClick={() => loadRecords(1)} disabled={loading}>
                     {loading ? '加载中...' : '查询'}
                 </button>
             </div>
 
-            {error && <div style={{ marginTop: '1rem', color: 'red' }}>{error}</div>}
+            {error && <div className="alert alert-danger">{error}</div>}
 
-            <div style={{ marginTop: '1rem' }}>
+            <p className="muted" style={{ marginTop: '1rem' }}>
                 第 {page} / {pages} 页，共 {total} 条
-            </div>
+            </p>
 
-            <table style={{ marginTop: '1rem', width: '100%', borderCollapse: 'collapse' }}>
+            <table>
                 <thead>
-                <tr>
-                    <th>商品编码</th>
-                    <th>商品名称</th>
-                    <th>类型</th>
-                    <th>变化数量</th>
-                    <th>变化前</th>
-                    <th>变化后</th>
-                    <th>来源单据</th>
-                    <th>备注</th>
-                    <th>创建时间</th>
-                </tr>
+                    <tr>
+                        <th>商品编码</th>
+                        <th>商品名称</th>
+                        <th>类型</th>
+                        <th>变化数量</th>
+                        <th>变化前</th>
+                        <th>变化后</th>
+                        <th>来源单据</th>
+                        <th>备注</th>
+                        <th>创建时间</th>
+                    </tr>
                 </thead>
                 <tbody>
-                {records.map((record) => (
-                    <tr key={record.id}>
-                        <td>{record.productCode}</td>
-                        <td>{record.productName}</td>
-                        <td>{formatType(record.type)}</td>
-                        <td style={{ color: record.changeQuantity < 0 ? 'red' : 'green' }}>
-                            {record.changeQuantity}
-                        </td>
-                        <td>{record.beforeStock}</td>
-                        <td>{record.afterStock}</td>
-                        <td>{formatSource(record)}</td>
-                        <td>{record.remark || '-'}</td>
-                        <td>{record.createdAt}</td>
-                    </tr>
-                ))}
+                    {records.map((record) => (
+                        <tr key={record.id}>
+                            <td>{record.productCode}</td>
+                            <td>{record.productName}</td>
+                            <td>
+                                <span className={`status-badge ${typeTone(record.type)}`}>
+                                    {formatType(record.type)}
+                                </span>
+                            </td>
+                            <td>
+                                <strong style={{ color: record.changeQuantity < 0 ? 'var(--danger)' : 'var(--success)' }}>
+                                    {record.changeQuantity}
+                                </strong>
+                            </td>
+                            <td>{record.beforeStock}</td>
+                            <td>{record.afterStock}</td>
+                            <td>{formatSource(record)}</td>
+                            <td>{record.remark || '-'}</td>
+                            <td>{record.createdAt}</td>
+                        </tr>
+                    ))}
                 </tbody>
             </table>
 
             {!loading && records.length === 0 && (
-                <p style={{ marginTop: '1rem' }}>暂无库存流水</p>
+                <div className="empty-state">暂无库存流水</div>
             )}
 
-            <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
-                <button onClick={() => loadRecords(page - 1, keyword, type)} disabled={loading || page <= 1}>
+            <div className="toolbar">
+                <button onClick={() => loadRecords(page - 1)} disabled={loading || page <= 1}>
                     上一页
                 </button>
-                <button onClick={() => loadRecords(page + 1, keyword, type)} disabled={loading || page >= pages}>
+                <button onClick={() => loadRecords(page + 1)} disabled={loading || page >= pages}>
                     下一页
                 </button>
             </div>

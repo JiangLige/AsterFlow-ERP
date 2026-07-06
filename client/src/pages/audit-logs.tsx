@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
 import { apiRequest } from '@/lib/api';
 
@@ -56,12 +56,7 @@ export default function AuditLogsPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
-    const loadLogs = useCallback(async (
-        targetPage: number,
-        currentKeyword: string,
-        currentAction: string,
-        currentTargetType: string
-    ) => {
+    async function loadLogs(targetPage = page) {
         setLoading(true);
         setError('');
 
@@ -70,16 +65,16 @@ export default function AuditLogsPage() {
             query.set('page', String(targetPage));
             query.set('size', '10');
 
-            if (currentKeyword.trim()) {
-                query.set('keyword', currentKeyword.trim());
+            if (keyword.trim()) {
+                query.set('keyword', keyword.trim());
             }
 
-            if (currentAction) {
-                query.set('action', currentAction);
+            if (action) {
+                query.set('action', action);
             }
 
-            if (currentTargetType) {
-                query.set('targetType', currentTargetType);
+            if (targetType) {
+                query.set('targetType', targetType);
             }
 
             const data = await apiRequest<PageResponse<AuditLog>>(
@@ -95,17 +90,23 @@ export default function AuditLogsPage() {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }
 
     useEffect(() => {
-        loadLogs(1, '', '', '');
-    }, [loadLogs]);
+        loadLogs(1);
+    }, []);
 
     return (
         <Layout>
-            <h1>审计日志</h1>
+            <section className="page-hero">
+                <div>
+                    <p className="eyebrow">操作审计</p>
+                    <h1>审计日志</h1>
+                    <p className="muted">查看关键库存和订单动作的操作记录。</p>
+                </div>
+            </section>
 
-            <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <div className="toolbar">
                 <input
                     value={keyword}
                     onChange={(e) => setKeyword(e.target.value)}
@@ -128,53 +129,55 @@ export default function AuditLogsPage() {
                     <option value="SALE_ORDER">销售单</option>
                 </select>
 
-                <button onClick={() => loadLogs(1, keyword, action, targetType)} disabled={loading}>
+                <button onClick={() => loadLogs(1)} disabled={loading}>
                     {loading ? '加载中...' : '查询'}
                 </button>
             </div>
 
-            {error && <div style={{ marginTop: '1rem', color: 'red' }}>{error}</div>}
+            {error && <div className="alert alert-danger">{error}</div>}
 
-            <div style={{ marginTop: '1rem' }}>
+            <p className="muted" style={{ marginTop: '1rem' }}>
                 第 {page} / {pages} 页，共 {total} 条
-            </div>
+            </p>
 
-            <table style={{ marginTop: '1rem', width: '100%', borderCollapse: 'collapse' }}>
+            <table>
                 <thead>
-                <tr>
-                    <th>时间</th>
-                    <th>操作人</th>
-                    <th>角色</th>
-                    <th>动作</th>
-                    <th>对象</th>
-                    <th>对象编号</th>
-                    <th>描述</th>
-                </tr>
+                    <tr>
+                        <th>时间</th>
+                        <th>操作人</th>
+                        <th>角色</th>
+                        <th>动作</th>
+                        <th>对象</th>
+                        <th>对象编号</th>
+                        <th>描述</th>
+                    </tr>
                 </thead>
                 <tbody>
-                {logs.map((log) => (
-                    <tr key={log.id}>
-                        <td>{log.createdAt}</td>
-                        <td>{log.operatorName}</td>
-                        <td>{log.operatorRole}</td>
-                        <td>{formatAction(log.action)}</td>
-                        <td>{formatTargetType(log.targetType)}</td>
-                        <td>{log.targetNo || '-'}</td>
-                        <td>{log.description}</td>
-                    </tr>
-                ))}
+                    {logs.map((log) => (
+                        <tr key={log.id}>
+                            <td>{log.createdAt}</td>
+                            <td>{log.operatorName}</td>
+                            <td>
+                                <span className="status-badge">{log.operatorRole}</span>
+                            </td>
+                            <td>{formatAction(log.action)}</td>
+                            <td>{formatTargetType(log.targetType)}</td>
+                            <td>{log.targetNo || '-'}</td>
+                            <td>{log.description}</td>
+                        </tr>
+                    ))}
                 </tbody>
             </table>
 
             {!loading && logs.length === 0 && (
-                <p style={{ marginTop: '1rem' }}>暂无审计日志</p>
+                <div className="empty-state">暂无审计日志</div>
             )}
 
-            <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
-                <button onClick={() => loadLogs(page - 1, keyword, action, targetType)} disabled={loading || page <= 1}>
+            <div className="toolbar">
+                <button onClick={() => loadLogs(page - 1)} disabled={loading || page <= 1}>
                     上一页
                 </button>
-                <button onClick={() => loadLogs(page + 1, keyword, action, targetType)} disabled={loading || page >= pages}>
+                <button onClick={() => loadLogs(page + 1)} disabled={loading || page >= pages}>
                     下一页
                 </button>
             </div>

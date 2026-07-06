@@ -1,8 +1,7 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
 import { apiRequest } from '@/lib/api';
-import EmptyState from '@/components/EmptyState';
 
 type SaleOrder = {
     id: number;
@@ -23,6 +22,27 @@ type PageResponse<T> = {
     pages: number;
 };
 
+function formatStatus(status: string) {
+    if (status === 'DRAFT') return '草稿';
+    if (status === 'APPROVED') return '已审核';
+    if (status === 'CANCELED') return '已取消';
+    return status;
+}
+
+function statusTone(status: string) {
+    if (status === 'APPROVED') return 'success';
+    if (status === 'CANCELED') return 'danger';
+    return 'warning';
+}
+
+function formatCurrency(value: number) {
+    return new Intl.NumberFormat('zh-CN', {
+        style: 'currency',
+        currency: 'CNY',
+        maximumFractionDigits: 2,
+    }).format(value || 0);
+}
+
 export default function SaleOrdersPage() {
     const [orders, setOrders] = useState<SaleOrder[]>([]);
     const [keyword, setKeyword] = useState('');
@@ -34,11 +54,7 @@ export default function SaleOrdersPage() {
     const [error, setError] = useState('');
     const [role, setRole] = useState('');
 
-    const loadOrders = useCallback(async (
-        targetPage: number,
-        currentKeyword: string,
-        currentStatus: string
-    ) => {
+    const loadOrders = async (targetPage = page) => {
         setLoading(true);
         setError('');
 
@@ -47,12 +63,12 @@ export default function SaleOrdersPage() {
             query.set('page', String(targetPage));
             query.set('size', '10');
 
-            if (currentKeyword.trim()) {
-                query.set('keyword', currentKeyword.trim());
+            if (keyword.trim()) {
+                query.set('keyword', keyword.trim());
             }
 
-            if (currentStatus) {
-                query.set('status', currentStatus);
+            if (status) {
+                query.set('status', status);
             }
 
             const data = await apiRequest<PageResponse<SaleOrder>>(
@@ -68,7 +84,7 @@ export default function SaleOrdersPage() {
         } finally {
             setLoading(false);
         }
-    }, []);
+    };
 
     async function handleApprove(id: number) {
         const ok = window.confirm('确定要审核出库这个销售单吗？');
@@ -82,12 +98,9 @@ export default function SaleOrdersPage() {
         try {
             await apiRequest(`/api/sale-orders/${id}/approve`, {
                 method: 'PATCH',
-                headers: {
-                    'Idempotency-Key': crypto.randomUUID(),
-                },
             });
 
-            loadOrders(page, keyword, status);
+            loadOrders(page);
         } catch (err) {
             setError(err instanceof Error ? err.message : '审核出库失败');
         }
@@ -105,12 +118,9 @@ export default function SaleOrdersPage() {
         try {
             await apiRequest(`/api/sale-orders/${id}/cancel`, {
                 method: 'PATCH',
-                headers: {
-                    'Idempotency-Key': crypto.randomUUID(),
-                },
             });
 
-            loadOrders(page, keyword, status);
+            loadOrders(page);
         } catch (err) {
             setError(err instanceof Error ? err.message : '取消销售单失败');
         }
@@ -130,7 +140,7 @@ export default function SaleOrdersPage() {
                 method: 'DELETE',
             });
 
-            loadOrders(page, keyword, status);
+            loadOrders(page);
         } catch (err) {
             setError(err instanceof Error ? err.message : '删除销售单失败');
         }
@@ -138,16 +148,26 @@ export default function SaleOrdersPage() {
 
     useEffect(() => {
         setRole(localStorage.getItem('role') || '');
-        loadOrders(1, '', '');
-    }, [loadOrders]);
+        loadOrders();
+    }, []);
 
     return (
         <Layout>
-            <h1>销售单列表</h1>
+            <section className="page-hero">
+                <div>
+                    <p className="eyebrow">销售出库</p>
+                    <h1>销售单列表</h1>
+                    <p className="muted">跟踪销售草稿、审核出库和取消恢复库存。</p>
+                </div>
 
-            <Link href="/sale-orders/new">新增销售单</Link>
+                <div className="page-actions">
+                    <Link className="btn-primary" href="/sale-orders/new">
+                        新增销售单
+                    </Link>
+                </div>
+            </section>
 
-            <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <div className="toolbar">
                 <input
                     value={keyword}
                     onChange={(e) => setKeyword(e.target.value)}
@@ -161,25 +181,18 @@ export default function SaleOrdersPage() {
                     <option value="CANCELED">已取消</option>
                 </select>
 
-                <button onClick={() => loadOrders(1, keyword, status)} disabled={loading}>
+                <button onClick={() => loadOrders(1)} disabled={loading}>
                     {loading ? '加载中...' : '查询'}
                 </button>
             </div>
 
-            {error && <div style={{ color: 'red', marginTop: '1rem' }}>{error}</div>}
+            {error && <div className="alert alert-danger">{error}</div>}
 
-            {!loading && orders.length === 0 && (
-                <EmptyState
-                    title="暂无销售单数据"
-                    description="可以点击新增销售单创建第一条记录。"
-                />
-            )}
-
-            <div style={{ marginTop: '1rem' }}>
+            <p className="muted" style={{ marginTop: '1rem' }}>
                 第 {page} / {pages} 页，共 {total} 条
-            </div>
+            </p>
 
-            <table style={{ marginTop: '1rem', width: '100%', borderCollapse: 'collapse' }}>
+            <table>
                 <thead>
                     <tr>
                         <th>单号</th>
@@ -196,11 +209,15 @@ export default function SaleOrdersPage() {
                         <tr key={order.id}>
                             <td>{order.orderNo}</td>
                             <td>{order.customerName}</td>
-                            <td>{order.totalAmount}</td>
-                            <td>{order.status}</td>
-                            <td>{order.remark}</td>
+                            <td>{formatCurrency(order.totalAmount)}</td>
+                            <td>
+                                <span className={`status-badge ${statusTone(order.status)}`}>
+                                    {formatStatus(order.status)}
+                                </span>
+                            </td>
+                            <td>{order.remark || '-'}</td>
                             <td>{order.createdAt}</td>
-                            <td style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                            <td className="action-cell">
                                 <Link href={`/sale-orders/${order.id}`}>详情</Link>
                                 {order.status === 'DRAFT' && (
                                     <Link href={`/sale-orders/${order.id}/edit`}>编辑</Link>
@@ -226,11 +243,15 @@ export default function SaleOrdersPage() {
                 </tbody>
             </table>
 
-            <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
-                <button onClick={() => loadOrders(page - 1, keyword, status)} disabled={loading || page <= 1}>
+            {!loading && orders.length === 0 && (
+                <div className="empty-state">暂无销售单数据</div>
+            )}
+
+            <div className="toolbar">
+                <button onClick={() => loadOrders(page - 1)} disabled={loading || page <= 1}>
                     上一页
                 </button>
-                <button onClick={() => loadOrders(page + 1, keyword, status)} disabled={loading || page >= pages}>
+                <button onClick={() => loadOrders(page + 1)} disabled={loading || page >= pages}>
                     下一页
                 </button>
             </div>

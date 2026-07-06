@@ -48,7 +48,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleException(Exception ex) {
-        log.error("Unhandled system exception type={}", ex.getClass().getName());
+        log.error("Unhandled system exception type={}", ex.getClass().getName(), ex);
         return ResponseEntity
                 .status(ErrorCode.SYSTEM_ERROR.getStatus())
                 .body(ApiResponse.fail(ErrorCode.SYSTEM_ERROR, "系统异常，请稍后再试"));

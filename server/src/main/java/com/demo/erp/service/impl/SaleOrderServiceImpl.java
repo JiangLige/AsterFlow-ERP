@@ -4,9 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.demo.erp.common.BusinessException;
-import com.demo.erp.common.EnumValidator;
 import com.demo.erp.common.OrderNoGenerator;
-import com.demo.erp.dto.AuditOperator;
 import com.demo.erp.dto.PageResponse;
 import com.demo.erp.dto.inventory.InventoryChangeCommand;
 import com.demo.erp.dto.sale.SaleOrderCreateRequest;
@@ -18,7 +16,7 @@ import com.demo.erp.mapper.CustomerMapper;
 import com.demo.erp.mapper.ProductMapper;
 import com.demo.erp.mapper.SaleOrderItemMapper;
 import com.demo.erp.mapper.SaleOrderMapper;
-import com.demo.erp.service.AuditLogService;
+import com.demo.erp.service.DashboardCacheService;
 import com.demo.erp.service.InventoryService;
 import com.demo.erp.service.SaleOrderService;
 import entity.Customer;
@@ -29,7 +27,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
-import com.demo.erp.common.PageRequestUtil;
 
 @Service
 public class SaleOrderServiceImpl implements SaleOrderService {
@@ -40,7 +37,7 @@ public class SaleOrderServiceImpl implements SaleOrderService {
     private final ProductMapper productMapper;
     private final OrderNoGenerator orderNoGenerator;
     private final InventoryService inventoryService;
-    private final AuditLogService auditLogService;
+    private final DashboardCacheService dashboardCacheService;
 
     public SaleOrderServiceImpl(SaleOrderMapper saleOrderMapper,
                                 SaleOrderItemMapper saleOrderItemMapper,
@@ -48,14 +45,14 @@ public class SaleOrderServiceImpl implements SaleOrderService {
                                 ProductMapper productMapper,
                                 OrderNoGenerator orderNoGenerator,
                                 InventoryService inventoryService,
-                                AuditLogService auditLogService) {
+                                DashboardCacheService dashboardCacheService) {
         this.saleOrderMapper = saleOrderMapper;
         this.saleOrderItemMapper = saleOrderItemMapper;
         this.customerMapper = customerMapper;
         this.productMapper = productMapper;
         this.orderNoGenerator = orderNoGenerator;
         this.inventoryService = inventoryService;
-        this.auditLogService = auditLogService;
+        this.dashboardCacheService = dashboardCacheService;
     }
 
     @Override
@@ -106,6 +103,8 @@ public class SaleOrderServiceImpl implements SaleOrderService {
 
         saleOrder.setTotalAmount(totalAmount);
         saleOrderMapper.updateById(saleOrder);
+
+        dashboardCacheService.evictSummary();
 
         return getById(saleOrder.getId());
     }
@@ -184,14 +183,10 @@ public class SaleOrderServiceImpl implements SaleOrderService {
         }
 
         if (status != null && !status.isBlank()) {
-            String validStatus = EnumValidator.requireValid(
-                    SaleOrderStatus.class,
-                    status,
-                    "销售单状态不合法"
-            );
-
-            if (validStatus != null && !validStatus.isBlank()) {
-                wrapper.eq(SaleOrder::getStatus, validStatus);
+            try {
+                SaleOrderStatus.valueOf(status);
+            } catch (IllegalArgumentException e) {
+                throw new BusinessException("销售单状态不合法");
             }
 
             wrapper.eq(SaleOrder::getStatus, status);
@@ -200,10 +195,7 @@ public class SaleOrderServiceImpl implements SaleOrderService {
         wrapper.orderByDesc(SaleOrder::getCreatedAt)
                 .orderByDesc(SaleOrder::getId);
 
-        Page<SaleOrder> saleOrderPage = new Page<>(
-                PageRequestUtil.normalizePage(page),
-                PageRequestUtil.normalizeSize(size)
-        );;
+        Page<SaleOrder> saleOrderPage = new Page<>(page, size);
         Page<SaleOrder> result = saleOrderMapper.selectPage(saleOrderPage, wrapper);
 
         List<SaleOrderResponse> records = result.getRecords()
@@ -237,27 +229,6 @@ public class SaleOrderServiceImpl implements SaleOrderService {
     @Override
     @Transactional
     public void approve(Long id) {
-        approveInternal(id);
-    }
-
-    @Override
-    @Transactional
-    public void approve(Long id, AuditOperator operator) {
-        SaleOrder saleOrder = approveInternal(id);
-
-        auditLogService.record(
-                operator.userId(),
-                operator.username(),
-                operator.role(),
-                "SALE_APPROVE",
-                "SALE_ORDER",
-                id,
-                saleOrder.getOrderNo(),
-                "审核销售单并出库"
-        );
-    }
-
-    private SaleOrder approveInternal(Long id) {
         SaleOrder saleOrder = saleOrderMapper.selectById(id);
 
         if (saleOrder == null) {
@@ -306,7 +277,7 @@ public class SaleOrderServiceImpl implements SaleOrderService {
             throw new BusinessException("销售单状态已变化，请刷新后重试");
         }
 
-        return saleOrder;
+        dashboardCacheService.evictSummary();
     }
 
     @Override
@@ -328,6 +299,8 @@ public class SaleOrderServiceImpl implements SaleOrderService {
         );
 
         saleOrderMapper.deleteById(id);
+
+        dashboardCacheService.evictSummary();
     }
 
     @Override
@@ -389,6 +362,8 @@ public class SaleOrderServiceImpl implements SaleOrderService {
         saleOrder.setTotalAmount(totalAmount);
         saleOrderMapper.updateById(saleOrder);
 
+        dashboardCacheService.evictSummary();
+
         return getById(id);
 
 
@@ -397,27 +372,6 @@ public class SaleOrderServiceImpl implements SaleOrderService {
     @Override
     @Transactional
     public void cancel(Long id) {
-        cancelInternal(id);
-    }
-
-    @Override
-    @Transactional
-    public void cancel(Long id, AuditOperator operator) {
-        SaleOrder saleOrder = cancelInternal(id);
-
-        auditLogService.record(
-                operator.userId(),
-                operator.username(),
-                operator.role(),
-                "SALE_CANCEL",
-                "SALE_ORDER",
-                id,
-                saleOrder.getOrderNo(),
-                "取消销售单并恢复库存"
-        );
-    }
-
-    private SaleOrder cancelInternal(Long id) {
         SaleOrder saleOrder = saleOrderMapper.selectById(id);
 
         if (saleOrder == null) {
@@ -466,6 +420,7 @@ public class SaleOrderServiceImpl implements SaleOrderService {
             ));
         }
 
-        return saleOrder;
+        dashboardCacheService.evictSummary();
+
     }
 }

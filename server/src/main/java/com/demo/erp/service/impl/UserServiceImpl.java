@@ -1,9 +1,7 @@
 package com.demo.erp.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.demo.erp.common.BusinessException;
-import com.demo.erp.common.ErrorCode;
 import com.demo.erp.dto.auth.AuthSession;
 import com.demo.erp.dto.auth.CurrentUserResponse;
 import com.demo.erp.dto.auth.LoginRequest;
@@ -61,42 +59,63 @@ public class UserServiceImpl implements UserService {
                 user.getStatus()
         );
 
-        return buildLoginResponse(user, session);
+        String accessToken = jwtUtil.generateToken(
+                user.getId(),
+                user.getUsername(),
+                user.getRole(),
+                session.getSessionId()
+        );
+
+        LoginResponse response = new LoginResponse();
+        response.setToken(accessToken);
+        response.setAccessToken(accessToken);
+        response.setRefreshToken(session.getRefreshToken());
+        response.setExpiresInSeconds(jwtUtil.getAccessTokenExpiresInSeconds());
+        response.setUserId(user.getId());
+        response.setUsername(user.getUsername());
+        response.setRealName(user.getRealName());
+        response.setRole(user.getRole());
+
+        return response;
     }
 
     @Override
     public LoginResponse refresh(String refreshToken) {
         AuthSession session = authSessionService.findByRefreshToken(refreshToken)
-                .orElseThrow(() -> new BusinessException(ErrorCode.UNAUTHORIZED, "鐧诲綍宸茶繃鏈熸垨鏃犳晥锛岃閲嶆柊鐧诲綍"));
+                .orElseThrow(() -> new BusinessException("登录已过期，请重新登录"));
 
-        User user = userMapper.selectById(session.getUserId());
-
-        if (user == null || !UserStatus.ACTIVE.name().equals(user.getStatus())) {
-            authSessionService.invalidate(session.getSessionId(), refreshToken);
-            throw new BusinessException(ErrorCode.UNAUTHORIZED, "鐧诲綍宸茶繃鏈熸垨鏃犳晥锛岃閲嶆柊鐧诲綍");
+        if (!UserStatus.ACTIVE.name().equals(session.getStatus())) {
+            throw new BusinessException("账号已停用");
         }
 
-        return buildLoginResponse(user, session);
+        String accessToken = jwtUtil.generateToken(
+                session.getUserId(),
+                session.getUsername(),
+                session.getRole(),
+                session.getSessionId()
+        );
+
+        LoginResponse response = new LoginResponse();
+        response.setToken(accessToken);
+        response.setAccessToken(accessToken);
+        response.setRefreshToken(session.getRefreshToken());
+        response.setExpiresInSeconds(jwtUtil.getAccessTokenExpiresInSeconds());
+        response.setUserId(session.getUserId());
+        response.setUsername(session.getUsername());
+        response.setRole(session.getRole());
+
+        return response;
     }
 
     @Override
     public void logout(String accessToken, String refreshToken) {
         String sessionId = null;
 
-        String token = normalizeBearerToken(accessToken);
-
-        if (token != null && !token.isBlank()) {
-            try {
-                sessionId = jwtUtil.getSessionId(token);
-            } catch (JWTVerificationException | IllegalArgumentException ignored) {
-                sessionId = null;
-            }
-        }
-
-        if ((sessionId == null || sessionId.isBlank()) && refreshToken != null && !refreshToken.isBlank()) {
-            sessionId = authSessionService.findByRefreshToken(refreshToken)
-                    .map(AuthSession::getSessionId)
-                    .orElse(null);
+        if (accessToken != null && !accessToken.isBlank()) {
+            String token = accessToken.startsWith("Bearer ")
+                    ? accessToken.substring(7)
+                    : accessToken;
+            sessionId = jwtUtil.getSessionId(token);
         }
 
         authSessionService.invalidate(sessionId, refreshToken);
@@ -117,38 +136,5 @@ public class UserServiceImpl implements UserService {
         response.setRole(user.getRole());
 
         return response;
-    }
-
-    private LoginResponse buildLoginResponse(User user, AuthSession session) {
-        String accessToken = jwtUtil.generateAccessToken(
-                user.getId(),
-                user.getUsername(),
-                user.getRole(),
-                session.getSessionId()
-        );
-
-        LoginResponse response = new LoginResponse();
-        response.setToken(accessToken);
-        response.setAccessToken(accessToken);
-        response.setRefreshToken(session.getRefreshToken());
-        response.setExpiresInSeconds(jwtUtil.getAccessTokenExpiresInSeconds());
-        response.setUserId(user.getId());
-        response.setUsername(user.getUsername());
-        response.setRealName(user.getRealName());
-        response.setRole(user.getRole());
-
-        return response;
-    }
-
-    private String normalizeBearerToken(String accessToken) {
-        if (accessToken == null || accessToken.isBlank()) {
-            return null;
-        }
-
-        if (accessToken.startsWith("Bearer ")) {
-            return accessToken.substring(7);
-        }
-
-        return accessToken;
     }
 }

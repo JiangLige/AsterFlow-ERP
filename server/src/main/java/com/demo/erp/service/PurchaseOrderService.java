@@ -1,11 +1,8 @@
 package com.demo.erp.service;
 
-import com.demo.erp.dto.AuditOperator;
 import com.demo.erp.dto.PageResponse;
 import com.demo.erp.dto.PurchaseOrderCreateRequest;
 import com.demo.erp.dto.PurchaseOrderResponse;
-import com.demo.erp.common.EnumValidator;
-import com.demo.erp.enums.CustomerStatus;
 
 public interface PurchaseOrderService {
 
@@ -17,13 +14,9 @@ public interface PurchaseOrderService {
 
     void approve(Long id);
 
-    void approve(Long id, AuditOperator operator);
-
     void delete(Long id);
 
     PurchaseOrderResponse update(Long id, PurchaseOrderCreateRequest request);
 
     void cancel(Long id);
-
-    void cancel(Long id, AuditOperator operator);
 }

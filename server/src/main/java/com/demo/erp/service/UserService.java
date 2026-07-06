@@ -3,8 +3,6 @@ package com.demo.erp.service;
 import com.demo.erp.dto.auth.CurrentUserResponse;
 import com.demo.erp.dto.auth.LoginRequest;
 import com.demo.erp.dto.auth.LoginResponse;
-import com.demo.erp.common.EnumValidator;
-import com.demo.erp.enums.CustomerStatus;
 
 public interface UserService {
 

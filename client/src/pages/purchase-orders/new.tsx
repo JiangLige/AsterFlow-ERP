@@ -156,9 +156,15 @@ export default function PurchaseOrderCreatePage() {
 
     return (
         <Layout>
-            <h1>新增采购单</h1>
+            <section className="page-hero">
+                <div>
+                    <p className="eyebrow">采购入库</p>
+                    <h1>新增采购单</h1>
+                    <p className="muted">选择供应商并录入商品明细，保存后进入采购流转。</p>
+                </div>
+            </section>
 
-            {error && <div style={{ marginTop: '1rem', color: 'red' }}>{error}</div>}
+            {error && <div className="alert alert-danger">{error}</div>}
 
             <form onSubmit={handleSubmit}>
                 <div>
@@ -193,7 +199,7 @@ export default function PurchaseOrderCreatePage() {
                 </button>
 
                 {items.map((item, index) => (
-                    <div key={index} style={{ marginTop: '1rem', marginBottom: '1rem' }}>
+                    <div key={index} className="line-item-row">
                         <select
                             value={item.productId}
                             onChange={(e) => updateProduct(index, e.target.value)}
@@ -223,18 +229,6 @@ export default function PurchaseOrderCreatePage() {
                         </button>
                     </div>
                 ))}
-
-                <pre>
-                    {JSON.stringify(
-                        {
-                            supplierId,
-                            remark,
-                            items,
-                        },
-                        null,
-                        2
-                    )}
-                </pre>
 
                 <button type="submit">保存采购单</button>
             </form>

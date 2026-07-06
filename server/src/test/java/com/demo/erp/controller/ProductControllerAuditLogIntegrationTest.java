@@ -56,7 +56,7 @@ class ProductControllerAuditLogIntegrationTest {
         httpRequest.setAttribute("username", "admin");
         httpRequest.setAttribute("role", "ADMIN");
 
-        productController.adjustStock(product.getId(), "audit-test-key", request, httpRequest);
+        productController.adjustStock(product.getId(), request, httpRequest);
 
         List<AuditLog> logs = auditLogMapper.selectList(
                 new LambdaQueryWrapper<AuditLog>()

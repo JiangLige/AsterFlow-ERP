@@ -1,5 +1,6 @@
 package com.demo.erp.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.demo.erp.common.BusinessException;
 import com.demo.erp.dto.inventory.InventoryChangeCommand;
 import com.demo.erp.enums.StockChangeType;
@@ -48,6 +49,7 @@ public class InventoryServiceImpl implements InventoryService {
             throw new BusinessException("商品不存在");
         }
 
+        int beforeStock = product.getStock();
         int changeQuantity = command.getQuantity();
 
         int rows = productMapper.increaseStock(product.getId(), changeQuantity);
@@ -57,13 +59,7 @@ public class InventoryServiceImpl implements InventoryService {
         }
 
         Product updatedProduct = productMapper.selectById(product.getId());
-
-        if (updatedProduct == null) {
-            throw new BusinessException("商品不存在");
-        }
-
         int afterStock = updatedProduct.getStock();
-        int beforeStock = afterStock - changeQuantity;
 
         StockRecord stockRecord = new StockRecord();
         stockRecord.setProductId(product.getId());
@@ -104,11 +100,8 @@ public class InventoryServiceImpl implements InventoryService {
             throw new BusinessException("商品不存在");
         }
 
+        int beforeStock = product.getStock();
         int changeQuantity = command.getQuantity();
-
-        if (product.getStock() < changeQuantity) {
-            throw new BusinessException("商品库存不足：" + product.getName());
-        }
 
         int rows = productMapper.deductStockIfEnough(product.getId(), changeQuantity);
 
@@ -117,13 +110,7 @@ public class InventoryServiceImpl implements InventoryService {
         }
 
         Product updatedProduct = productMapper.selectById(product.getId());
-
-        if (updatedProduct == null) {
-            throw new BusinessException("商品不存在");
-        }
-
         int afterStock = updatedProduct.getStock();
-        int beforeStock = afterStock + changeQuantity;
 
         StockRecord stockRecord = new StockRecord();
         stockRecord.setProductId(product.getId());

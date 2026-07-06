@@ -3,14 +3,12 @@ package com.demo.erp.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.demo.erp.common.BusinessException;
-import com.demo.erp.common.EnumValidator;
 import com.demo.erp.dto.*;
 import com.demo.erp.dto.inventory.InventoryChangeCommand;
 import com.demo.erp.enums.ProductStatus;
 import com.demo.erp.enums.StockChangeType;
 import com.demo.erp.mapper.ProductMapper;
 import com.demo.erp.mapper.StockRecordMapper;
-import com.demo.erp.service.AuditLogService;
 import com.demo.erp.service.DashboardCacheService;
 import com.demo.erp.service.InventoryService;
 import com.demo.erp.service.ProductService;
@@ -18,7 +16,7 @@ import entity.Product;
 import entity.StockRecord;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.demo.erp.common.PageRequestUtil;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -29,18 +27,13 @@ public class ProductServiceImpl implements ProductService {
     private final StockRecordMapper stockRecordMapper;
     private final InventoryService inventoryService;
     private final DashboardCacheService dashboardCacheService;
-    private final AuditLogService auditLogService;
 
     public ProductServiceImpl(ProductMapper productMapper,
-                              StockRecordMapper stockRecordMapper,
-                              InventoryService inventoryService,
-                              DashboardCacheService dashboardCacheService,
-                              AuditLogService auditLogService) {
+                              StockRecordMapper stockRecordMapper, InventoryService inventoryService, DashboardCacheService dashboardCacheService) {
         this.productMapper = productMapper;
         this.stockRecordMapper = stockRecordMapper;
         this.inventoryService = inventoryService;
         this.dashboardCacheService = dashboardCacheService;
-        this.auditLogService = auditLogService;
     }
 
     @Override
@@ -104,33 +97,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public void adjustStock(Long productId, StockAdjustRequest request) {
-        adjustStockInternal(productId, request);
-    }
 
-    @Override
-    @Transactional
-    public void adjustStock(Long productId, StockAdjustRequest request, AuditOperator operator) {
-        adjustStockInternal(productId, request);
-
-        Product product = productMapper.selectById(productId);
-
-        if (product == null) {
-            throw new BusinessException("商品不存在");
-        }
-
-        auditLogService.record(
-                operator.userId(),
-                operator.username(),
-                operator.role(),
-                "STOCK_ADJUST",
-                "PRODUCT",
-                productId,
-                product.getProductCode(),
-                "手工调整商品库存，变化数量：" + request.getChangeQuantity()
-        );
-    }
-
-    private void adjustStockInternal(Long productId, StockAdjustRequest request) {
         StockChangeType type;
 
         try {
@@ -258,23 +225,14 @@ public class ProductServiceImpl implements ProductService {
                     .like(Product::getCategory, keyword);
         }
 
-        String validStatus = EnumValidator.requireValid(
-                ProductStatus.class,
-                status,
-                "商品状态不合法"
-        );
-
-        if (validStatus != null && !validStatus.isBlank()) {
-            wrapper.eq(Product::getStatus, validStatus);
+        if (status != null && !status.isBlank()) {
+            wrapper.eq(Product::getStatus, status);
         }
 
         wrapper.orderByDesc(Product::getCreatedAt)
                 .orderByDesc(Product::getId);
 
-        Page<Product> productPage = new Page<>(
-                PageRequestUtil.normalizePage(page),
-                PageRequestUtil.normalizeSize(size)
-        );
+        Page<Product> productPage = new Page<>(page, size);
 
         Page<Product> result = productMapper.selectPage(productPage, wrapper);
 
@@ -302,12 +260,13 @@ public class ProductServiceImpl implements ProductService {
             throw new BusinessException("商品不存在");
         }
 
-        String validStatus = EnumValidator.requireValid(
-                ProductStatus.class,
-                request.getStatus(),
-                "商品状态不合法"
-        );
-
+        if (request.getStatus() != null && !request.getStatus().isBlank()) {
+            try {
+                ProductStatus.valueOf(request.getStatus());
+            } catch (IllegalArgumentException e) {
+                throw new BusinessException("商品状态不合法");
+            }
+        }
         Product existing = productMapper.selectOne(
                 new LambdaQueryWrapper<Product>()
                         .eq(Product::getProductCode, request.getProductCode())
@@ -324,9 +283,8 @@ public class ProductServiceImpl implements ProductService {
         product.setUnit(request.getUnit());
         product.setPrice(request.getPrice());
         product.setCost(request.getCost());
-        if (validStatus != null && !validStatus.isBlank()) {
-            product.setStatus(validStatus);
-        }
+        product.setStock(request.getStock());
+        product.setStatus(request.getStatus());
         product.setDescription(request.getDescription());
         product.setMinStock(request.getMinStock() == null ? 0 : request.getMinStock());
 

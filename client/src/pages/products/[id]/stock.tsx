@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -30,26 +30,26 @@ export default function ProductStockAdjustPage() {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
-    const loadProduct = useCallback(async (currentProductId: string) => {
-        if (!currentProductId) return;
+    async function loadProduct() {
+        if (!productId) return;
 
         setLoading(true);
         setError('');
 
         try {
-            const data = await apiRequest<Product>(`/api/products/${currentProductId}`);
+            const data = await apiRequest<Product>(`/api/products/${productId}`);
             setProduct(data);
         } catch (err) {
             setError(err instanceof Error ? err.message : '加载商品失败');
         } finally {
             setLoading(false);
         }
-    }, []);
+    }
 
     useEffect(() => {
         if (!router.isReady || !productId) return;
-        loadProduct(productId);
-    }, [router.isReady, productId, loadProduct]);
+        loadProduct();
+    }, [router.isReady, productId]);
 
     function getChangeQuantity() {
         const value = Number(quantity);
@@ -90,15 +90,12 @@ export default function ProductStockAdjustPage() {
                     changeQuantity,
                     remark,
                 }),
-                headers: {
-                    'Idempotency-Key': crypto.randomUUID(),
-                },
             });
 
             setSuccess('库存调整成功，已生成库存流水');
             setQuantity('');
             setRemark('');
-            await loadProduct(productId);
+            await loadProduct();
         } catch (err) {
             setError(err instanceof Error ? err.message : '库存调整失败');
         } finally {
@@ -115,9 +112,9 @@ export default function ProductStockAdjustPage() {
                 <Link href="/stock-records">查看库存流水</Link>
             </div>
 
-            {loading && <p>加载中...</p>}
-            {error && <p style={{ color: 'red' }}>{error}</p>}
-            {success && <p style={{ color: 'green' }}>{success}</p>}
+            {loading && <div className="empty-state">加载中...</div>}
+            {error && <div className="alert alert-danger">{error}</div>}
+            {success && <div className="alert alert-success">{success}</div>}
 
             {product && (
                 <div style={{ marginTop: '1rem' }}>

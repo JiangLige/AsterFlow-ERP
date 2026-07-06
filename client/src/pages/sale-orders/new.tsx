@@ -179,9 +179,15 @@ export default function SaleOrderCreatePage() {
 
     return (
         <Layout>
-            <h1>新增销售单</h1>
+            <section className="page-hero">
+                <div>
+                    <p className="eyebrow">销售出库</p>
+                    <h1>新增销售单</h1>
+                    <p className="muted">选择客户并录入销售明细，提交前会校验可用库存。</p>
+                </div>
+            </section>
 
-            {error && <div style={{ marginTop: '1rem', color: 'red' }}>{error}</div>}
+            {error && <div className="alert alert-danger">{error}</div>}
 
             <form onSubmit={handleSubmit}>
                 <div>
@@ -216,7 +222,7 @@ export default function SaleOrderCreatePage() {
                 </button>
 
                 {items.map((item, index) => (
-                    <div key={index} style={{ marginTop: '1rem', marginBottom: '1rem' }}>
+                    <div key={index} className="line-item-row">
                         <select
                             value={item.productId}
                             onChange={(e) => updateProduct(index, e.target.value)}
@@ -253,18 +259,6 @@ export default function SaleOrderCreatePage() {
                         </button>
                     </div>
                 ))}
-
-                <pre>
-                    {JSON.stringify(
-                        {
-                            customerId,
-                            remark,
-                            items,
-                        },
-                        null,
-                        2
-                    )}
-                </pre>
 
                 <button type="submit" disabled={submitting}>
                     {submitting ? '保存中...' : '保存销售单'}

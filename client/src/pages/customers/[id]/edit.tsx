@@ -99,8 +99,8 @@ export default function CustomerEditPage() {
         <Layout>
             <h1>编辑客户</h1>
 
-            {loading && <p>加载中...</p>}
-            {error && <p style={{ color: 'red' }}>{error}</p>}
+            {loading && <div className="empty-state">加载中...</div>}
+            {error && <div className="alert alert-danger">{error}</div>}
 
             <form onSubmit={handleSubmit}>
                 <div>

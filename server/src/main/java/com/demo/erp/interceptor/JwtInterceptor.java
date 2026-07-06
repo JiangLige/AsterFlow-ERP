@@ -1,11 +1,9 @@
 package com.demo.erp.interceptor;
 
 import com.auth0.jwt.exceptions.JWTVerificationException;
-import com.auth0.jwt.interfaces.DecodedJWT;
 import com.demo.erp.common.BusinessException;
 import com.demo.erp.common.ErrorCode;
 import com.demo.erp.dto.auth.AuthSession;
-import com.demo.erp.enums.UserStatus;
 import com.demo.erp.service.AuthSessionService;
 import com.demo.erp.util.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
@@ -39,26 +37,16 @@ public class JwtInterceptor implements HandlerInterceptor {
         }
 
         try {
-            DecodedJWT jwt = jwtUtil.verifyToken(token);
-            String sessionId = jwt.getClaim("sessionId").asString();
+            jwtUtil.verifyToken(token);
 
-            if (sessionId == null || sessionId.isBlank()) {
-                throw new BusinessException(ErrorCode.UNAUTHORIZED, "登录已过期或无效，请重新登录");
-            }
-
+            String sessionId = jwtUtil.getSessionId(token);
             AuthSession session = authSessionService.findBySessionId(sessionId)
-                    .orElseThrow(() -> new BusinessException(ErrorCode.UNAUTHORIZED, "登录已过期或无效，请重新登录"));
-
-            Long tokenUserId = Long.valueOf(jwt.getSubject());
-
-            if (!tokenUserId.equals(session.getUserId()) || !UserStatus.ACTIVE.name().equals(session.getStatus())) {
-                throw new BusinessException(ErrorCode.UNAUTHORIZED, "登录已过期或无效，请重新登录");
-            }
+                    .orElseThrow(() -> new BusinessException(ErrorCode.UNAUTHORIZED, "登录已失效，请重新登录"));
 
             request.setAttribute("userId", session.getUserId());
             request.setAttribute("username", session.getUsername());
             request.setAttribute("role", session.getRole());
-        } catch (JWTVerificationException | IllegalArgumentException e) {
+        } catch (JWTVerificationException e) {
             throw new BusinessException(ErrorCode.UNAUTHORIZED, "登录已过期或无效，请重新登录");
         }
 

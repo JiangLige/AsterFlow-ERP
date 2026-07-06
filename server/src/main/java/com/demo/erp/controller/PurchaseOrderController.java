@@ -4,23 +4,23 @@ import com.demo.erp.common.ApiResponse;
 import com.demo.erp.dto.PageResponse;
 import com.demo.erp.dto.PurchaseOrderCreateRequest;
 import com.demo.erp.dto.PurchaseOrderResponse;
+import com.demo.erp.service.AuditLogService;
 import com.demo.erp.service.PurchaseOrderService;
 import com.demo.erp.util.AuthUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
-import com.demo.erp.service.IdempotencyService;
 
 @RestController
 @RequestMapping("/api/purchase-orders")
 public class PurchaseOrderController {
 
     private final PurchaseOrderService purchaseOrderService;
-    private final IdempotencyService idempotencyService;
+    private final AuditLogService auditLogService;
 
-    public PurchaseOrderController(PurchaseOrderService purchaseOrderService, IdempotencyService idempotencyService) {
+    public PurchaseOrderController(PurchaseOrderService purchaseOrderService, AuditLogService auditLogService) {
         this.purchaseOrderService = purchaseOrderService;
-        this.idempotencyService = idempotencyService;
+        this.auditLogService = auditLogService;
     }
 
     @PostMapping
@@ -44,13 +44,22 @@ public class PurchaseOrderController {
     }
 
     @PatchMapping("/{id}/approve")
-    public ApiResponse<Void> approve(
-            @PathVariable Long id,
-            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
-            HttpServletRequest request
-    ) {
-        idempotencyService.requireFirstExecution("purchase-order-approve:" + id, idempotencyKey);
-        purchaseOrderService.approve(id, AuthUtil.currentOperator(request));
+    public ApiResponse<Void> approve(@PathVariable Long id, HttpServletRequest request) {
+        purchaseOrderService.approve(id);
+
+        PurchaseOrderResponse order = purchaseOrderService.getById(id);
+
+        auditLogService.record(
+                (Long) request.getAttribute("userId"),
+                (String) request.getAttribute("username"),
+                (String) request.getAttribute("role"),
+                "PURCHASE_APPROVE",
+                "PURCHASE_ORDER",
+                id,
+                order.getOrderNo(),
+                "审核采购单并入库"
+        );
+
         return ApiResponse.success();
     }
 
@@ -69,13 +78,23 @@ public class PurchaseOrderController {
     }
 
     @PatchMapping("/{id}/cancel")
-    public ApiResponse<Void> cancel(
-            @PathVariable Long id,
-            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
-            HttpServletRequest request
-    ) {
-        idempotencyService.requireFirstExecution("purchase-order-cancel:" + id, idempotencyKey);
-        purchaseOrderService.cancel(id, AuthUtil.currentOperator(request));
+    public ApiResponse<Void> cancel(@PathVariable Long id, HttpServletRequest request) {
+        purchaseOrderService.cancel(id);
+
+        PurchaseOrderResponse order = purchaseOrderService.getById(id);
+
+        auditLogService.record(
+                (Long) request.getAttribute("userId"),
+                (String) request.getAttribute("username"),
+                (String) request.getAttribute("role"),
+                "PURCHASE_CANCEL",
+                "PURCHASE_ORDER",
+                id,
+                order.getOrderNo(),
+                "取消采购单并扣回库存"
+        );
+
         return ApiResponse.success();
     }
+
 }

@@ -56,7 +56,7 @@ export default function ProductCreatePage() {
         <Layout>
             <h1>新增商品</h1>
 
-            {error && <p style={{ color: 'red' }}>{error}</p>}
+            {error && <div className="alert alert-danger">{error}</div>}
 
             <form onSubmit={handleSubmit}>
                 <div>

@@ -365,10 +365,10 @@ public class RedisIdempotencyServiceImpl implements IdempotencyService {
 - Modify: `.env.example`
 
 **Acceptance Criteria:**
-- [ ] Maven uses Spring AI BOM `2.0.0`.
-- [ ] Add `spring-ai-starter-model-openai`.
-- [ ] API key reads from `OPENAI_API_KEY`.
-- [ ] App can start without exposing key in git.
+- [x] Maven uses Spring AI BOM `2.0.0`.
+- [x] Add `spring-ai-starter-model-openai`.
+- [x] API key reads from `OPENAI_API_KEY`.
+- [x] App can start without exposing key in git.
 
 **Suggested Maven Code:**
 
@@ -413,8 +413,8 @@ spring:
 - Create: `server/src/main/java/com/demo/erp/dto/ai/AiDashboardSummaryResponse.java`
 
 **Acceptance Criteria:**
-- [ ] DTOs contain simple fields, not raw model text only.
-- [ ] Frontend can render fields directly.
+- [x] DTOs contain simple fields, not raw model text only.
+- [x] Frontend can render fields directly.
 
 **Suggested DTO Fields:**
 

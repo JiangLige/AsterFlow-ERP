@@ -97,10 +97,16 @@ export default function SupplierEditPage() {
 
     return (
         <Layout>
-            <h1>编辑供应商</h1>
+            <section className="page-hero">
+                <div>
+                    <p className="eyebrow">供应网络</p>
+                    <h1>编辑供应商</h1>
+                    <p className="muted">维护供应商基础资料、联系人和业务状态。</p>
+                </div>
+            </section>
 
-            {loading && <p>加载中...</p>}
-            {error && <p style={{ color: 'red' }}>{error}</p>}
+            {loading && <div className="empty-state">加载中...</div>}
+            {error && <div className="alert alert-danger">{error}</div>}
 
             <form onSubmit={handleSubmit}>
                 <div>

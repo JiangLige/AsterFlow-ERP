@@ -2,18 +2,16 @@ package com.demo.erp.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.demo.erp.common.EnumValidator;
 import com.demo.erp.dto.CustomerRequest;
 import com.demo.erp.dto.CustomerResponse;
 import com.demo.erp.dto.PageResponse;
 import com.demo.erp.common.BusinessException;
-import com.demo.erp.enums.CustomerStatus;
 import com.demo.erp.mapper.CustomerMapper;
 import com.demo.erp.service.CustomerService;
 import entity.Customer;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.demo.erp.common.PageRequestUtil;
+
 import java.util.List;
 
 @Service
@@ -43,7 +41,7 @@ public class CustomerServiceImpl implements CustomerService {
         customer.setContactName(request.getContactName());
         customer.setPhone(request.getPhone());
         customer.setAddress(request.getAddress());
-        customer.setStatus(CustomerStatus.ACTIVE.name());
+        customer.setStatus("ACTIVE");
 
         customerMapper.insert(customer);
 
@@ -75,22 +73,13 @@ public class CustomerServiceImpl implements CustomerService {
             );
         }
 
-        String validStatus = EnumValidator.requireValid(
-                CustomerStatus.class,
-                status,
-                "客户状态不合法"
-        );
-
-        if (validStatus != null && !validStatus.isBlank()) {
-            wrapper.eq(Customer::getStatus, validStatus);
+        if (status != null && !status.isBlank()) {
+            wrapper.eq(Customer::getStatus, status);
         }
 
         wrapper.orderByDesc(Customer::getCreatedAt);
 
-        Page<Customer> customerPage = new Page<>(
-                PageRequestUtil.normalizePage(page),
-                PageRequestUtil.normalizeSize(size)
-        );
+        Page<Customer> customerPage = new Page<>(page, size);
         Page<Customer> result = customerMapper.selectPage(customerPage, wrapper);
 
         List<CustomerResponse> records = result.getRecords()
@@ -150,7 +139,7 @@ public class CustomerServiceImpl implements CustomerService {
             throw new BusinessException("客户不存在");
         }
 
-        customer.setStatus(CustomerStatus.INACTIVE.name());
+        customer.setStatus("INACTIVE");
         customerMapper.updateById(customer);
     }
 

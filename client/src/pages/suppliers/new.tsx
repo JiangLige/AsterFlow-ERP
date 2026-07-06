@@ -48,7 +48,7 @@ export default function SupplierCreatePage() {
         <Layout>
             <h1>新增供应商</h1>
 
-            {error && <p style={{ color: 'red' }}>{error}</p>}
+            {error && <div className="alert alert-danger">{error}</div>}
 
             <form onSubmit={handleSubmit}>
                 <div>

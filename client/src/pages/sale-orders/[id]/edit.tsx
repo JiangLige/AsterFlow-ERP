@@ -229,11 +229,11 @@ export default function SaleOrderEditPage() {
         <Layout>
             <h1>编辑销售单</h1>
 
-            {loading && <p>加载中...</p>}
-            {error && <div style={{ marginTop: '1rem', color: 'red' }}>{error}</div>}
+            {loading && <div className="empty-state">加载中...</div>}
+            {error && <div className="alert alert-danger">{error}</div>}
 
             {status && status !== 'DRAFT' && (
-                <div style={{ marginTop: '1rem', color: 'red' }}>
+                <div className="alert alert-danger">
                     当前销售单不是草稿状态，不能修改
                 </div>
             )}
@@ -278,7 +278,7 @@ export default function SaleOrderEditPage() {
                 </button>
 
                 {items.map((item, index) => (
-                    <div key={index} style={{ marginTop: '1rem', marginBottom: '1rem' }}>
+                    <div key={index} className="line-item-row">
                         <select
                             value={item.productId}
                             onChange={(e) => updateProduct(index, e.target.value)}

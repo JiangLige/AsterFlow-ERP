@@ -1,97 +1,117 @@
 import Link from 'next/link';
-import {useRouter} from 'next/router';
-import type {ReactNode} from 'react';
-import {useEffect, useState} from 'react';
-import {
-    clearAuthStorage,
-    getAccessToken,
-    getCurrentUserDisplay,
-    getRefreshToken,
-} from '@/lib/auth';
+import { useRouter } from 'next/router';
+import type { ReactNode } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 type LayoutProps = {
     children: ReactNode;
 };
+
+const navItems = [
+    { href: '/', label: '运营总览' },
+    { href: '/products', label: '商品管理' },
+    { href: '/purchase-orders', label: '采购订单' },
+    { href: '/sale-orders', label: '销售订单' },
+    { href: '/inventory-warnings', label: '库存预警' },
+    { href: '/ai-assistant', label: 'AI 助手' },
+    { href: '/stock-records', label: '库存流水' },
+    { href: '/suppliers', label: '供应商' },
+    { href: '/customers', label: '客户' },
+    { href: '/audit-logs', label: '审计日志' },
+];
+
+function isActivePath(currentPath: string, href: string) {
+    if (href === '/') {
+        return currentPath === '/';
+    }
+
+    return currentPath === href || currentPath.startsWith(`${href}/`);
+}
 
 export default function Layout({ children }: LayoutProps) {
     const router = useRouter();
     const [ready, setReady] = useState(false);
     const [displayName, setDisplayName] = useState('');
     const [role, setRole] = useState('');
+
+    const currentNav = useMemo(
+        () => navItems.find((item) => isActivePath(router.pathname, item.href)),
+        [router.pathname]
+    );
+
     useEffect(() => {
-        const token = getAccessToken();
+        const token = localStorage.getItem('token');
 
         if (!token) {
             router.replace('/login');
             return;
         }
 
-        const currentUser = getCurrentUserDisplay();
-        setDisplayName(currentUser.displayName);
-        setRole(currentUser.role);
+        setDisplayName(localStorage.getItem('realName') || localStorage.getItem('username') || '');
+        setRole(localStorage.getItem('role') || '');
         setReady(true);
     }, [router]);
 
-    async function handleLogout() {
-        const accessToken = getAccessToken();
-        const refreshToken = getRefreshToken();
-
-        try {
-            await fetch('/api/auth/logout', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-                },
-                body: JSON.stringify({
-                    refreshToken,
-                }),
-            });
-        } catch {
-            // Local logout should continue even if the server is unreachable.
-        }
-
-        clearAuthStorage();
+    function handleLogout() {
+        localStorage.removeItem('token');
+        localStorage.removeItem('username');
+        localStorage.removeItem('realName');
+        localStorage.removeItem('role');
+        router.replace('/login');
     }
 
     if (!ready) {
         return (
-            <main style={{ padding: '2rem', fontFamily: 'Arial, sans-serif' }}>
-                <p>登录状态检查中...</p>
+            <main className="app-loading">
+                <div className="loading-card">正在检查登录状态...</div>
             </main>
         );
     }
 
     return (
-        <main style={{ padding: '2rem', fontFamily: 'Arial, sans-serif' }}>
-            <nav
-                style={{
-                    marginBottom: '1rem',
-                    display: 'flex',
-                    gap: '1rem',
-                    flexWrap: 'wrap',
-                    alignItems: 'center',
-                }}
-            >
-                <Link href="/">Dashboard</Link>
-                <Link href="/products">商品列表</Link>
-                <Link href="/purchase-orders">采购单列表</Link>
-                <Link href="/suppliers">供应商管理</Link>
-                <Link href="/sale-orders">销售单列表</Link>
-                <Link href="/inventory-warnings">库存预警</Link>
-                <Link href="/customers">客户管理</Link>
-                <Link href="/stock-records">库存流水</Link>
-                <Link href="/audit-logs">审计日志</Link>
+        <div className="app-shell">
+            <aside className="sidebar">
+                <div className="brand">
+                    <span className="brand-mark">AF</span>
+                    <div>
+                        <p className="brand-title">AsterFlow ERP</p>
+                        <p className="brand-subtitle">进销存运营工作台</p>
+                    </div>
+                </div>
 
-                <span style={{ marginLeft: 'auto' }}>
-    {displayName || '当前用户'} {role && `(${role})`}
-</span>
-                <button onClick={handleLogout} style={{ marginLeft: 'auto' }}>
-                    退出登录
-                </button>
-            </nav>
+                <nav className="sidebar-nav" aria-label="主导航">
+                    {navItems.map((item) => (
+                        <Link
+                            key={item.href}
+                            className={`nav-link${isActivePath(router.pathname, item.href) ? ' active' : ''}`}
+                            href={item.href}
+                        >
+                            {item.label}
+                        </Link>
+                    ))}
+                </nav>
+            </aside>
 
-            {children}
-        </main>
+            <main className="app-main">
+                <header className="app-topbar">
+                    <div>
+                        <p className="topbar-kicker">当前模块</p>
+                        <p className="topbar-title">{currentNav?.label || '业务页面'}</p>
+                    </div>
+
+                    <div className="user-area">
+                        <div className="user-meta">
+                            <p className="user-name">{displayName || '当前用户'}</p>
+                            {role && <span className="role-pill">{role}</span>}
+                        </div>
+                        <button className="logout-button" onClick={handleLogout}>
+                            退出
+                        </button>
+                    </div>
+                </header>
+
+                <section className="content-shell">{children}</section>
+            </main>
+        </div>
     );
 }

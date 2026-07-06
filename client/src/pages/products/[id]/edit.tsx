@@ -101,13 +101,16 @@ export default function ProductEditPage() {
 
     return (
         <Layout>
-            <h1>编辑商品</h1>
-            <p>加载中...</p>
+            <section className="page-hero">
+                <div>
+                    <p className="eyebrow">商品档案</p>
+                    <h1>编辑商品</h1>
+                    <p className="muted">当前商品 ID：{productId || '-'}</p>
+                </div>
+            </section>
 
-            {loading && <p>加载中...</p>}
-            {error && <p style={{ color: 'red' }}>{error}</p>}
-
-            <p>当前商品 ID：{productId}</p>
+            {loading && <div className="empty-state">加载中...</div>}
+            {error && <div className="alert alert-danger">{error}</div>}
 
             <form onSubmit={handleSubmit}>
                 <div>

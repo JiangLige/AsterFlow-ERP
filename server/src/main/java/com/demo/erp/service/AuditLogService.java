@@ -2,8 +2,6 @@ package com.demo.erp.service;
 
 import com.demo.erp.dto.AuditLogResponse;
 import com.demo.erp.dto.PageResponse;
-import com.demo.erp.common.EnumValidator;
-import com.demo.erp.enums.CustomerStatus;
 
 public interface AuditLogService {
 

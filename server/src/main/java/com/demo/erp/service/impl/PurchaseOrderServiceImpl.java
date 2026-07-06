@@ -4,13 +4,12 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.demo.erp.common.BusinessException;
-import com.demo.erp.common.EnumValidator;
 import com.demo.erp.common.OrderNoGenerator;
 import com.demo.erp.dto.*;
 import com.demo.erp.dto.inventory.InventoryChangeCommand;
 import com.demo.erp.enums.PurchaseOrderStatus;
 import com.demo.erp.mapper.*;
-import com.demo.erp.service.AuditLogService;
+import com.demo.erp.service.DashboardCacheService;
 import com.demo.erp.service.InventoryService;
 import com.demo.erp.service.PurchaseOrderService;
 import entity.*;
@@ -18,7 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
-import com.demo.erp.common.PageRequestUtil;
 
 @Service
 public class PurchaseOrderServiceImpl implements PurchaseOrderService {
@@ -29,23 +27,20 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
     private final ProductMapper productMapper;
     private final OrderNoGenerator orderNoGenerator;
     private final InventoryService inventoryService;
-    private final AuditLogService auditLogService;
-
+    private final DashboardCacheService dashboardCacheService;
 
     public PurchaseOrderServiceImpl(PurchaseOrderMapper purchaseOrderMapper,
                                     PurchaseOrderItemMapper purchaseOrderItemMapper,
                                     SupplierMapper supplierMapper,
                                     ProductMapper productMapper,
-                                    OrderNoGenerator orderNoGenerator,
-                                    InventoryService inventoryService,
-                                    AuditLogService auditLogService) {
+                                    OrderNoGenerator orderNoGenerator, InventoryService inventoryService, DashboardCacheService dashboardCacheService) {
         this.purchaseOrderMapper = purchaseOrderMapper;
         this.purchaseOrderItemMapper = purchaseOrderItemMapper;
         this.supplierMapper = supplierMapper;
         this.productMapper = productMapper;
         this.orderNoGenerator = orderNoGenerator;
         this.inventoryService = inventoryService;
-        this.auditLogService = auditLogService;
+        this.dashboardCacheService = dashboardCacheService;
     }
 
     @Override
@@ -97,6 +92,8 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 
         purchaseOrder.setTotalAmount(totalAmount);
         purchaseOrderMapper.updateById(purchaseOrder);
+
+        dashboardCacheService.evictSummary();
 
         return getById(purchaseOrder.getId());
     }
@@ -163,22 +160,14 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
                     .like(PurchaseOrder::getSupplierName, keyword));
         }
 
-        String validStatus = EnumValidator.requireValid(
-                PurchaseOrderStatus.class,
-                status,
-                "采购单状态不合法"
-        );
-
-        if (validStatus != null && !validStatus.isBlank()) {
-            wrapper.eq(PurchaseOrder::getStatus, validStatus);
+        if (status != null && !status.isBlank()) {
+            wrapper.eq(PurchaseOrder::getStatus, status);
         }
+
         wrapper.orderByDesc(PurchaseOrder::getCreatedAt)
                 .orderByDesc(PurchaseOrder::getId);
 
-        Page<PurchaseOrder> purchaseOrderPage = new Page<>(
-                PageRequestUtil.normalizePage(page),
-                PageRequestUtil.normalizeSize(size)
-        );
+        Page<PurchaseOrder> purchaseOrderPage = new Page<>(page, size);
 
         Page<PurchaseOrder> result = purchaseOrderMapper.selectPage(purchaseOrderPage, wrapper);
 
@@ -199,27 +188,6 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
     @Override
     @Transactional
     public void approve(Long id) {
-        approveInternal(id);
-    }
-
-    @Override
-    @Transactional
-    public void approve(Long id, AuditOperator operator) {
-        PurchaseOrder purchaseOrder = approveInternal(id);
-
-        auditLogService.record(
-                operator.userId(),
-                operator.username(),
-                operator.role(),
-                "PURCHASE_APPROVE",
-                "PURCHASE_ORDER",
-                id,
-                purchaseOrder.getOrderNo(),
-                "审核采购单并入库"
-        );
-    }
-
-    private PurchaseOrder approveInternal(Long id) {
         PurchaseOrder purchaseOrder = purchaseOrderMapper.selectById(id);
 
         if (purchaseOrder == null) {
@@ -268,7 +236,8 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
             throw new BusinessException("采购单状态已变化，请刷新后重试");
         }
 
-        return purchaseOrder;
+        dashboardCacheService.evictSummary();
+
     }
 
     @Override
@@ -290,6 +259,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         );
 
         purchaseOrderMapper.deleteById(id);
+        dashboardCacheService.evictSummary();
     }
 
     @Override
@@ -349,6 +319,8 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         purchaseOrder.setTotalAmount(totalAmount);
         purchaseOrderMapper.updateById(purchaseOrder);
 
+        dashboardCacheService.evictSummary();
+
         return getById(id);
 
     }
@@ -356,27 +328,6 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
     @Override
     @Transactional
     public void cancel(Long id) {
-        cancelInternal(id);
-    }
-
-    @Override
-    @Transactional
-    public void cancel(Long id, AuditOperator operator) {
-        PurchaseOrder purchaseOrder = cancelInternal(id);
-
-        auditLogService.record(
-                operator.userId(),
-                operator.username(),
-                operator.role(),
-                "PURCHASE_CANCEL",
-                "PURCHASE_ORDER",
-                id,
-                purchaseOrder.getOrderNo(),
-                "取消采购单并扣回库存"
-        );
-    }
-
-    private PurchaseOrder cancelInternal(Long id) {
         PurchaseOrder purchaseOrder = purchaseOrderMapper.selectById(id);
 
         if (purchaseOrder == null) {
@@ -425,7 +376,8 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
             ));
         }
 
-        return purchaseOrder;
+        dashboardCacheService.evictSummary();
+
     }
 
     private PurchaseOrderResponse toSimpleResponse(PurchaseOrder purchaseOrder) {
