@@ -1,41 +1,52 @@
+export type StoredUser = {
+    username: string;
+    realName: string;
+    role: string;
+};
+
 export function getAccessToken() {
     if (typeof window === 'undefined') {
         return '';
     }
 
-    return localStorage.getItem('accessToken') || localStorage.getItem('token') || '';
+    return localStorage.getItem('token') || localStorage.getItem('accessToken') || '';
 }
 
-export function getRefreshToken() {
-    if (typeof window === 'undefined') {
-        return '';
-    }
-
-    return localStorage.getItem('refreshToken') || '';
+export function hasAccessToken() {
+    return Boolean(getAccessToken());
 }
 
-export function getCurrentUserDisplay() {
+export function getStoredUser(): StoredUser {
     if (typeof window === 'undefined') {
         return {
-            displayName: '',
+            username: '',
+            realName: '',
             role: '',
         };
     }
 
     return {
-        displayName: localStorage.getItem('realName') || localStorage.getItem('username') || '',
+        username: localStorage.getItem('username') || '',
+        realName: localStorage.getItem('realName') || '',
         role: localStorage.getItem('role') || '',
     };
 }
 
-export function clearAuthStorage() {
-    if (typeof window === 'undefined') {
-        return;
-    }
+export function saveAuth(data: {
+    token: string;
+    username?: string;
+    realName?: string;
+    role?: string;
+}) {
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('username', data.username || '');
+    localStorage.setItem('realName', data.realName || '');
+    localStorage.setItem('role', data.role || '');
+}
 
+export function clearAuthStorage() {
     localStorage.removeItem('token');
     localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
     localStorage.removeItem('username');
     localStorage.removeItem('realName');
     localStorage.removeItem('role');

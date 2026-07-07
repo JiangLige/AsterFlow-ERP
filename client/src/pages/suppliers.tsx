@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
 import { apiRequest } from '@/lib/api';
+import EmptyState from '@/components/EmptyState';
+import ErrorMessage from '@/components/ErrorMessage';
 
 type Supplier = {
     id: number;
@@ -37,7 +39,10 @@ export default function SuppliersPage() {
     const [total, setTotal] = useState(0);
     const [role, setRole] = useState('');
 
-    async function loadSuppliers(targetPage = page) {
+    const loadSuppliers = useCallback(async (
+        targetPage: number,
+        currentKeyword: string
+    ) => {
         setLoading(true);
         setError('');
 
@@ -46,8 +51,8 @@ export default function SuppliersPage() {
             query.set('page', String(targetPage));
             query.set('size', '10');
 
-            if (keyword.trim()) {
-                query.set('keyword', keyword.trim());
+            if (currentKeyword.trim()) {
+                query.set('keyword', currentKeyword.trim());
             }
 
             const data = await apiRequest<PageResponse<Supplier>>(`/api/suppliers?${query.toString()}`);
@@ -61,7 +66,7 @@ export default function SuppliersPage() {
         } finally {
             setLoading(false);
         }
-    }
+    }, []);
 
     async function handleChangeStatus(id: number, nextStatus: 'ACTIVE' | 'INACTIVE') {
         const actionText = nextStatus === 'ACTIVE' ? '启用' : '停用';
@@ -80,7 +85,7 @@ export default function SuppliersPage() {
                 method: 'PATCH',
             });
 
-            loadSuppliers(page);
+            loadSuppliers(page, keyword);
         } catch (err) {
             setError(err instanceof Error ? err.message : `${actionText}供应商失败`);
         }
@@ -88,8 +93,8 @@ export default function SuppliersPage() {
 
     useEffect(() => {
         setRole(localStorage.getItem('role') || '');
-        loadSuppliers(1);
-    }, []);
+        loadSuppliers(1, '');
+    }, [loadSuppliers]);
 
     return (
         <Layout>
@@ -114,12 +119,12 @@ export default function SuppliersPage() {
                     placeholder="输入供应商编码/名称/电话"
                 />
 
-                <button onClick={() => loadSuppliers(1)} disabled={loading}>
+                <button onClick={() => loadSuppliers(1, keyword)} disabled={loading}>
                     {loading ? '查询中...' : '查询'}
                 </button>
             </div>
 
-            {error && <div className="alert alert-danger">{error}</div>}
+            <ErrorMessage message={error} />
 
             <p className="muted" style={{ marginTop: '1rem' }}>
                 第 {page} / {pages} 页，共 {total} 条
@@ -171,14 +176,17 @@ export default function SuppliersPage() {
             </table>
 
             {!loading && suppliers.length === 0 && (
-                <div className="empty-state">暂无供应商数据</div>
+                <EmptyState
+                    title="暂无供应商数据"
+                    description="可以新增供应商，或调整查询条件后重新搜索。"
+                />
             )}
 
             <div className="toolbar">
-                <button onClick={() => loadSuppliers(page - 1)} disabled={loading || page <= 1}>
+                <button onClick={() => loadSuppliers(page - 1, keyword)} disabled={loading || page <= 1}>
                     上一页
                 </button>
-                <button onClick={() => loadSuppliers(page + 1)} disabled={loading || page >= pages}>
+                <button onClick={() => loadSuppliers(page + 1, keyword)} disabled={loading || page >= pages}>
                     下一页
                 </button>
             </div>

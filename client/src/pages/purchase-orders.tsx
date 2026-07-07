@@ -1,7 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
 import { apiRequest } from '@/lib/api';
+import { createIdempotencyKey } from '@/lib/idempotency';
+import EmptyState from '@/components/EmptyState';
+import ErrorMessage from '@/components/ErrorMessage';
 
 type PurchaseOrder = {
     id: number;
@@ -55,7 +58,11 @@ export default function PurchaseOrdersPage() {
     const [error, setError] = useState('');
     const [role, setRole] = useState('');
 
-    const loadOrders = async (targetPage = page) => {
+    const loadOrders = useCallback(async (
+        targetPage: number,
+        currentKeyword: string,
+        currentStatus: string
+    ) => {
         setLoading(true);
         setError('');
 
@@ -64,12 +71,12 @@ export default function PurchaseOrdersPage() {
             query.set('page', String(targetPage));
             query.set('size', '10');
 
-            if (keyword.trim()) {
-                query.set('keyword', keyword.trim());
+            if (currentKeyword.trim()) {
+                query.set('keyword', currentKeyword.trim());
             }
 
-            if (status) {
-                query.set('status', status);
+            if (currentStatus) {
+                query.set('status', currentStatus);
             }
 
             const data = await apiRequest<PageResponse<PurchaseOrder>>(
@@ -85,7 +92,7 @@ export default function PurchaseOrdersPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     async function handleApprove(id: number) {
         const ok = window.confirm('确定要审核入库这个采购单吗？');
@@ -99,9 +106,12 @@ export default function PurchaseOrdersPage() {
         try {
             await apiRequest(`/api/purchase-orders/${id}/approve`, {
                 method: 'PATCH',
+                headers: {
+                    'Idempotency-Key': createIdempotencyKey('purchase-order-approve', id),
+                },
             });
 
-            loadOrders(page);
+            loadOrders(page, keyword, status);
         } catch (err) {
             setError(err instanceof Error ? err.message : '审核入库失败');
         }
@@ -121,7 +131,7 @@ export default function PurchaseOrdersPage() {
                 method: 'DELETE',
             });
 
-            loadOrders(page);
+            loadOrders(page, keyword, status);
         } catch (err) {
             setError(err instanceof Error ? err.message : '删除采购单失败');
         }
@@ -139,9 +149,12 @@ export default function PurchaseOrdersPage() {
         try {
             await apiRequest(`/api/purchase-orders/${id}/cancel`, {
                 method: 'PATCH',
+                headers: {
+                    'Idempotency-Key': createIdempotencyKey('purchase-order-cancel', id),
+                },
             });
 
-            loadOrders(page);
+            loadOrders(page, keyword, status);
         } catch (err) {
             setError(err instanceof Error ? err.message : '取消采购单失败');
         }
@@ -149,8 +162,8 @@ export default function PurchaseOrdersPage() {
 
     useEffect(() => {
         setRole(localStorage.getItem('role') || '');
-        loadOrders();
-    }, []);
+        loadOrders(1, '', '');
+    }, [loadOrders]);
 
     return (
         <Layout>
@@ -182,12 +195,12 @@ export default function PurchaseOrdersPage() {
                     <option value="CANCELED">已取消</option>
                 </select>
 
-                <button onClick={() => loadOrders(1)} disabled={loading}>
+                <button onClick={() => loadOrders(1, keyword, status)} disabled={loading}>
                     {loading ? '加载中...' : '查询'}
                 </button>
             </div>
 
-            {error && <div className="alert alert-danger">{error}</div>}
+            <ErrorMessage message={error} />
 
             <p className="muted" style={{ marginTop: '1rem' }}>
                 第 {page} / {pages} 页，共 {total} 条
@@ -245,14 +258,17 @@ export default function PurchaseOrdersPage() {
             </table>
 
             {!loading && orders.length === 0 && (
-                <div className="empty-state">暂无采购单数据</div>
+                <EmptyState
+                    title="暂无采购单数据"
+                    description="可以新增采购单，或调整单号、供应商、状态后重新搜索。"
+                />
             )}
 
             <div className="toolbar">
-                <button onClick={() => loadOrders(page - 1)} disabled={loading || page <= 1}>
+                <button onClick={() => loadOrders(page - 1, keyword, status)} disabled={loading || page <= 1}>
                     上一页
                 </button>
-                <button onClick={() => loadOrders(page + 1)} disabled={loading || page >= pages}>
+                <button onClick={() => loadOrders(page + 1, keyword, status)} disabled={loading || page >= pages}>
                     下一页
                 </button>
             </div>

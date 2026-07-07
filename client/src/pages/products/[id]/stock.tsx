@@ -1,9 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import Layout from '@/components/Layout';
+import EmptyState from '@/components/EmptyState';
+import ErrorMessage from '@/components/ErrorMessage';
 import { apiRequest } from '@/lib/api';
+import { createIdempotencyKey } from '@/lib/idempotency';
 
 type Product = {
     id: number;
@@ -30,7 +33,7 @@ export default function ProductStockAdjustPage() {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
-    async function loadProduct() {
+    const loadProduct = useCallback(async () => {
         if (!productId) return;
 
         setLoading(true);
@@ -44,12 +47,12 @@ export default function ProductStockAdjustPage() {
         } finally {
             setLoading(false);
         }
-    }
+    }, [productId]);
 
     useEffect(() => {
         if (!router.isReady || !productId) return;
         loadProduct();
-    }, [router.isReady, productId]);
+    }, [router.isReady, productId, loadProduct]);
 
     function getChangeQuantity() {
         const value = Number(quantity);
@@ -85,6 +88,17 @@ export default function ProductStockAdjustPage() {
 
             await apiRequest(`/api/products/${productId}/stock`, {
                 method: 'PATCH',
+                headers: {
+                    'Idempotency-Key': createIdempotencyKey(
+                        'product-stock-adjust',
+                        productId,
+                        JSON.stringify({
+                            type,
+                            changeQuantity,
+                            remark: remark.trim(),
+                        })
+                    ),
+                },
                 body: JSON.stringify({
                     type,
                     changeQuantity,
@@ -112,8 +126,13 @@ export default function ProductStockAdjustPage() {
                 <Link href="/stock-records">查看库存流水</Link>
             </div>
 
-            {loading && <div className="empty-state">加载中...</div>}
-            {error && <div className="alert alert-danger">{error}</div>}
+            {loading && (
+                <EmptyState
+                    title="正在加载商品库存..."
+                    description="请稍候，系统正在读取当前商品库存。"
+                />
+            )}
+            <ErrorMessage message={error} />
             {success && <div className="alert alert-success">{success}</div>}
 
             {product && (

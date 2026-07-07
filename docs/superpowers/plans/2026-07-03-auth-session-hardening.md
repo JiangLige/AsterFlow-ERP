@@ -27,18 +27,18 @@
 
 - Modify `server/src/main/resources/application.yml`: add `jwt.access-token-expire-minutes` and `jwt.refresh-token-expire-days` while keeping current `jwt.expire-hours` compatibility if needed.
 - Modify `server/src/test/resources/application.yml`: add short, deterministic auth session settings for tests.
-- Create `server/src/main/java/com/demo/erp/dto/auth/RefreshTokenRequest.java`: request body for refresh/logout.
-- Modify `server/src/main/java/com/demo/erp/dto/auth/LoginResponse.java`: add `accessToken`, `refreshToken`, and `expiresInSeconds`.
-- Create `server/src/main/java/com/demo/erp/dto/auth/AuthSession.java`: internal session snapshot used by Redis session service and interceptor.
-- Create `server/src/main/java/com/demo/erp/service/AuthSessionService.java`: interface for session creation, lookup, refresh lookup, and invalidation.
-- Create `server/src/main/java/com/demo/erp/service/impl/RedisAuthSessionServiceImpl.java`: Redis implementation using `StringRedisTemplate`.
-- Modify `server/src/main/java/com/demo/erp/util/JwtUtil.java`: include `sessionId`, configurable expiration seconds, and claim readers.
-- Modify `server/src/main/java/com/demo/erp/service/UserService.java`: add `refresh(String refreshToken)` and `logout(String accessToken, String refreshToken)`.
-- Modify `server/src/main/java/com/demo/erp/service/impl/UserServiceImpl.java`: create sessions on login, issue access tokens with `sessionId`, refresh tokens, and invalidate sessions on logout.
-- Modify `server/src/main/java/com/demo/erp/interceptor/JwtInterceptor.java`: verify JWT, extract session id, validate Redis session, then set request attributes from Redis session.
-- Modify `server/src/main/java/com/demo/erp/controller/AuthController.java`: add `/refresh` and `/logout`.
-- Create `server/src/test/java/com/demo/erp/service/impl/InMemoryAuthSessionService.java`: test double for service/interceptor tests where Redis is not needed.
-- Create `server/src/test/java/com/demo/erp/auth/AuthSessionIntegrationTest.java`: end-to-end auth behavior tests.
+- Create `server/src/main/java/com/asterflow/erp/dto/auth/RefreshTokenRequest.java`: request body for refresh/logout.
+- Modify `server/src/main/java/com/asterflow/erp/dto/auth/LoginResponse.java`: add `accessToken`, `refreshToken`, and `expiresInSeconds`.
+- Create `server/src/main/java/com/asterflow/erp/dto/auth/AuthSession.java`: internal session snapshot used by Redis session service and interceptor.
+- Create `server/src/main/java/com/asterflow/erp/service/AuthSessionService.java`: interface for session creation, lookup, refresh lookup, and invalidation.
+- Create `server/src/main/java/com/asterflow/erp/service/impl/RedisAuthSessionServiceImpl.java`: Redis implementation using `StringRedisTemplate`.
+- Modify `server/src/main/java/com/asterflow/erp/util/JwtUtil.java`: include `sessionId`, configurable expiration seconds, and claim readers.
+- Modify `server/src/main/java/com/asterflow/erp/service/UserService.java`: add `refresh(String refreshToken)` and `logout(String accessToken, String refreshToken)`.
+- Modify `server/src/main/java/com/asterflow/erp/service/impl/UserServiceImpl.java`: create sessions on login, issue access tokens with `sessionId`, refresh tokens, and invalidate sessions on logout.
+- Modify `server/src/main/java/com/asterflow/erp/interceptor/JwtInterceptor.java`: verify JWT, extract session id, validate Redis session, then set request attributes from Redis session.
+- Modify `server/src/main/java/com/asterflow/erp/controller/AuthController.java`: add `/refresh` and `/logout`.
+- Create `server/src/test/java/com/asterflow/erp/service/impl/InMemoryAuthSessionService.java`: test double for service/interceptor tests where Redis is not needed.
+- Create `server/src/test/java/com/asterflow/erp/auth/AuthSessionIntegrationTest.java`: end-to-end auth behavior tests.
 - Create `client/src/pages/api/auth/refresh.ts`: Next proxy route to backend refresh endpoint.
 - Create `client/src/pages/api/auth/logout.ts`: Next proxy route to backend logout endpoint.
 - Modify `client/src/pages/login.tsx`: store `accessToken` and `refreshToken`.
@@ -50,8 +50,8 @@
 ### Task 1: Backend Auth Session Contract And Failing Tests
 
 **Files:**
-- Create: `server/src/test/java/com/demo/erp/auth/AuthSessionIntegrationTest.java`
-- Create: `server/src/test/java/com/demo/erp/service/impl/InMemoryAuthSessionService.java`
+- Create: `server/src/test/java/com/asterflow/erp/auth/AuthSessionIntegrationTest.java`
+- Create: `server/src/test/java/com/asterflow/erp/service/impl/InMemoryAuthSessionService.java`
 
 **Interfaces:**
 - Produces test expectations for:
@@ -67,12 +67,12 @@
 Create `AuthSessionIntegrationTest` with these test cases:
 
 ```java
-package com.demo.erp.auth;
+package com.asterflow.erp.auth;
 
-import com.demo.erp.common.ApiResponse;
-import com.demo.erp.dto.auth.LoginRequest;
-import com.demo.erp.dto.auth.LoginResponse;
-import com.demo.erp.util.JwtUtil;
+import com.asterflow.erp.common.ApiResponse;
+import com.asterflow.erp.dto.auth.LoginRequest;
+import com.asterflow.erp.dto.auth.LoginResponse;
+import com.asterflow.erp.util.JwtUtil;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -210,10 +210,10 @@ Commit message: `test: describe auth session behavior`
 ### Task 2: Backend Session Service And JWT Session Claim
 
 **Files:**
-- Create: `server/src/main/java/com/demo/erp/dto/auth/AuthSession.java`
-- Create: `server/src/main/java/com/demo/erp/service/AuthSessionService.java`
-- Create: `server/src/main/java/com/demo/erp/service/impl/RedisAuthSessionServiceImpl.java`
-- Modify: `server/src/main/java/com/demo/erp/util/JwtUtil.java`
+- Create: `server/src/main/java/com/asterflow/erp/dto/auth/AuthSession.java`
+- Create: `server/src/main/java/com/asterflow/erp/service/AuthSessionService.java`
+- Create: `server/src/main/java/com/asterflow/erp/service/impl/RedisAuthSessionServiceImpl.java`
+- Modify: `server/src/main/java/com/asterflow/erp/util/JwtUtil.java`
 - Modify: `server/src/main/resources/application.yml`
 - Modify: `server/src/test/resources/application.yml`
 
@@ -245,12 +245,12 @@ Commit message: `feat: add redis auth session service`
 ### Task 3: Login, Refresh, Logout, And Interceptor Enforcement
 
 **Files:**
-- Create: `server/src/main/java/com/demo/erp/dto/auth/RefreshTokenRequest.java`
-- Modify: `server/src/main/java/com/demo/erp/dto/auth/LoginResponse.java`
-- Modify: `server/src/main/java/com/demo/erp/service/UserService.java`
-- Modify: `server/src/main/java/com/demo/erp/service/impl/UserServiceImpl.java`
-- Modify: `server/src/main/java/com/demo/erp/controller/AuthController.java`
-- Modify: `server/src/main/java/com/demo/erp/interceptor/JwtInterceptor.java`
+- Create: `server/src/main/java/com/asterflow/erp/dto/auth/RefreshTokenRequest.java`
+- Modify: `server/src/main/java/com/asterflow/erp/dto/auth/LoginResponse.java`
+- Modify: `server/src/main/java/com/asterflow/erp/service/UserService.java`
+- Modify: `server/src/main/java/com/asterflow/erp/service/impl/UserServiceImpl.java`
+- Modify: `server/src/main/java/com/asterflow/erp/controller/AuthController.java`
+- Modify: `server/src/main/java/com/asterflow/erp/interceptor/JwtInterceptor.java`
 
 **Interfaces:**
 - `UserService.refresh(String refreshToken): LoginResponse`

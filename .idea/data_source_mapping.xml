@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourcePerFileMappings">
-    <file url="file://$PROJECT_DIR$/server/src/main/java/com/demo/erp/mapper/SaleOrderMapper.java" value="f1db9696-feb9-4181-ab25-c5ad96a509f0" />
-    <file url="file://$PROJECT_DIR$/server/src/test/java/com/demo/erp/controller/ProductControllerAuditLogIntegrationTest.java" value="f1db9696-feb9-4181-ab25-c5ad96a509f0" />
+    <file url="file://$PROJECT_DIR$/server/src/main/java/com/asterflow/erp/mapper/SaleOrderMapper.java" value="f1db9696-feb9-4181-ab25-c5ad96a509f0" />
+    <file url="file://$PROJECT_DIR$/server/src/test/java/com/asterflow/erp/controller/ProductControllerAuditLogIntegrationTest.java" value="f1db9696-feb9-4181-ab25-c5ad96a509f0" />
   </component>
 </project>

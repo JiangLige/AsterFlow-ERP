@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import type { ReactNode } from 'react';
 import { useEffect, useMemo, useState } from 'react';
+import { clearAuthStorage, getStoredUser, hasAccessToken } from '@/lib/auth';
 
 type LayoutProps = {
     children: ReactNode;
@@ -40,23 +41,20 @@ export default function Layout({ children }: LayoutProps) {
     );
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
-
-        if (!token) {
+        if (!hasAccessToken()) {
             router.replace('/login');
             return;
         }
 
-        setDisplayName(localStorage.getItem('realName') || localStorage.getItem('username') || '');
-        setRole(localStorage.getItem('role') || '');
+        const user = getStoredUser();
+
+        setDisplayName(user.realName || user.username);
+        setRole(user.role);
         setReady(true);
     }, [router]);
 
     function handleLogout() {
-        localStorage.removeItem('token');
-        localStorage.removeItem('username');
-        localStorage.removeItem('realName');
-        localStorage.removeItem('role');
+        clearAuthStorage();
         router.replace('/login');
     }
 

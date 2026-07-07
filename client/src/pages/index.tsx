@@ -2,6 +2,8 @@ import { NextPage } from 'next';
 import { useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
 import { apiRequest } from '@/lib/api';
+import EmptyState from '@/components/EmptyState';
+import ErrorMessage from '@/components/ErrorMessage';
 
 type DashboardSummary = {
     productCount: number;
@@ -76,10 +78,13 @@ const Home: NextPage = () => {
                 </div>
             </section>
 
-            {error && <div className="alert alert-danger">{error}</div>}
+            <ErrorMessage message={error} />
 
             {!data && !error && (
-                <div className="empty-state">{loading ? '正在加载运营数据...' : '暂无 Dashboard 数据'}</div>
+                <EmptyState
+                    title={loading ? '正在加载运营数据...' : '暂无 Dashboard 数据'}
+                    description="系统会汇总商品、采购、销售和库存变化，用于快速查看经营状态。"
+                />
             )}
 
             {data && (

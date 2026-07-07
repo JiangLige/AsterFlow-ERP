@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
 import { apiRequest } from '@/lib/api';
+import EmptyState from '@/components/EmptyState';
+import ErrorMessage from '@/components/ErrorMessage';
 
 type AuditLog = {
     id: number;
@@ -56,7 +58,12 @@ export default function AuditLogsPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
-    async function loadLogs(targetPage = page) {
+    const loadLogs = useCallback(async (
+        targetPage: number,
+        currentKeyword: string,
+        currentAction: string,
+        currentTargetType: string
+    ) => {
         setLoading(true);
         setError('');
 
@@ -65,16 +72,16 @@ export default function AuditLogsPage() {
             query.set('page', String(targetPage));
             query.set('size', '10');
 
-            if (keyword.trim()) {
-                query.set('keyword', keyword.trim());
+            if (currentKeyword.trim()) {
+                query.set('keyword', currentKeyword.trim());
             }
 
-            if (action) {
-                query.set('action', action);
+            if (currentAction) {
+                query.set('action', currentAction);
             }
 
-            if (targetType) {
-                query.set('targetType', targetType);
+            if (currentTargetType) {
+                query.set('targetType', currentTargetType);
             }
 
             const data = await apiRequest<PageResponse<AuditLog>>(
@@ -86,15 +93,15 @@ export default function AuditLogsPage() {
             setPages(data.pages);
             setTotal(data.total);
         } catch (err) {
-            setError(err instanceof Error ? err.message : '审计日志加载失败');
+            setError(err instanceof Error ? err.message : '操作日志加载失败');
         } finally {
             setLoading(false);
         }
-    }
+    }, []);
 
     useEffect(() => {
-        loadLogs(1);
-    }, []);
+        loadLogs(1, '', '', '');
+    }, [loadLogs]);
 
     return (
         <Layout>
@@ -129,12 +136,12 @@ export default function AuditLogsPage() {
                     <option value="SALE_ORDER">销售单</option>
                 </select>
 
-                <button onClick={() => loadLogs(1)} disabled={loading}>
+                <button onClick={() => loadLogs(1, keyword, action, targetType)} disabled={loading}>
                     {loading ? '加载中...' : '查询'}
                 </button>
             </div>
 
-            {error && <div className="alert alert-danger">{error}</div>}
+            <ErrorMessage message={error} />
 
             <p className="muted" style={{ marginTop: '1rem' }}>
                 第 {page} / {pages} 页，共 {total} 条
@@ -170,14 +177,17 @@ export default function AuditLogsPage() {
             </table>
 
             {!loading && logs.length === 0 && (
-                <div className="empty-state">暂无审计日志</div>
+                <EmptyState
+                    title="暂无审计日志"
+                    description="关键库存、采购、销售动作发生后，会在这里留下审计记录。"
+                />
             )}
 
             <div className="toolbar">
-                <button onClick={() => loadLogs(page - 1)} disabled={loading || page <= 1}>
+                <button onClick={() => loadLogs(page - 1, keyword, action, targetType)} disabled={loading || page <= 1}>
                     上一页
                 </button>
-                <button onClick={() => loadLogs(page + 1)} disabled={loading || page >= pages}>
+                <button onClick={() => loadLogs(page + 1, keyword, action, targetType)} disabled={loading || page >= pages}>
                     下一页
                 </button>
             </div>

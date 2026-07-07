@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '@/components/Layout';
+import EmptyState from '@/components/EmptyState';
+import ErrorMessage from '@/components/ErrorMessage';
 import { apiRequest } from '@/lib/api';
 
 type Customer = {
@@ -99,8 +101,13 @@ export default function CustomerEditPage() {
         <Layout>
             <h1>编辑客户</h1>
 
-            {loading && <div className="empty-state">加载中...</div>}
-            {error && <div className="alert alert-danger">{error}</div>}
+            {loading && (
+                <EmptyState
+                    title="正在加载客户信息..."
+                    description="请稍候，系统正在读取客户资料。"
+                />
+            )}
+            <ErrorMessage message={error} />
 
             <form onSubmit={handleSubmit}>
                 <div>

@@ -8,17 +8,7 @@ export default function ErrorMessage({ message }: ErrorMessageProps) {
     }
 
     return (
-        <div
-            role="alert"
-            style={{
-                marginTop: '1rem',
-                padding: '0.75rem 1rem',
-                border: '1px solid #f5c2c7',
-                background: '#f8d7da',
-                color: '#842029',
-                borderRadius: '4px',
-            }}
-        >
+        <div className="alert alert-danger" role="alert">
             {message}
         </div>
     );

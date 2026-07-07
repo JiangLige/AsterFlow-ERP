@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
 import { apiRequest } from '@/lib/api';
+import EmptyState from '@/components/EmptyState';
+import ErrorMessage from '@/components/ErrorMessage';
 
 type Product = {
     id: number;
@@ -60,10 +62,13 @@ export default function InventoryWarningsPage() {
                 </div>
             </section>
 
-            {error && <div className="alert alert-danger">{error}</div>}
+            <ErrorMessage message={error} />
 
             {!loading && products.length === 0 && !error && (
-                <div className="alert alert-success">当前没有库存预警商品</div>
+                <EmptyState
+                    title="当前没有库存预警商品"
+                    description="所有商品库存都高于最低库存线，暂时不需要补货处理。"
+                />
             )}
 
             {products.length > 0 && (

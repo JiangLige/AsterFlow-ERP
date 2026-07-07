@@ -1,6 +1,6 @@
 # AsterFlow ERP Testing Guide
 
-This document explains the testing files added while hardening the ERP project from a runnable demo into a more interview-ready engineering project.
+This document explains the testing files added while hardening the ERP project from a runnable project into a more interview-ready engineering project.
 
 ## Why Add Integration Tests
 
@@ -32,7 +32,7 @@ It creates the smallest set of tables needed by the sale order tests:
 
 The production database still uses `server/src/main/resources/db/init.sql`. The test schema exists so automated tests can run without requiring a local MySQL instance.
 
-### `server/src/test/java/com/demo/erp/service/SaleOrderServiceIntegrationTest.java`
+### `server/src/test/java/com/asterflow/erp/service/SaleOrderServiceIntegrationTest.java`
 
 This test class starts the real Spring application context and uses real MyBatis mappers against the H2 database.
 
@@ -42,7 +42,7 @@ It verifies three business scenarios:
 - canceling an approved sale order restores stock and creates an inbound stock record
 - approving an order rolls back when a later item has insufficient stock
 
-### `server/src/test/java/com/demo/erp/service/PurchaseOrderServiceIntegrationTest.java`
+### `server/src/test/java/com/asterflow/erp/service/PurchaseOrderServiceIntegrationTest.java`
 
 This test class uses the same integration-test style for the purchase order flow.
 

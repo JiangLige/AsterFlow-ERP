@@ -1,10 +1,10 @@
+import { clearAuthStorage, getAccessToken } from './auth';
+
 export async function apiRequest<T>(
     url: string,
     options: RequestInit = {}
 ): Promise<T> {
-    const token = typeof window !== 'undefined'
-        ? localStorage.getItem('token')
-        : null;
+    const token = getAccessToken();
 
     const headers = new Headers(options.headers || {});
 
@@ -40,7 +40,7 @@ export async function apiRequest<T>(
 
         if (result?.code === 'UNAUTHORIZED') {
             if (typeof window !== 'undefined') {
-                localStorage.removeItem('token');
+                clearAuthStorage();
 
                 if (window.location.pathname !== '/login') {
                     window.location.href = '/login';

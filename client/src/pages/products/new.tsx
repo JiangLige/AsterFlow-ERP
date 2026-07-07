@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '@/components/Layout';
+import ErrorMessage from '@/components/ErrorMessage';
 import { apiRequest } from '@/lib/api';
 
 export default function ProductCreatePage() {
@@ -56,7 +57,7 @@ export default function ProductCreatePage() {
         <Layout>
             <h1>新增商品</h1>
 
-            {error && <div className="alert alert-danger">{error}</div>}
+            <ErrorMessage message={error} />
 
             <form onSubmit={handleSubmit}>
                 <div>

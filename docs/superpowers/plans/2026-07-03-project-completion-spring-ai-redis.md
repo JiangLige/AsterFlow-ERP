@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Bring AsterFlow ERP from demo-complete to interview-ready by finishing frontend flows, hardening backend business rules, adding Redis-backed reliability features, and then integrating Spring AI safely.
+**Goal:** Bring AsterFlow ERP from feature-complete to interview-ready by finishing frontend flows, hardening backend business rules, adding Redis-backed reliability features, and then integrating Spring AI safely.
 
 **Architecture:** Finish the normal ERP system first, then add AI as a layer on top of existing services. The database remains the source of truth; Redis is used for cache, sessions, rate limiting, and idempotency; Spring AI only reads ERP data in the first version and never bypasses service-layer rules.
 
@@ -129,7 +129,7 @@ export function hasAccessToken() {
 
 ### Task 3: Improve Frontend Error and Loading States
 
-**Purpose:** Make demo flow understandable when API fails or data is empty.
+**Purpose:** Make project flow understandable when API fails or data is empty.
 
 **Files:**
 - Modify: `client/src/components/Layout.tsx`
@@ -151,7 +151,7 @@ export function hasAccessToken() {
 **Purpose:** Prevent very large page sizes from causing memory and database pressure.
 
 **Files:**
-- Create: `server/src/main/java/com/demo/erp/common/PageRequestUtil.java`
+- Create: `server/src/main/java/com/asterflow/erp/common/PageRequestUtil.java`
 - Modify services with `pageList(...)`
 - Test: service integration tests for page boundaries
 
@@ -164,7 +164,7 @@ export function hasAccessToken() {
 **Suggested Code:**
 
 ```java
-package com.demo.erp.common;
+package com.asterflow.erp.common;
 
 public final class PageRequestUtil {
 
@@ -189,7 +189,7 @@ public final class PageRequestUtil {
 **Purpose:** Avoid invalid status/type strings entering query/update logic.
 
 **Files:**
-- Create: `server/src/main/java/com/demo/erp/common/EnumValidator.java`
+- Create: `server/src/main/java/com/asterflow/erp/common/EnumValidator.java`
 - Modify: product, supplier, customer, purchase-order, sale-order services.
 
 **Acceptance Criteria:**
@@ -200,7 +200,7 @@ public final class PageRequestUtil {
 **Suggested Code:**
 
 ```java
-package com.demo.erp.common;
+package com.asterflow.erp.common;
 
 public final class EnumValidator {
 
@@ -226,9 +226,9 @@ public final class EnumValidator {
 **Purpose:** Make sale approval safe when two requests deduct the same product stock.
 
 **Files:**
-- Modify: `server/src/main/java/com/demo/erp/mapper/ProductMapper.java`
-- Modify: `server/src/main/java/com/demo/erp/service/impl/InventoryServiceImpl.java`
-- Test: `server/src/test/java/com/demo/erp/service/SaleOrderServiceIntegrationTest.java`
+- Modify: `server/src/main/java/com/asterflow/erp/mapper/ProductMapper.java`
+- Modify: `server/src/main/java/com/asterflow/erp/service/impl/InventoryServiceImpl.java`
+- Test: `server/src/test/java/com/asterflow/erp/service/SaleOrderServiceIntegrationTest.java`
 
 **Acceptance Criteria:**
 - [ ] Stock deduction uses conditional SQL: update only when `stock >= quantity`.
@@ -258,8 +258,8 @@ int deductStockIfEnough(@Param("productId") Long productId, @Param("quantity") I
 **Purpose:** Prevent repeated approve/cancel/stock-adjust from double-clicks or frontend retry.
 
 **Files:**
-- Create: `server/src/main/java/com/demo/erp/service/IdempotencyService.java`
-- Create: `server/src/main/java/com/demo/erp/service/impl/RedisIdempotencyServiceImpl.java`
+- Create: `server/src/main/java/com/asterflow/erp/service/IdempotencyService.java`
+- Create: `server/src/main/java/com/asterflow/erp/service/impl/RedisIdempotencyServiceImpl.java`
 - Modify controllers for approve/cancel/stock adjust.
 
 **Acceptance Criteria:**
@@ -325,8 +325,8 @@ public class RedisIdempotencyServiceImpl implements IdempotencyService {
 **Purpose:** Protect login and write APIs from excessive requests.
 
 **Files:**
-- Create: `server/src/main/java/com/demo/erp/interceptor/RateLimitInterceptor.java`
-- Modify: `server/src/main/java/com/demo/erp/config/WebConfig.java`
+- Create: `server/src/main/java/com/asterflow/erp/interceptor/RateLimitInterceptor.java`
+- Modify: `server/src/main/java/com/asterflow/erp/config/WebConfig.java`
 - Create tests around interceptor behavior.
 
 **Acceptance Criteria:**
@@ -409,8 +409,8 @@ spring:
 **Purpose:** Keep AI output stable and frontend-friendly.
 
 **Files:**
-- Create: `server/src/main/java/com/demo/erp/dto/ai/AiInventoryAdviceResponse.java`
-- Create: `server/src/main/java/com/demo/erp/dto/ai/AiDashboardSummaryResponse.java`
+- Create: `server/src/main/java/com/asterflow/erp/dto/ai/AiInventoryAdviceResponse.java`
+- Create: `server/src/main/java/com/asterflow/erp/dto/ai/AiDashboardSummaryResponse.java`
 
 **Acceptance Criteria:**
 - [x] DTOs contain simple fields, not raw model text only.
@@ -432,8 +432,8 @@ public class AiInventoryAdviceResponse {
 **Purpose:** Generate business suggestions from existing ERP data.
 
 **Files:**
-- Create: `server/src/main/java/com/demo/erp/service/AiAssistantService.java`
-- Create: `server/src/main/java/com/demo/erp/service/impl/AiAssistantServiceImpl.java`
+- Create: `server/src/main/java/com/asterflow/erp/service/AiAssistantService.java`
+- Create: `server/src/main/java/com/asterflow/erp/service/impl/AiAssistantServiceImpl.java`
 - Use existing: `DashboardService`, `ProductService`, `StockRecordService` if needed.
 
 **Acceptance Criteria:**
@@ -457,10 +457,7 @@ public class AiAssistantServiceImpl implements AiAssistantService {
                                   ProductService productService) {
         this.chatClient = chatClientBuilder
                 .defaultSystem("""
-                        你是 AsterFlow ERP 的经营分析助手。
-                        你只能根据系统提供的数据回答，不要编造库存、销售额或订单。
-                        输出要简洁，适合企业管理者阅读。
-                        """)
+                        你是 AsterFlow ERP 的经营分析助手�?                        你只能根据系统提供的数据回答，不要编造库存、销售额或订单�?                        输出要简洁，适合企业管理者阅读�?                        """)
                 .build();
         this.dashboardService = dashboardService;
         this.productService = productService;
@@ -473,8 +470,7 @@ public class AiAssistantServiceImpl implements AiAssistantService {
 
         return chatClient.prompt()
                 .user("""
-                        请根据下面 ERP 数据生成库存风险和补货建议。
-
+                        请根据下�?ERP 数据生成库存风险和补货建议�?
                         Dashboard:
                         %s
 
@@ -492,7 +488,7 @@ public class AiAssistantServiceImpl implements AiAssistantService {
 **Purpose:** Expose AI assistant to frontend through authenticated API.
 
 **Files:**
-- Create: `server/src/main/java/com/demo/erp/controller/AiAssistantController.java`
+- Create: `server/src/main/java/com/asterflow/erp/controller/AiAssistantController.java`
 - Modify: frontend API proxy later.
 
 **Acceptance Criteria:**
@@ -544,7 +540,7 @@ public class AiAssistantController {
 **Purpose:** Let AI call read-only ERP tools instead of dumping all data into prompts.
 
 **Files:**
-- Create: `server/src/main/java/com/demo/erp/ai/InventoryAiTools.java`
+- Create: `server/src/main/java/com/asterflow/erp/ai/InventoryAiTools.java`
 - Modify: `AiAssistantServiceImpl`
 
 **Acceptance Criteria:**
@@ -565,12 +561,12 @@ public class InventoryAiTools {
         this.dashboardService = dashboardService;
     }
 
-    @Tool(description = "查询当前低库存商品列表")
+    @Tool(description = "查询当前低库存商品列�?)
     public List<ProductResponse> lowStockProducts() {
         return productService.warningList();
     }
 
-    @Tool(description = "查询当前 ERP Dashboard 汇总数据")
+    @Tool(description = "查询当前 ERP Dashboard 汇总数�?)
     public DashboardSummaryResponse dashboardSummary() {
         return dashboardService.summary();
     }

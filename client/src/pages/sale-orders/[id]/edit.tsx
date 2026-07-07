@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '@/components/Layout';
+import EmptyState from '@/components/EmptyState';
+import ErrorMessage from '@/components/ErrorMessage';
 import { apiRequest } from '@/lib/api';
 
 type SaleItemForm = {
@@ -229,13 +231,16 @@ export default function SaleOrderEditPage() {
         <Layout>
             <h1>编辑销售单</h1>
 
-            {loading && <div className="empty-state">加载中...</div>}
-            {error && <div className="alert alert-danger">{error}</div>}
+            {loading && (
+                <EmptyState
+                    title="正在加载销售单..."
+                    description="请稍候，系统正在读取销售单、客户和商品资料。"
+                />
+            )}
+            <ErrorMessage message={error} />
 
             {status && status !== 'DRAFT' && (
-                <div className="alert alert-danger">
-                    当前销售单不是草稿状态，不能修改
-                </div>
+                <ErrorMessage message="当前销售单不是草稿状态，不能修改" />
             )}
 
             <form onSubmit={handleSubmit}>

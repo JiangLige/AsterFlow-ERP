@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
+import { saveAuth } from '@/lib/auth';
+import ErrorMessage from '@/components/ErrorMessage';
 
 export default function LoginPage() {
     const router = useRouter();
@@ -31,10 +33,12 @@ export default function LoginPage() {
                 throw new Error(result.message || '登录失败');
             }
 
-            localStorage.setItem('token', result.data.token);
-            localStorage.setItem('username', result.data.username || '');
-            localStorage.setItem('realName', result.data.realName || '');
-            localStorage.setItem('role', result.data.role || '');
+            saveAuth({
+                token: result.data.token,
+                username: result.data.username,
+                realName: result.data.realName,
+                role: result.data.role,
+            });
 
             router.push('/');
         } catch (err) {
@@ -107,7 +111,7 @@ export default function LoginPage() {
                             />
                         </div>
 
-                        {error && <div className="alert alert-danger">{error}</div>}
+                        <ErrorMessage message={error} />
 
                         <button type="submit" disabled={loading}>
                             {loading ? '登录中...' : '登录'}

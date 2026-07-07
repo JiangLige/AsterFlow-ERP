@@ -5,23 +5,9 @@ type EmptyStateProps = {
 
 export default function EmptyState({ title, description }: EmptyStateProps) {
     return (
-        <div
-            role="status"
-            style={{
-                marginTop: '1rem',
-                padding: '2rem',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                textAlign: 'center',
-                color: '#555',
-            }}
-        >
+        <div className="empty-state" role="status">
             <strong>{title}</strong>
-            {description && (
-                <p style={{ marginTop: '0.5rem' }}>
-                    {description}
-                </p>
-            )}
+            {description && <p className="muted">{description}</p>}
         </div>
     );
 }

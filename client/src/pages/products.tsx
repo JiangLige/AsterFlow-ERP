@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
 import { apiRequest } from '@/lib/api';
+import EmptyState from '@/components/EmptyState';
+import ErrorMessage from '@/components/ErrorMessage';
 
 type Product = {
     id: number;
@@ -48,7 +50,10 @@ export default function ProductsPage() {
     const [total, setTotal] = useState(0);
     const [role, setRole] = useState('');
 
-    const loadProducts = async (targetPage = page) => {
+    const loadProducts = useCallback(async (
+        targetPage: number,
+        currentKeyword: string
+    ) => {
         setLoading(true);
         setError('');
 
@@ -57,8 +62,8 @@ export default function ProductsPage() {
             query.set('page', String(targetPage));
             query.set('size', '10');
 
-            if (keyword.trim()) {
-                query.set('keyword', keyword.trim());
+            if (currentKeyword.trim()) {
+                query.set('keyword', currentKeyword.trim());
             }
 
             const data = await apiRequest<PageResponse<Product>>(`/api/products?${query.toString()}`);
@@ -72,16 +77,16 @@ export default function ProductsPage() {
         } finally {
             setLoading(false);
         }
-    };
-
-    useEffect(() => {
-        setRole(localStorage.getItem('role') || '');
-        loadProducts(1);
     }, []);
 
     useEffect(() => {
+        setRole(localStorage.getItem('role') || '');
+        loadProducts(1, '');
+    }, [loadProducts]);
+
+    useEffect(() => {
         const handleFocus = () => {
-            loadProducts(page);
+            loadProducts(page, keyword);
         };
 
         window.addEventListener('focus', handleFocus);
@@ -89,7 +94,7 @@ export default function ProductsPage() {
         return () => {
             window.removeEventListener('focus', handleFocus);
         };
-    }, [page, keyword]);
+    }, [page, keyword, loadProducts]);
 
     async function handleDelete(id: number) {
         const ok = window.confirm('确定要停用这个商品吗？');
@@ -105,7 +110,7 @@ export default function ProductsPage() {
                 method: 'DELETE',
             });
 
-            loadProducts(page);
+            loadProducts(page, keyword);
         } catch (err) {
             setError(err instanceof Error ? err.message : '停用失败');
         }
@@ -133,12 +138,12 @@ export default function ProductsPage() {
                     onChange={(e) => setKeyword(e.target.value)}
                     placeholder="输入商品编码/名称/分类"
                 />
-                <button onClick={() => loadProducts(1)} disabled={loading}>
+                <button onClick={() => loadProducts(1, keyword)} disabled={loading}>
                     {loading ? '查询中...' : '查询'}
                 </button>
             </div>
 
-            {error && <div className="alert alert-danger">{error}</div>}
+            <ErrorMessage message={error} />
 
             <p className="muted" style={{ marginTop: '1rem' }}>
                 第 {page} / {pages} 页，共 {total} 条
@@ -195,14 +200,17 @@ export default function ProductsPage() {
             </table>
 
             {!loading && products.length === 0 && (
-                <div className="empty-state">暂无商品数据</div>
+                <EmptyState
+                    title="暂无商品数据"
+                    description="可以新增商品，或调整查询条件后重新搜索。"
+                />
             )}
 
             <div className="toolbar">
-                <button onClick={() => loadProducts(page - 1)} disabled={loading || page <= 1}>
+                <button onClick={() => loadProducts(page - 1, keyword)} disabled={loading || page <= 1}>
                     上一页
                 </button>
-                <button onClick={() => loadProducts(page + 1)} disabled={loading || page >= pages}>
+                <button onClick={() => loadProducts(page + 1, keyword)} disabled={loading || page >= pages}>
                     下一页
                 </button>
             </div>
