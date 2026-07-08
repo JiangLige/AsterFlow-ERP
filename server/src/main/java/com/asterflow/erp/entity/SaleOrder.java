@@ -1,4 +1,4 @@
-package entity;
+package com.asterflow.erp.entity;
 
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.IdType;
@@ -8,19 +8,21 @@ import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.Version;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@TableName("t_user")
-public class User {
+@TableName("t_sale_order")
+public class SaleOrder {
 
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    private String username;
-    private String password;
-    private String realName;
-    private String role;
+    private String orderNo;
+    private Long customerId;
+    private String customerName;
+    private BigDecimal totalAmount;
     private String status;
+    private String remark;
 
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
@@ -42,36 +44,36 @@ public class User {
         this.id = id;
     }
 
-    public String getUsername() {
-        return username;
+    public String getOrderNo() {
+        return orderNo;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setOrderNo(String orderNo) {
+        this.orderNo = orderNo;
     }
 
-    public String getPassword() {
-        return password;
+    public Long getCustomerId() {
+        return customerId;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
+    public void setCustomerId(Long customerId) {
+        this.customerId = customerId;
     }
 
-    public String getRealName() {
-        return realName;
+    public String getCustomerName() {
+        return customerName;
     }
 
-    public void setRealName(String realName) {
-        this.realName = realName;
+    public void setCustomerName(String customerName) {
+        this.customerName = customerName;
     }
 
-    public String getRole() {
-        return role;
+    public BigDecimal getTotalAmount() {
+        return totalAmount;
     }
 
-    public void setRole(String role) {
-        this.role = role;
+    public void setTotalAmount(BigDecimal totalAmount) {
+        this.totalAmount = totalAmount;
     }
 
     public String getStatus() {
@@ -80,6 +82,14 @@ public class User {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getRemark() {
+        return remark;
+    }
+
+    public void setRemark(String remark) {
+        this.remark = remark;
     }
 
     public LocalDateTime getCreatedAt() {

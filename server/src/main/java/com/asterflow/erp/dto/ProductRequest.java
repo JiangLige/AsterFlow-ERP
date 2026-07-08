@@ -9,11 +9,11 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-@Schema(description = "商品创建或编辑请")
+@Schema(description = "商品创建或编辑请求")
 public class ProductRequest {
 
     @Schema(description = "最低库存阈值，用于库存预警", example = "10")
-    @Min(value = 0, message = "最低库存不能小?")
+    @Min(value = 0, message = "最低库存不能小于0")
     private Integer minStock;
 
     @Schema(description = "商品编码，业务唯一", example = "P-10001")
@@ -38,8 +38,8 @@ public class ProductRequest {
     private BigDecimal price;
 
     @Schema(description = "成本", example = "60.00")
-    @NotNull(message = "成本价不能为")
-    @DecimalMin(value = "0.00", message = "成本价不能小?")
+    @NotNull(message = "成本价不能为空")
+    @DecimalMin(value = "0.00", message = "成本价不能小于0")
     private BigDecimal cost;
 
     @Schema(description = "当前库存", example = "100")
@@ -47,11 +47,11 @@ public class ProductRequest {
     @Min(value = 0, message = "库存不能小于0")
     private Integer stock;
 
-    @Schema(description = "商品状", example = "ACTIVE")
-    @Size(max = 20, message = "状态不能超?0个字")
+    @Schema(description = "商品状态", example = "ACTIVE")
+    @Size(max = 20, message = "状态不能超过20个字")
     private String status;
 
-    @Schema(description = "商品描述", example = "适用于日常办公场")
+    @Schema(description = "商品描述", example = "适用于日常办公场景")
     @Size(max = 500, message = "描述不能超过500个字")
     private String description;
 

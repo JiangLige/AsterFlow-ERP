@@ -1,7 +1,7 @@
 package com.asterflow.erp.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import entity.OrderSequence;
+import com.asterflow.erp.entity.OrderSequence;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;

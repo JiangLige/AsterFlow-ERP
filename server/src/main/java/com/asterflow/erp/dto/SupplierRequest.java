@@ -8,13 +8,13 @@ import jakarta.validation.constraints.Size;
 public class SupplierRequest {
 
     @Schema(description = "供应商编码，业务唯一", example = "SUP-10001")
-    @NotBlank(message = "供应商编码不能为")
+    @NotBlank(message = "供应商编码不能为空")
     private String supplierCode;
 
-    @NotBlank(message = "供应商名称不能为")
+    @NotBlank(message = "供应商名称不能为空")
     private String name;
 
-    @Size(max = 50, message = "联系人不能超?0个字")
+    @Size(max = 50, message = "联系人不能超过50个字")
     private String contactName;
 
     @Size(max = 30, message = "联系电话不能超过30个字")
@@ -23,7 +23,7 @@ public class SupplierRequest {
     @Size(max = 255, message = "地址不能超过255个字")
     private String address;
 
-    @Size(max = 20, message = "状态不能超?0个字")
+    @Size(max = 20, message = "状态不能超过20个字")
     private String status;
 
     public String getSupplierCode() {

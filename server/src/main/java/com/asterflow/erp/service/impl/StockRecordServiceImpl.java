@@ -8,7 +8,7 @@ import com.asterflow.erp.dto.StockRecordResponse;
 import com.asterflow.erp.enums.StockChangeType;
 import com.asterflow.erp.mapper.StockRecordMapper;
 import com.asterflow.erp.service.StockRecordService;
-import entity.StockRecord;
+import com.asterflow.erp.entity.StockRecord;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -44,7 +44,7 @@ public class StockRecordServiceImpl implements StockRecordService {
             try {
                 StockChangeType.valueOf(type);
             } catch (IllegalArgumentException e) {
-                throw new BusinessException("库存变化类型不合");
+                throw new BusinessException("库存变化类型不合法");
             }
 
             wrapper.eq(StockRecord::getType, type);

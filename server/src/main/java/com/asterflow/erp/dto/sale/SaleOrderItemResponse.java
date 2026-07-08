@@ -68,5 +68,4 @@ public class SaleOrderItemResponse {
         this.amount = amount;
     }
 
-    // 生成 getter / setter
 }

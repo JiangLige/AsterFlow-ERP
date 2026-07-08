@@ -1,4 +1,4 @@
-package entity;
+package com.asterflow.erp.entity;
 
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.IdType;
@@ -98,5 +98,4 @@ public class SaleOrderItem {
         this.createdAt = createdAt;
     }
 
-    // 这里生成 getter / setter
 }

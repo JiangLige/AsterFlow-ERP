@@ -8,8 +8,8 @@ import com.asterflow.erp.mapper.ProductMapper;
 import com.asterflow.erp.mapper.StockRecordMapper;
 import com.asterflow.erp.service.DashboardCacheService;
 import com.asterflow.erp.service.InventoryService;
-import entity.Product;
-import entity.StockRecord;
+import com.asterflow.erp.entity.Product;
+import com.asterflow.erp.entity.StockRecord;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,7 +46,7 @@ public class InventoryServiceImpl implements InventoryService {
         Product product = productMapper.selectById(command.getProductId());
 
         if (product == null) {
-            throw new BusinessException("商品不存");
+            throw new BusinessException("商品不存在");
         }
 
         int beforeStock = product.getStock();
@@ -55,7 +55,7 @@ public class InventoryServiceImpl implements InventoryService {
         int rows = productMapper.increaseStock(product.getId(), changeQuantity);
 
         if (rows == 0) {
-            throw new BusinessException("商品库存更新失败" + product.getName());
+            throw new BusinessException("商品库存更新失败：" + product.getName());
         }
 
         Product updatedProduct = productMapper.selectById(product.getId());
@@ -97,7 +97,7 @@ public class InventoryServiceImpl implements InventoryService {
         Product product = productMapper.selectById(command.getProductId());
 
         if (product == null) {
-            throw new BusinessException("商品不存");
+            throw new BusinessException("商品不存在");
         }
 
         int beforeStock = product.getStock();
@@ -106,7 +106,7 @@ public class InventoryServiceImpl implements InventoryService {
         int rows = productMapper.deductStockIfEnough(product.getId(), changeQuantity);
 
         if (rows == 0) {
-            throw new BusinessException("商品库存不足" + product.getName());
+            throw new BusinessException("商品库存不足：" + product.getName());
         }
 
         Product updatedProduct = productMapper.selectById(product.getId());
@@ -140,7 +140,7 @@ public class InventoryServiceImpl implements InventoryService {
         }
 
         if (command.getQuantity() == 0) {
-            throw new BusinessException("库存变化数量不能?");
+            throw new BusinessException("库存变化数量不能为0");
         }
 
         if (command.getQuantity() > 0) {

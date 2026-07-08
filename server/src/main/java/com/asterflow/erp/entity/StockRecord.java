@@ -1,4 +1,4 @@
-package entity;
+package com.asterflow.erp.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
 

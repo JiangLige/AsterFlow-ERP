@@ -12,7 +12,7 @@ import com.asterflow.erp.mapper.*;
 import com.asterflow.erp.service.DashboardCacheService;
 import com.asterflow.erp.service.InventoryService;
 import com.asterflow.erp.service.PurchaseOrderService;
-import entity.*;
+import com.asterflow.erp.entity.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
@@ -68,7 +68,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
             Product product = productMapper.selectById(itemRequest.getProductId());
 
             if (product == null) {
-                throw new BusinessException("商品不存");
+                throw new BusinessException("商品不存在");
             }
 
             BigDecimal amount = itemRequest.getPrice()
@@ -195,7 +195,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         }
 
         if (!PurchaseOrderStatus.DRAFT.name().equals(purchaseOrder.getStatus())) {
-            throw new BusinessException("只有草稿状态的采购单可以审");
+            throw new BusinessException("只有草稿状态的采购单可以审核");
         }
 
         List<PurchaseOrderItem> items = purchaseOrderItemMapper.selectList(
@@ -204,14 +204,14 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         );
 
         if (items.isEmpty()) {
-            throw new BusinessException("采购单明细不能为");
+            throw new BusinessException("采购单明细不能为空");
         }
 
         for (PurchaseOrderItem item : items) {
             Product product = productMapper.selectById(item.getProductId());
 
             if (product == null) {
-                throw new BusinessException("商品不存");
+                throw new BusinessException("商品不存在");
             }
 
             inventoryService.inbound(new InventoryChangeCommand(
@@ -233,7 +233,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         );
 
         if (rows == 0) {
-            throw new BusinessException("采购单状态已变化，请刷新后重");
+            throw new BusinessException("采购单状态已变化，请刷新后重试");
         }
 
         dashboardCacheService.evictSummary();
@@ -250,7 +250,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         }
 
         if (!PurchaseOrderStatus.DRAFT.name().equals(purchaseOrder.getStatus())) {
-            throw new BusinessException("只有草稿状态的采购单可以删");
+            throw new BusinessException("只有草稿状态的采购单可以删除");
         }
 
         purchaseOrderItemMapper.delete(
@@ -272,7 +272,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         }
 
         if (!PurchaseOrderStatus.DRAFT.name().equals(purchaseOrder.getStatus())) {
-            throw new BusinessException("只有草稿状态的采购单可以修");
+            throw new BusinessException("只有草稿状态的采购单可以修改");
         }
 
         Supplier supplier = supplierMapper.selectById(request.getSupplierId());
@@ -296,7 +296,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
             Product product = productMapper.selectById(itemRequest.getProductId());
 
             if (product == null) {
-                throw new BusinessException("商品不存");
+                throw new BusinessException("商品不存在");
             }
 
             BigDecimal amount = itemRequest.getPrice()
@@ -347,7 +347,7 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         );
 
         if (rows == 0) {
-            throw new BusinessException("采购单状态已变化，请刷新后重");
+            throw new BusinessException("采购单状态已变化，请刷新后重试");
         }
 
         List<PurchaseOrderItem> items = purchaseOrderItemMapper.selectList(
@@ -356,14 +356,14 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         );
 
         if (items.isEmpty()) {
-            throw new BusinessException("采购单明细不能为");
+            throw new BusinessException("采购单明细不能为空");
         }
 
         for (PurchaseOrderItem item : items) {
             Product product = productMapper.selectById(item.getProductId());
 
             if (product == null) {
-                throw new BusinessException("商品不存");
+                throw new BusinessException("商品不存在");
             }
 
             inventoryService.outbound(new InventoryChangeCommand(

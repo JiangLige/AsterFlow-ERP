@@ -43,5 +43,4 @@ public class PurchaseOrderItemRequest {
         this.price = price;
     }
 
-    // getter / setter
 }

@@ -97,5 +97,4 @@ public class SaleOrderResponse {
         this.items = items;
     }
 
-    // 生成 getter / setter
 }

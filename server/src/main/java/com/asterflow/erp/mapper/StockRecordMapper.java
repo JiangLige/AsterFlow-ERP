@@ -1,7 +1,7 @@
 package com.asterflow.erp.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import entity.StockRecord;
+import com.asterflow.erp.entity.StockRecord;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper

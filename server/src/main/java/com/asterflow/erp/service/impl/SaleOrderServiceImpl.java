@@ -19,10 +19,10 @@ import com.asterflow.erp.mapper.SaleOrderMapper;
 import com.asterflow.erp.service.DashboardCacheService;
 import com.asterflow.erp.service.InventoryService;
 import com.asterflow.erp.service.SaleOrderService;
-import entity.Customer;
-import entity.Product;
-import entity.SaleOrder;
-import entity.SaleOrderItem;
+import com.asterflow.erp.entity.Customer;
+import com.asterflow.erp.entity.Product;
+import com.asterflow.erp.entity.SaleOrder;
+import com.asterflow.erp.entity.SaleOrderItem;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
@@ -76,11 +76,11 @@ public class SaleOrderServiceImpl implements SaleOrderService {
             Product product = productMapper.selectById(itemRequest.getProductId());
 
             if (product == null) {
-                throw new BusinessException("商品不存");
+                throw new BusinessException("商品不存在");
             }
 
             if (product.getStock() < itemRequest.getQuantity()) {
-                throw new BusinessException("商品库存不足" + product.getName());
+                throw new BusinessException("商品库存不足：" + product.getName());
             }
 
 
@@ -114,7 +114,7 @@ public class SaleOrderServiceImpl implements SaleOrderService {
         SaleOrder saleOrder = saleOrderMapper.selectById(id);
 
         if (saleOrder == null) {
-            throw new BusinessException("销售单不存");
+            throw new BusinessException("销售单不存在");
         }
 
         return toResponse(saleOrder);
@@ -162,11 +162,11 @@ public class SaleOrderServiceImpl implements SaleOrderService {
         Customer customer = customerMapper.selectById(customerId);
 
         if (customer == null) {
-            throw new BusinessException("客户不存");
+            throw new BusinessException("客户不存在");
         }
 
         if (!"ACTIVE".equals(customer.getStatus())) {
-            throw new BusinessException("客户已停");
+            throw new BusinessException("客户已停用");
         }
 
         return customer;
@@ -232,7 +232,7 @@ public class SaleOrderServiceImpl implements SaleOrderService {
         SaleOrder saleOrder = saleOrderMapper.selectById(id);
 
         if (saleOrder == null) {
-            throw new BusinessException("销售单不存");
+            throw new BusinessException("销售单不存在");
         }
 
         if (!SaleOrderStatus.DRAFT.name().equals(saleOrder.getStatus())) {
@@ -252,7 +252,7 @@ public class SaleOrderServiceImpl implements SaleOrderService {
             Product product = productMapper.selectById(item.getProductId());
 
             if (product == null) {
-                throw new BusinessException("商品不存");
+                throw new BusinessException("商品不存在");
             }
 
             inventoryService.outbound(new InventoryChangeCommand(
@@ -274,7 +274,7 @@ public class SaleOrderServiceImpl implements SaleOrderService {
         );
 
         if (rows == 0) {
-            throw new BusinessException("销售单状态已变化，请刷新后重");
+            throw new BusinessException("销售单状态已变化，请刷新后重试");
         }
 
         dashboardCacheService.evictSummary();
@@ -286,7 +286,7 @@ public class SaleOrderServiceImpl implements SaleOrderService {
         SaleOrder saleOrder = saleOrderMapper.selectById(id);
 
         if (saleOrder == null) {
-            throw new BusinessException("销售单不存");
+            throw new BusinessException("销售单不存在");
         }
 
         if (!SaleOrderStatus.DRAFT.name().equals(saleOrder.getStatus())) {
@@ -309,7 +309,7 @@ public class SaleOrderServiceImpl implements SaleOrderService {
         SaleOrder saleOrder = saleOrderMapper.selectById(id);
 
         if (saleOrder == null) {
-            throw new BusinessException("销售单不存");
+            throw new BusinessException("销售单不存在");
         }
 
 
@@ -335,11 +335,11 @@ public class SaleOrderServiceImpl implements SaleOrderService {
             Product product = productMapper.selectById(itemRequest.getProductId());
 
             if (product == null) {
-                throw new BusinessException("商品不存");
+                throw new BusinessException("商品不存在");
             }
 
             if (product.getStock() < itemRequest.getQuantity()) {
-                throw new BusinessException("商品库存不足" + product.getName());
+                throw new BusinessException("商品库存不足：" + product.getName());
             }
 
             BigDecimal amount = itemRequest.getPrice()
@@ -375,7 +375,7 @@ public class SaleOrderServiceImpl implements SaleOrderService {
         SaleOrder saleOrder = saleOrderMapper.selectById(id);
 
         if (saleOrder == null) {
-            throw new BusinessException("销售单不存");
+            throw new BusinessException("销售单不存在");
         }
 
         if (!SaleOrderStatus.APPROVED.name().equals(saleOrder.getStatus())) {
@@ -391,7 +391,7 @@ public class SaleOrderServiceImpl implements SaleOrderService {
         );
 
         if (rows == 0) {
-            throw new BusinessException("销售单状态已变化，请刷新后重");
+            throw new BusinessException("销售单状态已变化，请刷新后重试");
         }
 
         List<SaleOrderItem> items = saleOrderItemMapper.selectList(
@@ -407,7 +407,7 @@ public class SaleOrderServiceImpl implements SaleOrderService {
             Product product = productMapper.selectById(item.getProductId());
 
             if (product == null) {
-                throw new BusinessException("商品不存");
+                throw new BusinessException("商品不存在");
             }
 
             inventoryService.inbound(new InventoryChangeCommand(

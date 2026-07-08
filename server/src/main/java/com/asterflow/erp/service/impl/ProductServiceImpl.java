@@ -12,8 +12,8 @@ import com.asterflow.erp.mapper.StockRecordMapper;
 import com.asterflow.erp.service.DashboardCacheService;
 import com.asterflow.erp.service.InventoryService;
 import com.asterflow.erp.service.ProductService;
-import entity.Product;
-import entity.StockRecord;
+import com.asterflow.erp.entity.Product;
+import com.asterflow.erp.entity.StockRecord;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,7 +45,7 @@ public class ProductServiceImpl implements ProductService {
         );
 
         if (count > 0) {
-            throw new BusinessException("商品编码已存");
+            throw new BusinessException("商品编码已存在");
         }
 
         Product product = new Product();
@@ -72,7 +72,7 @@ public class ProductServiceImpl implements ProductService {
         Product product = productMapper.selectById(id);
 
         if (product == null) {
-            throw new BusinessException("商品不存");
+            throw new BusinessException("商品不存在");
         }
 
         product.setStatus(ProductStatus.ACTIVE.name());
@@ -87,7 +87,7 @@ public class ProductServiceImpl implements ProductService {
         Product product = productMapper.selectById(id);
 
         if (product == null) {
-            throw new BusinessException("商品不存");
+            throw new BusinessException("商品不存在");
         }
 
         productMapper.deleteById(id);
@@ -103,13 +103,13 @@ public class ProductServiceImpl implements ProductService {
         try {
             type = StockChangeType.valueOf(request.getType());
         } catch (IllegalArgumentException e) {
-            throw new BusinessException("库存变化类型不合");
+            throw new BusinessException("库存变化类型不合法");
         }
 
         int changeQuantity = request.getChangeQuantity();
 
         if (changeQuantity == 0) {
-            throw new BusinessException("库存变化数量不能?");
+            throw new BusinessException("库存变化数量不能为0");
         }
 
         if (type == StockChangeType.IN && changeQuantity < 0) {
@@ -156,7 +156,7 @@ public class ProductServiceImpl implements ProductService {
         Product product = productMapper.selectById(productId);
 
         if (product == null) {
-            throw new BusinessException("商品不存");
+            throw new BusinessException("商品不存在");
         }
 
         LambdaQueryWrapper<StockRecord> wrapper = new LambdaQueryWrapper<>();
@@ -167,7 +167,7 @@ public class ProductServiceImpl implements ProductService {
             try {
                 StockChangeType.valueOf(type);
             } catch (IllegalArgumentException e) {
-                throw new BusinessException("库存变化类型不合");
+                throw new BusinessException("库存变化类型不合法");
             }
 
             wrapper.eq(StockRecord::getType, type);
@@ -207,7 +207,7 @@ public class ProductServiceImpl implements ProductService {
         Product product = productMapper.selectById(id);
 
         if (product == null) {
-            throw new BusinessException("商品不存");
+            throw new BusinessException("商品不存在");
         }
 
         return toResponse(product);
@@ -257,7 +257,7 @@ public class ProductServiceImpl implements ProductService {
         Product product = productMapper.selectById(id);
 
         if (product == null) {
-            throw new BusinessException("商品不存");
+            throw new BusinessException("商品不存在");
         }
 
         if (request.getStatus() != null && !request.getStatus().isBlank()) {
@@ -273,7 +273,7 @@ public class ProductServiceImpl implements ProductService {
         );
 
         if (existing != null && !existing.getId().equals(id)){
-            throw new BusinessException("商品编码已存");
+            throw new BusinessException("商品编码已存在");
         }
 
 
@@ -300,7 +300,7 @@ public class ProductServiceImpl implements ProductService {
         Product product = productMapper.selectById(id);
 
         if (product == null) {
-            throw new BusinessException("商品不存");
+            throw new BusinessException("商品不存在");
         }
 
         product.setStatus(ProductStatus.INACTIVE.name());

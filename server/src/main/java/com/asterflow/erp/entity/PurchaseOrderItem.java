@@ -1,4 +1,4 @@
-package entity;
+package com.asterflow.erp.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
 
@@ -97,5 +97,4 @@ public class PurchaseOrderItem {
         this.createdAt = createdAt;
     }
 
-    // getter / setter
 }

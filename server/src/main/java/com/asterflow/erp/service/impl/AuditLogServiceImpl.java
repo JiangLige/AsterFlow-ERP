@@ -2,7 +2,7 @@ package com.asterflow.erp.service.impl;
 
 import com.asterflow.erp.mapper.AuditLogMapper;
 import com.asterflow.erp.service.AuditLogService;
-import entity.AuditLog;
+import com.asterflow.erp.entity.AuditLog;
 import org.springframework.stereotype.Service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;

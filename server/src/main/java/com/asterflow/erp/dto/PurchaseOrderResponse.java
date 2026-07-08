@@ -97,5 +97,4 @@ public class PurchaseOrderResponse {
         this.items = items;
     }
 
-    // getter / setter
 }

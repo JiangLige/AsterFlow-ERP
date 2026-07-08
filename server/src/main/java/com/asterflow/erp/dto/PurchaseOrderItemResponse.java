@@ -68,5 +68,4 @@ public class PurchaseOrderItemResponse {
         this.amount = amount;
     }
 
-    // getter / setter
 }

@@ -13,7 +13,7 @@ public class AuthUtil {
         String role = (String) request.getAttribute("role");
 
         if (!"ADMIN".equals(role)) {
-            throw new BusinessException(ErrorCode.FORBIDDEN, "无权限操");
+            throw new BusinessException(ErrorCode.FORBIDDEN, "无权限操作");
         }
     }
 }

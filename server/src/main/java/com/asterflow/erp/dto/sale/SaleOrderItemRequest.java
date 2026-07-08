@@ -11,12 +11,12 @@ public class SaleOrderItemRequest {
     @NotNull(message = "商品ID不能为空")
     private Long productId;
 
-    @NotNull(message = "销售数量不能为")
-    @Min(value = 1, message = "销售数量必须大?")
+    @NotNull(message = "销售数量不能为空")
+    @Min(value = 1, message = "销售数量必须大于0")
     private Integer quantity;
 
-    @NotNull(message = "销售单价不能为")
-    @DecimalMin(value = "0.01", message = "销售单价必须大?")
+    @NotNull(message = "销售单价不能为空")
+    @DecimalMin(value = "0.01", message = "销售单价必须大于0")
     private BigDecimal price;
 
     public Long getProductId() {
@@ -43,5 +43,4 @@ public class SaleOrderItemRequest {
         this.price = price;
     }
 
-    // 生成 getter / setter
 }

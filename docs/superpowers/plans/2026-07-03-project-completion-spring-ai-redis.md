@@ -457,7 +457,7 @@ public class AiAssistantServiceImpl implements AiAssistantService {
                                   ProductService productService) {
         this.chatClient = chatClientBuilder
                 .defaultSystem("""
-                        你是 AsterFlow ERP 的经营分析助手�?                        你只能根据系统提供的数据回答，不要编造库存、销售额或订单�?                        输出要简洁，适合企业管理者阅读�?                        """)
+                        你是 AsterFlow ERP 的经营分析助手?                        你只能根据系统提供的数据回答，不要编造库存、销售额或订单?                        输出要简洁，适合企业管理者阅读?                        """)
                 .build();
         this.dashboardService = dashboardService;
         this.productService = productService;
@@ -470,7 +470,7 @@ public class AiAssistantServiceImpl implements AiAssistantService {
 
         return chatClient.prompt()
                 .user("""
-                        请根据下�?ERP 数据生成库存风险和补货建议�?
+                        请根据下?ERP 数据生成库存风险和补货建议?
                         Dashboard:
                         %s
 
@@ -561,12 +561,12 @@ public class InventoryAiTools {
         this.dashboardService = dashboardService;
     }
 
-    @Tool(description = "查询当前低库存商品列�?)
+    @Tool(description = "查询当前低库存商品列?)
     public List<ProductResponse> lowStockProducts() {
         return productService.warningList();
     }
 
-    @Tool(description = "查询当前 ERP Dashboard 汇总数�?)
+    @Tool(description = "查询当前 ERP Dashboard 汇总数?)
     public DashboardSummaryResponse dashboardSummary() {
         return dashboardService.summary();
     }

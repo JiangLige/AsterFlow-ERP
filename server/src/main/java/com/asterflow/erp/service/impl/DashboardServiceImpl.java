@@ -11,10 +11,10 @@ import com.asterflow.erp.mapper.SaleOrderMapper;
 import com.asterflow.erp.mapper.StockRecordMapper;
 import com.asterflow.erp.service.DashboardCacheService;
 import com.asterflow.erp.service.DashboardService;
-import entity.Product;
-import entity.PurchaseOrder;
-import entity.SaleOrder;
-import entity.StockRecord;
+import com.asterflow.erp.entity.Product;
+import com.asterflow.erp.entity.PurchaseOrder;
+import com.asterflow.erp.entity.SaleOrder;
+import com.asterflow.erp.entity.StockRecord;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;

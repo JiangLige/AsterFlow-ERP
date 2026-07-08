@@ -1,22 +1,26 @@
-package entity;
+package com.asterflow.erp.entity;
 
-import com.baomidou.mybatisplus.annotation.*;
+import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
+import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.Version;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@TableName("t_purchase_order")
-public class PurchaseOrder {
+@TableName("t_user")
+public class User {
 
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    private String orderNo;
-    private Long supplierId;
-    private String supplierName;
-    private BigDecimal totalAmount;
+    private String username;
+    private String password;
+    private String realName;
+    private String role;
     private String status;
-    private String remark;
 
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
@@ -38,36 +42,36 @@ public class PurchaseOrder {
         this.id = id;
     }
 
-    public String getOrderNo() {
-        return orderNo;
+    public String getUsername() {
+        return username;
     }
 
-    public void setOrderNo(String orderNo) {
-        this.orderNo = orderNo;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
-    public Long getSupplierId() {
-        return supplierId;
+    public String getPassword() {
+        return password;
     }
 
-    public void setSupplierId(Long supplierId) {
-        this.supplierId = supplierId;
+    public void setPassword(String password) {
+        this.password = password;
     }
 
-    public String getSupplierName() {
-        return supplierName;
+    public String getRealName() {
+        return realName;
     }
 
-    public void setSupplierName(String supplierName) {
-        this.supplierName = supplierName;
+    public void setRealName(String realName) {
+        this.realName = realName;
     }
 
-    public BigDecimal getTotalAmount() {
-        return totalAmount;
+    public String getRole() {
+        return role;
     }
 
-    public void setTotalAmount(BigDecimal totalAmount) {
-        this.totalAmount = totalAmount;
+    public void setRole(String role) {
+        this.role = role;
     }
 
     public String getStatus() {
@@ -76,14 +80,6 @@ public class PurchaseOrder {
 
     public void setStatus(String status) {
         this.status = status;
-    }
-
-    public String getRemark() {
-        return remark;
-    }
-
-    public void setRemark(String remark) {
-        this.remark = remark;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -117,6 +113,4 @@ public class PurchaseOrder {
     public void setVersion(Integer version) {
         this.version = version;
     }
-
-    // getter / setter
 }

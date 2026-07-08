@@ -14,7 +14,8 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.util.List;import com.asterflow.erp.service.IdempotencyService;
+import java.util.List;
+import com.asterflow.erp.service.IdempotencyService;
 
 @RestController
 @RequestMapping("/api/products")
@@ -114,11 +115,11 @@ public class ProductController {
     }
 
     @GetMapping("/{id}/stock-records")
-    @Operation(summary = "分页查询商品库存流水", description = "按商?ID 查询入库、出库、调整等库存变更记录")
+    @Operation(summary = "分页查询商品库存流水", description = "按商品 ID 查询入库、出库、调整等库存变更记录")
     public ApiResponse<PageResponse<StockRecordResponse>> pageStockRecords(
             @Parameter(description = "商品ID", example = "1")
             @PathVariable Long id,
-            @Parameter(description = "库存变更类型，例?IN、OUT、ADJUST")
+            @Parameter(description = "库存变更类型，例如 IN、OUT、ADJUST")
             @RequestParam(required = false) String type,
             @Parameter(description = "开始时间，ISO-8601 格式")
             @RequestParam(required = false)
@@ -128,7 +129,7 @@ public class ProductController {
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
             LocalDateTime endTime,
-            @Parameter(description = "页码，从 1 开", example = "1")
+            @Parameter(description = "页码，从 1 开始", example = "1")
             @RequestParam(defaultValue = "1") long page,
             @Parameter(description = "每页数量", example = "10")
             @RequestParam(defaultValue = "10") long size) {
@@ -138,11 +139,11 @@ public class ProductController {
     @GetMapping
     @Operation(summary = "分页查询商品", description = "按关键字、状态分页查询商品资料")
     public ApiResponse<PageResponse<ProductResponse>> pageList(
-            @Parameter(description = "商品编码、名称或分类关键")
+            @Parameter(description = "商品编码、名称或分类关键字")
             @RequestParam(required = false) String keyword,
             @Parameter(description = "商品状态，例如 ACTIVE、INACTIVE")
             @RequestParam(required = false) String status,
-            @Parameter(description = "页码，从 1 开", example = "1")
+            @Parameter(description = "页码，从 1 开始", example = "1")
             @RequestParam(defaultValue = "1") long page,
             @Parameter(description = "每页数量", example = "10")
             @RequestParam(defaultValue = "10") long size) {

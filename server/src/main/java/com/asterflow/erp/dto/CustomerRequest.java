@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-@Schema(description = "客户创建或编辑请")
+@Schema(description = "客户创建或编辑请求")
 public class CustomerRequest {
 
     @Schema(description = "客户编码，业务唯一", example = "C-10001")
@@ -15,8 +15,8 @@ public class CustomerRequest {
     @NotBlank(message = "客户名称不能为空")
     private String name;
 
-    @Schema(description = "联系人姓", example = "张三")
-    @Size(max = 50, message = "联系人不能超?0个字")
+    @Schema(description = "联系人姓名", example = "张三")
+    @Size(max = 50, message = "联系人不能超过50个字")
     private String contactName;
 
     @Schema(description = "联系电话", example = "13800000000")
@@ -27,8 +27,8 @@ public class CustomerRequest {
     @Size(max = 255, message = "地址不能超过255个字")
     private String address;
 
-    @Schema(description = "客户状", example = "ACTIVE")
-    @Size(max = 20, message = "状态不能超?0个字")
+    @Schema(description = "客户状态", example = "ACTIVE")
+    @Size(max = 20, message = "状态不能超过20个字")
     private String status;
 
     public String getCustomerCode() {

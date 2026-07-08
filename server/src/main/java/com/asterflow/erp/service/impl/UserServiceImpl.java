@@ -11,7 +11,7 @@ import com.asterflow.erp.mapper.UserMapper;
 import com.asterflow.erp.service.AuthSessionService;
 import com.asterflow.erp.service.UserService;
 import com.asterflow.erp.util.JwtUtil;
-import entity.User;
+import com.asterflow.erp.entity.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -45,7 +45,7 @@ public class UserServiceImpl implements UserService {
         }
 
         if (!UserStatus.ACTIVE.name().equals(user.getStatus())) {
-            throw new BusinessException("账号已停");
+            throw new BusinessException("账号已停用");
         }
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
@@ -82,10 +82,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public LoginResponse refresh(String refreshToken) {
         AuthSession session = authSessionService.findByRefreshToken(refreshToken)
-                .orElseThrow(() -> new BusinessException("登录已过期，请重新登"));
+                .orElseThrow(() -> new BusinessException("登录已过期，请重新登录"));
 
         if (!UserStatus.ACTIVE.name().equals(session.getStatus())) {
-            throw new BusinessException("账号已停");
+            throw new BusinessException("账号已停用");
         }
 
         String accessToken = jwtUtil.generateToken(
@@ -126,7 +126,7 @@ public class UserServiceImpl implements UserService {
         User user = userMapper.selectById(userId);
 
         if (user == null) {
-            throw new BusinessException("用户不存");
+            throw new BusinessException("用户不存在");
         }
 
         CurrentUserResponse response = new CurrentUserResponse();

@@ -22,7 +22,7 @@ public class InventoryAiTools {
 
     @Tool(
             name = "get_low_stock_products",
-            description = "Read the current low-stock product list. This tool is read-only and does not modify inventory."
+            description = "查询当前低库存商品列表，只读取 ERP 数据，不修改库存。"
     )
     public List<ProductResponse> lowStockProducts() {
         return productService.warningList();
@@ -30,7 +30,7 @@ public class InventoryAiTools {
 
     @Tool(
             name = "get_dashboard_summary",
-            description = "Read the current ERP dashboard summary. This tool is read-only and does not modify business data."
+            description = "查询当前 ERP 仪表盘汇总数据，只读取经营概况，不修改任何业务数据。"
     )
     public DashboardSummaryResponse dashboardSummary() {
         return dashboardService.summary();

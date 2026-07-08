@@ -1,16 +1,16 @@
-package entity;
+package com.asterflow.erp.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
 
 import java.time.LocalDateTime;
 
-@TableName("t_supplier")
-public class Supplier {
+@TableName("t_customer")
+public class Customer {
 
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    private String supplierCode;
+    private String customerCode;
     private String name;
     private String contactName;
     private String phone;
@@ -26,9 +26,6 @@ public class Supplier {
     @TableLogic
     private Integer deleted;
 
-    @Version
-    private Integer version;
-
     public Long getId() {
         return id;
     }
@@ -37,12 +34,12 @@ public class Supplier {
         this.id = id;
     }
 
-    public String getSupplierCode() {
-        return supplierCode;
+    public String getCustomerCode() {
+        return customerCode;
     }
 
-    public void setSupplierCode(String supplierCode) {
-        this.supplierCode = supplierCode;
+    public void setCustomerCode(String customerCode) {
+        this.customerCode = customerCode;
     }
 
     public String getName() {
@@ -108,14 +105,4 @@ public class Supplier {
     public void setDeleted(Integer deleted) {
         this.deleted = deleted;
     }
-
-    public Integer getVersion() {
-        return version;
-    }
-
-    public void setVersion(Integer version) {
-        this.version = version;
-    }
-
-    // getter / setter
 }

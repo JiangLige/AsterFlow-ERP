@@ -8,7 +8,7 @@ import com.asterflow.erp.dto.PageResponse;
 import com.asterflow.erp.common.BusinessException;
 import com.asterflow.erp.mapper.CustomerMapper;
 import com.asterflow.erp.service.CustomerService;
-import entity.Customer;
+import com.asterflow.erp.entity.Customer;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,7 +32,7 @@ public class CustomerServiceImpl implements CustomerService {
         );
 
         if (count > 0) {
-            throw new BusinessException("客户编码已存");
+            throw new BusinessException("客户编码已存在");
         }
 
         Customer customer = new Customer();
@@ -53,7 +53,7 @@ public class CustomerServiceImpl implements CustomerService {
         Customer customer = customerMapper.selectById(id);
 
         if (customer == null) {
-            throw new BusinessException("客户不存");
+            throw new BusinessException("客户不存在");
         }
 
         return toResponse(customer);
@@ -102,7 +102,7 @@ public class CustomerServiceImpl implements CustomerService {
         Customer customer = customerMapper.selectById(id);
 
         if (customer == null) {
-            throw new BusinessException("客户不存");
+            throw new BusinessException("客户不存在");
         }
 
         Long count = customerMapper.selectCount(
@@ -112,7 +112,7 @@ public class CustomerServiceImpl implements CustomerService {
         );
 
         if (count > 0) {
-            throw new BusinessException("客户编码已存");
+            throw new BusinessException("客户编码已存在");
         }
 
         customer.setCustomerCode(request.getCustomerCode());
@@ -136,7 +136,7 @@ public class CustomerServiceImpl implements CustomerService {
         Customer customer = customerMapper.selectById(id);
 
         if (customer == null) {
-            throw new BusinessException("客户不存");
+            throw new BusinessException("客户不存在");
         }
 
         customer.setStatus("INACTIVE");

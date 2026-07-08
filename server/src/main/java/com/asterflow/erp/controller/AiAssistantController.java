@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/ai")
-@Tag(name = "AI 助手", description = "Spring AI 经营分析与库存建议接")
+@Tag(name = "AI 助手", description = "Spring AI 经营分析与库存建议接口")
 public class AiAssistantController {
 
     private final AiAssistantService aiAssistantService;
@@ -21,7 +21,7 @@ public class AiAssistantController {
     }
 
     @GetMapping("/inventory-advice")
-    @Operation(summary = "生成库存建议", description = "根据当前 ERP 数据生成结构?AI 库存建议")
+    @Operation(summary = "生成库存建议", description = "根据当前 ERP 数据生成结构化 AI 库存建议")
     public ApiResponse<AiInventoryAdviceResponse> inventoryAdvice() {
         return ApiResponse.success(aiAssistantService.inventoryAdvice());
     }

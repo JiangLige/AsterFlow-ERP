@@ -87,5 +87,4 @@ public class SupplierResponse {
         this.updatedAt = updatedAt;
     }
 
-    // getter / setter
 }

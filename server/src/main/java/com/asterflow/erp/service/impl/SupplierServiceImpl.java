@@ -9,7 +9,7 @@ import com.asterflow.erp.dto.SupplierResponse;
 import com.asterflow.erp.enums.SupplierStatus;
 import com.asterflow.erp.mapper.SupplierMapper;
 import com.asterflow.erp.service.SupplierService;
-import entity.Supplier;
+import com.asterflow.erp.entity.Supplier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

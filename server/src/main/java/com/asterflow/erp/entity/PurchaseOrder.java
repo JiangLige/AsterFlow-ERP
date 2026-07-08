@@ -1,25 +1,19 @@
-package entity;
+package com.asterflow.erp.entity;
 
-import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableLogic;
-import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.annotation.Version;
+import com.baomidou.mybatisplus.annotation.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@TableName("t_sale_order")
-public class SaleOrder {
+@TableName("t_purchase_order")
+public class PurchaseOrder {
 
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     private String orderNo;
-    private Long customerId;
-    private String customerName;
+    private Long supplierId;
+    private String supplierName;
     private BigDecimal totalAmount;
     private String status;
     private String remark;
@@ -52,20 +46,20 @@ public class SaleOrder {
         this.orderNo = orderNo;
     }
 
-    public Long getCustomerId() {
-        return customerId;
+    public Long getSupplierId() {
+        return supplierId;
     }
 
-    public void setCustomerId(Long customerId) {
-        this.customerId = customerId;
+    public void setSupplierId(Long supplierId) {
+        this.supplierId = supplierId;
     }
 
-    public String getCustomerName() {
-        return customerName;
+    public String getSupplierName() {
+        return supplierName;
     }
 
-    public void setCustomerName(String customerName) {
-        this.customerName = customerName;
+    public void setSupplierName(String supplierName) {
+        this.supplierName = supplierName;
     }
 
     public BigDecimal getTotalAmount() {
@@ -123,4 +117,5 @@ public class SaleOrder {
     public void setVersion(Integer version) {
         this.version = version;
     }
+
 }

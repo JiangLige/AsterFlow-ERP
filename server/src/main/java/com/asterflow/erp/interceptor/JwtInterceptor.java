@@ -41,7 +41,7 @@ public class JwtInterceptor implements HandlerInterceptor {
 
             String sessionId = jwtUtil.getSessionId(token);
             AuthSession session = authSessionService.findBySessionId(sessionId)
-                    .orElseThrow(() -> new BusinessException(ErrorCode.UNAUTHORIZED, "登录已失效，请重新登"));
+                    .orElseThrow(() -> new BusinessException(ErrorCode.UNAUTHORIZED, "登录已失效，请重新登录"));
 
             request.setAttribute("userId", session.getUserId());
             request.setAttribute("username", session.getUsername());

@@ -26,19 +26,19 @@ class GlobalExceptionHandlerTest {
     @Test
     void businessExceptionUsesItsErrorCodeAndHttpStatus() {
         ResponseEntity<ApiResponse<Void>> response = handler.handleBusinessException(
-                new BusinessException(ErrorCode.FORBIDDEN, "无权限操")
+                new BusinessException(ErrorCode.FORBIDDEN, "无权限操作")
         );
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getCode()).isEqualTo("FORBIDDEN");
-        assertThat(response.getBody().getMessage()).isEqualTo("无权限操");
+        assertThat(response.getBody().getMessage()).isEqualTo("无权限操作");
     }
 
     @Test
     void validationExceptionUsesValidationErrorCode() throws Exception {
         BeanPropertyBindingResult bindingResult = new BeanPropertyBindingResult(new LoginRequest(), "loginRequest");
-        bindingResult.addError(new FieldError("loginRequest", "username", "用户名不能为"));
+        bindingResult.addError(new FieldError("loginRequest", "username", "用户名不能为空"));
 
         Method method = GlobalExceptionHandlerTest.class.getDeclaredMethod("login", LoginRequest.class);
         MethodArgumentNotValidException exception = new MethodArgumentNotValidException(
@@ -51,7 +51,7 @@ class GlobalExceptionHandlerTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getCode()).isEqualTo("VALIDATION_ERROR");
-        assertThat(response.getBody().getMessage()).contains("username: 用户名不能为");
+        assertThat(response.getBody().getMessage()).contains("username: 用户名不能为空");
     }
 
     @Test
