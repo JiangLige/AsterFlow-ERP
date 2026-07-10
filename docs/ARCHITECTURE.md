@@ -195,6 +195,7 @@ Swagger UI 是 OpenAPI 文档的网页展示工具。启动后端后，可以通
 - 商品详情缓存命中时不查数据库
 - 不存在商品会写入短 TTL 空值缓存
 - 布隆过滤器判断商品 ID 不可能存在时不查数据库
+- 商品详情缓存未命中时通过带 TTL 的重建锁协调回源，竞争请求短暂等待缓存回填
 - AI 工具只读调用现有业务服务
 - OpenAPI 文档可以正常生成
 
@@ -232,9 +233,9 @@ Redis 在项目中是可选增强，不是业务数据源。MySQL 仍然负责�
 
 当前 Redis 能力：
 
-- `ERP_CACHE_TYPE=redis`：Dashboard 汇总缓存、商品详情缓存、商品空值缓存、商品布隆过滤器。
+- `ERP_CACHE_TYPE=redis`：Dashboard 汇总缓存、商品详情缓存、商品空值缓存、商品布隆过滤器和商品热点 Key 分布式重建锁。
 - `ERP_AUTH_SESSION_STORE=redis`：认证会话存储。
 - `ERP_IDEMPOTENCY_STORE=redis`：幂等提交 Key 存储。
 - `ERP_RATE_LIMIT_ENABLED=true`：Redis Lua 计数限流。
 
-默认本地开发使用 local 模式，避免没有 Redis 时无法启动或测试。后续可以继续补热点 Key 重建和真实 Redis 集成验证。
+默认本地开发使用 local 模式，避免没有 Redis 时无法启动或测试；local 模式使用进程内重建锁。后续可以继续补真实 Redis 集成验证、缓存雪崩治理和集群高可用验证。

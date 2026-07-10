@@ -15,6 +15,7 @@
 - Dashboard 汇总缓存支持 `local` 和 `redis` 两种模式。
 - 商品详情缓存和不存在商品的短 TTL 空值缓存支持 `local` 和 `redis` 两种模式。
 - 商品布隆过滤器支持 `local` 和 `redis` 两种模式，启动时预热已有商品 ID。
+- 商品详情热点 Key 支持带 TTL 的互斥重建，竞争请求会等待缓存回填，Redis 异常时直接降级到数据库。
 - 幂等提交支持 `local` 和 `redis` 两种模式。
 - Redis 限流拦截器支持按配置开启，默认本地开发关闭。
 - Spring AI 已接入 OpenAI ChatClient，提供只读库存分析工具和结构化兜底结果。
@@ -22,7 +23,7 @@
 仍需谨慎说明的边界：
 
 - Redis 是可选增强，不是本地开发和测试的强依赖。
-- 热点 Key 互斥重建等仍属于后续增强。
+- 真实 Redis 集成验证、缓存雪崩治理和集群高可用仍属于后续增强。
 - Spring AI 需要有效 `OPENAI_API_KEY` 才能调用真实模型；模型失败时后端返回基于当前 ERP 数据的兜底建议。
 - AI 库存建议页面已有基础版本，更完整的交互和面试问答仍可继续完善。
 
@@ -138,6 +139,7 @@ Spring AI 现在已经不是单纯路线图：后端已接入 Spring AI 2.0.0 BO
 当前 Redis 能力：
 
 - `ERP_CACHE_TYPE=redis` 时，Dashboard 汇总缓存写入 Redis。
+- `ERP_CACHE_TYPE=redis` 时，商品详情缓存未命中使用 Redis 分布式锁协调回源重建。
 - `ERP_AUTH_SESSION_STORE=redis` 时，登录会话存入 Redis。
 - `ERP_IDEMPOTENCY_STORE=redis` 时，提交幂等 Key 存入 Redis。
 - `ERP_RATE_LIMIT_ENABLED=true` 时，限流拦截器使用 Redis Lua 脚本原子计数。
@@ -146,7 +148,7 @@ Spring AI 现在已经不是单纯路线图：后端已接入 Spring AI 2.0.0 BO
 
 后续增强方向：
 
-- 热点 Key 互斥重建或逻辑过期。
+- 缓存 TTL 随机抖动或逻辑过期，进一步降低集中失效风险。
 - Redis 不可用时的更多降级测试和监控告警。
 
 面试讲法：
@@ -159,4 +161,4 @@ Spring AI 现在已经不是单纯路线图：后端已接入 Spring AI 2.0.0 BO
 2. 完成前端主流程演示页面。
 3. 补齐关键接口测试和面试问答。
 4. 打磨 AI 前端页面，把 `/api/ai/inventory-advice` 的结果讲得更清楚。
-5. 再做 Redis 深水区能力：热点 Key、降级验证和真实 Redis 集成验证。
+5. 再做 Redis 深水区能力：真实 Redis 集成验证、缓存雪崩治理和监控告警。

@@ -59,11 +59,20 @@ AsterFlow ERP 的核心不是简单 CRUD。一次销售审核至少会同时改�
 - 数据库命中后会回写商品详情缓存。
 - 不存在商品会写入短 TTL 空值缓存。
 - 空值缓存命中时不查询数据库。
+- 重建锁被其他请求持有时会等待缓存回填，避免立即重复查询数据库。
+- Redis 不可用、无法获得锁状态时会直接降级到数据库。
 
 `server/src/test/java/com/asterflow/erp/service/impl/LocalProductCacheServiceImplTest.java`
 
 - local 商品详情缓存可以命中并被清理。
 - local 空值缓存可以标记不存在商品，并在清理后失效。
+- local 重建锁只允许持有正确令牌的请求释放。
+
+`server/src/test/java/com/asterflow/erp/service/impl/RedisProductCacheServiceImplTest.java`
+
+- Redis 重建锁通过 `SET NX` 和 TTL 获取。
+- 锁竞争与 Redis 故障会返回不同状态，便于服务选择等待或降级。
+- 释放锁使用持有者令牌执行 Lua 校验删除。
 
 `server/src/test/java/com/asterflow/erp/service/impl/LocalProductBloomFilterTest.java`
 

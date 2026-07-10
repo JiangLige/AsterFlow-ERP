@@ -38,6 +38,9 @@ erp:
     dashboard-summary-ttl-seconds: ${ERP_DASHBOARD_SUMMARY_TTL_SECONDS:60}
     product-detail-ttl-seconds: ${ERP_PRODUCT_DETAIL_TTL_SECONDS:300}
     product-missing-ttl-seconds: ${ERP_PRODUCT_MISSING_TTL_SECONDS:30}
+    product-rebuild-lock-ttl-seconds: ${ERP_PRODUCT_REBUILD_LOCK_TTL_SECONDS:10}
+    product-rebuild-wait-millis: ${ERP_PRODUCT_REBUILD_WAIT_MILLIS:100}
+    product-rebuild-retry-interval-millis: ${ERP_PRODUCT_REBUILD_RETRY_INTERVAL_MILLIS:20}
     product-bloom-key: ${ERP_PRODUCT_BLOOM_KEY:asterflow-erp:bloom:product}
     product-bloom-bits: ${ERP_PRODUCT_BLOOM_BITS:1000000}
   idempotency:

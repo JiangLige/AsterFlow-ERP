@@ -10,7 +10,7 @@ AsterFlow ERP 是一个面向面试展示的企业进销存系统，后端使用
 - 前端：Next.js 14、React、TypeScript
 - 数据库：MySQL 8，本地自动化测试使用 H2
 - 认证：JWT access token、refresh token、local/Redis 会话存储
-- 缓存与可靠性：local/Redis Dashboard 缓存、商品详情缓存、空值缓存、商品布隆过滤器、幂等提交、Redis 限流
+- 缓存与可靠性：local/Redis Dashboard 缓存、商品详情缓存、空值缓存、商品布隆过滤器、热点 Key 互斥重建、幂等提交、Redis 限流
 - AI：Spring AI 2.0.0、OpenAI ChatClient、只读 Tool Calling
 - 文档：OpenAPI / Swagger UI
 - 测试：JUnit、Spring Boot Test、Mockito、H2
@@ -39,6 +39,7 @@ AsterFlow ERP 是一个面向面试展示的企业进销存系统，后端使用
 - Redis 是可选增强，本地默认 local 模式，不强依赖 Redis 服务
 - 商品详情支持 local/Redis 缓存，不存在商品会短 TTL 缓存为空值以降低穿透
 - 商品布隆过滤器会在启动时预热已有商品 ID，明显不存在的商品详情请求可直接拦截
+- 商品详情缓存未命中时使用带 TTL 的重建锁，同一热点商品优先由一个请求回源并回填缓存
 - Spring AI 只读调用业务服务，模型失败时返回结构化兜底建议
 - OpenAPI 文档方便接口联调和面试演示
 
@@ -85,6 +86,9 @@ ERP_IDEMPOTENCY_STORE=local
 ERP_RATE_LIMIT_ENABLED=false
 ERP_PRODUCT_DETAIL_TTL_SECONDS=300
 ERP_PRODUCT_MISSING_TTL_SECONDS=30
+ERP_PRODUCT_REBUILD_LOCK_TTL_SECONDS=10
+ERP_PRODUCT_REBUILD_WAIT_MILLIS=100
+ERP_PRODUCT_REBUILD_RETRY_INTERVAL_MILLIS=20
 ERP_PRODUCT_BLOOM_KEY=asterflow-erp:bloom:product
 ERP_PRODUCT_BLOOM_BITS=1000000
 ```
@@ -146,7 +150,7 @@ cd server
 .\mvnw.cmd -B clean verify
 ```
 
-后端测试覆盖采购、销售、库存、认证会话、API 安全边界、商品详情缓存、商品布隆过滤器、Redis 限流降级、AI 工具 DTO 和 OpenAPI 文档。
+后端测试覆盖采购、销售、库存、认证会话、API 安全边界、商品详情缓存与互斥重建、商品布隆过滤器、Redis 限流降级、AI 工具 DTO 和 OpenAPI 文档。
 
 ## 演示路径
 
@@ -159,6 +163,6 @@ cd server
 ## 当前边界
 
 - Redis 是可选增强，不是业务数据源；MySQL 仍负责订单、库存和流水的最终一致性。
-- 热点 Key 互斥重建仍属于后续增强；商品详情缓存、空值缓存和商品布隆过滤器已经具备 local/Redis 实现。
+- 商品详情热点 Key 已支持 local/Redis 互斥重建；真实 Redis 集成验证、缓存雪崩治理和集群高可用仍属于后续增强。
 - 没有真实 `OPENAI_API_KEY` 时，AI 接口会走后端兜底建议，不影响其他 ERP 主流程。
 - 项目定位是面试展示和工程能力说明，不是完整生产级 ERP。

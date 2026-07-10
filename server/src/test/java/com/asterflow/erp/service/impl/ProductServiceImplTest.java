@@ -109,6 +109,8 @@ class ProductServiceImplTest {
 
         when(productCacheService.getProduct(2L)).thenReturn(Optional.empty());
         when(productBloomFilter.mightContain(2L)).thenReturn(true);
+        when(productCacheService.tryAcquireRebuildLock(2L))
+                .thenReturn(ProductCacheService.RebuildLock.acquired("lock-token"));
         when(productMapper.selectById(2L)).thenReturn(product);
 
         ProductServiceImpl productService = productService();
@@ -116,6 +118,59 @@ class ProductServiceImplTest {
 
         assertThat(response.getProductCode()).isEqualTo("P-CACHE-002");
         verify(productCacheService).setProduct(response);
+        verify(productCacheService).releaseRebuildLock(2L, "lock-token");
+    }
+
+    @Test
+    void getByIdWaitsForConcurrentRebuildInsteadOfQueryingDatabase() {
+        ProductResponse rebuiltProduct = new ProductResponse();
+        rebuiltProduct.setId(3L);
+        rebuiltProduct.setProductCode("P-CACHE-003");
+
+        when(productCacheService.getProduct(3L))
+                .thenReturn(Optional.empty(), Optional.of(rebuiltProduct));
+        when(productBloomFilter.mightContain(3L)).thenReturn(true);
+        when(productCacheService.tryAcquireRebuildLock(3L))
+                .thenReturn(ProductCacheService.RebuildLock.busy());
+
+        ProductResponse response = productService().getById(3L);
+
+        assertThat(response).isSameAs(rebuiltProduct);
+        verify(productMapper, never()).selectById(3L);
+    }
+
+    @Test
+    void getByIdFallsBackToDatabaseWhenRebuildLockIsUnavailable() {
+        Product product = new Product();
+        product.setId(4L);
+        product.setProductCode("P-CACHE-004");
+
+        when(productCacheService.getProduct(4L)).thenReturn(Optional.empty());
+        when(productBloomFilter.mightContain(4L)).thenReturn(true);
+        when(productCacheService.tryAcquireRebuildLock(4L))
+                .thenReturn(ProductCacheService.RebuildLock.unavailable());
+        when(productMapper.selectById(4L)).thenReturn(product);
+
+        ProductResponse response = productService().getById(4L);
+
+        assertThat(response.getProductCode()).isEqualTo("P-CACHE-004");
+        verify(productMapper).selectById(4L);
+        verify(productCacheService, never()).releaseRebuildLock(any(), any());
+    }
+
+    @Test
+    void getByIdReleasesRebuildLockWhenDatabaseReadFails() {
+        when(productCacheService.getProduct(5L)).thenReturn(Optional.empty());
+        when(productBloomFilter.mightContain(5L)).thenReturn(true);
+        when(productCacheService.tryAcquireRebuildLock(5L))
+                .thenReturn(ProductCacheService.RebuildLock.acquired("lock-token"));
+        when(productMapper.selectById(5L)).thenThrow(new IllegalStateException("database down"));
+
+        assertThatThrownBy(() -> productService().getById(5L))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("database down");
+
+        verify(productCacheService).releaseRebuildLock(5L, "lock-token");
     }
 
     @Test
@@ -135,6 +190,8 @@ class ProductServiceImplTest {
     void getByIdCachesMissingMarkerWhenDatabaseMisses() {
         when(productCacheService.getProduct(404L)).thenReturn(Optional.empty());
         when(productBloomFilter.mightContain(404L)).thenReturn(true);
+        when(productCacheService.tryAcquireRebuildLock(404L))
+                .thenReturn(ProductCacheService.RebuildLock.acquired("lock-token"));
         when(productMapper.selectById(404L)).thenReturn(null);
 
         ProductServiceImpl productService = productService();
@@ -153,7 +210,9 @@ class ProductServiceImplTest {
                 inventoryService,
                 dashboardCacheService,
                 productCacheService,
-                productBloomFilter
+                productBloomFilter,
+                5,
+                1
         );
     }
 }

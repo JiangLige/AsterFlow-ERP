@@ -16,6 +16,7 @@ import com.asterflow.erp.service.ProductCacheService;
 import com.asterflow.erp.service.ProductService;
 import com.asterflow.erp.entity.Product;
 import com.asterflow.erp.entity.StockRecord;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,19 +32,25 @@ public class ProductServiceImpl implements ProductService {
     private final DashboardCacheService dashboardCacheService;
     private final ProductCacheService productCacheService;
     private final ProductBloomFilter productBloomFilter;
+    private final long rebuildWaitMillis;
+    private final long rebuildRetryIntervalMillis;
 
     public ProductServiceImpl(ProductMapper productMapper,
                               StockRecordMapper stockRecordMapper,
                               InventoryService inventoryService,
                               DashboardCacheService dashboardCacheService,
                               ProductCacheService productCacheService,
-                              ProductBloomFilter productBloomFilter) {
+                              ProductBloomFilter productBloomFilter,
+                              @Value("${erp.cache.product-rebuild-wait-millis:100}") long rebuildWaitMillis,
+                              @Value("${erp.cache.product-rebuild-retry-interval-millis:20}") long rebuildRetryIntervalMillis) {
         this.productMapper = productMapper;
         this.stockRecordMapper = stockRecordMapper;
         this.inventoryService = inventoryService;
         this.dashboardCacheService = dashboardCacheService;
         this.productCacheService = productCacheService;
         this.productBloomFilter = productBloomFilter;
+        this.rebuildWaitMillis = Math.max(0, rebuildWaitMillis);
+        this.rebuildRetryIntervalMillis = Math.max(1, rebuildRetryIntervalMillis);
     }
 
     @Override
@@ -234,17 +241,29 @@ public class ProductServiceImpl implements ProductService {
             throw new BusinessException("商品不存在");
         }
 
-        Product product = productMapper.selectById(id);
+        ProductCacheService.RebuildLock lock = productCacheService.tryAcquireRebuildLock(id);
 
-        if (product == null) {
-            productCacheService.setMissing(id);
-            throw new BusinessException("商品不存在");
+        if (lock.isAcquired()) {
+            return rebuildProductCache(id, lock.token());
         }
 
-        ProductResponse response = toResponse(product);
-        productCacheService.setProduct(response);
+        if (lock.isUnavailable()) {
+            return loadProductFromDatabase(id);
+        }
 
-        return response;
+        ProductResponse rebuiltProduct = awaitConcurrentRebuild(id);
+
+        if (rebuiltProduct != null) {
+            return rebuiltProduct;
+        }
+
+        ProductCacheService.RebuildLock retryLock = productCacheService.tryAcquireRebuildLock(id);
+
+        if (retryLock.isAcquired()) {
+            return rebuildProductCache(id, retryLock.token());
+        }
+
+        return loadProductFromDatabase(id);
     }
 
     @Override
@@ -366,6 +385,60 @@ public class ProductServiceImpl implements ProductService {
         response.setMinStock(product.getMinStock());
 
         return response;
+    }
+
+    private ProductResponse rebuildProductCache(Long id, String lockToken) {
+        try {
+            if (productCacheService.isKnownMissing(id)) {
+                throw new BusinessException("商品不存在");
+            }
+
+            ProductResponse cachedProduct = productCacheService.getProduct(id).orElse(null);
+
+            return cachedProduct == null ? loadProductFromDatabase(id) : cachedProduct;
+        } finally {
+            productCacheService.releaseRebuildLock(id, lockToken);
+        }
+    }
+
+    private ProductResponse loadProductFromDatabase(Long id) {
+        Product product = productMapper.selectById(id);
+
+        if (product == null) {
+            productCacheService.setMissing(id);
+            throw new BusinessException("商品不存在");
+        }
+
+        ProductResponse response = toResponse(product);
+        productCacheService.setProduct(response);
+        return response;
+    }
+
+    private ProductResponse awaitConcurrentRebuild(Long id) {
+        long deadline = System.nanoTime() + rebuildWaitMillis * 1_000_000;
+
+        while (System.nanoTime() < deadline) {
+            try {
+                long remainingNanos = Math.max(1, deadline - System.nanoTime());
+                long remainingMillis = Math.max(1, (remainingNanos + 999_999) / 1_000_000);
+                Thread.sleep(Math.min(rebuildRetryIntervalMillis, remainingMillis));
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return null;
+            }
+
+            if (productCacheService.isKnownMissing(id)) {
+                throw new BusinessException("商品不存在");
+            }
+
+            ProductResponse cachedProduct = productCacheService.getProduct(id).orElse(null);
+
+            if (cachedProduct != null) {
+                return cachedProduct;
+            }
+        }
+
+        return null;
     }
 
     private StockRecordResponse toStockRecordResponse(StockRecord stockRecord) {

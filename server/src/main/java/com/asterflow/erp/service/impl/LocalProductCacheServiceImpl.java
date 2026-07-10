@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -17,15 +18,19 @@ import java.util.concurrent.ConcurrentMap;
 public class LocalProductCacheServiceImpl implements ProductCacheService {
 
     private final ConcurrentMap<Long, CacheEntry> cache = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Long, RebuildLockEntry> rebuildLocks = new ConcurrentHashMap<>();
     private final Duration detailTtl;
     private final Duration missingTtl;
+    private final Duration rebuildLockTtl;
 
     public LocalProductCacheServiceImpl(
             @Value("${erp.cache.product-detail-ttl-seconds:300}") long detailTtlSeconds,
-            @Value("${erp.cache.product-missing-ttl-seconds:30}") long missingTtlSeconds
+            @Value("${erp.cache.product-missing-ttl-seconds:30}") long missingTtlSeconds,
+            @Value("${erp.cache.product-rebuild-lock-ttl-seconds:10}") long rebuildLockTtlSeconds
     ) {
         this.detailTtl = Duration.ofSeconds(detailTtlSeconds);
         this.missingTtl = Duration.ofSeconds(missingTtlSeconds);
+        this.rebuildLockTtl = Duration.ofSeconds(rebuildLockTtlSeconds);
     }
 
     @Override
@@ -70,6 +75,42 @@ public class LocalProductCacheServiceImpl implements ProductCacheService {
         }
     }
 
+    @Override
+    public RebuildLock tryAcquireRebuildLock(Long id) {
+        if (id == null) {
+            return RebuildLock.unavailable();
+        }
+
+        String token = UUID.randomUUID().toString();
+        LocalDateTime expireAt = LocalDateTime.now().plus(rebuildLockTtl);
+
+        while (true) {
+            RebuildLockEntry current = rebuildLocks.get(id);
+
+            if (current != null && LocalDateTime.now().isBefore(current.expireAt())) {
+                return RebuildLock.busy();
+            }
+
+            RebuildLockEntry replacement = new RebuildLockEntry(token, expireAt);
+            boolean acquired = current == null
+                    ? rebuildLocks.putIfAbsent(id, replacement) == null
+                    : rebuildLocks.replace(id, current, replacement);
+
+            if (acquired) {
+                return RebuildLock.acquired(token);
+            }
+        }
+    }
+
+    @Override
+    public void releaseRebuildLock(Long id, String token) {
+        if (id == null || token == null || token.isBlank()) {
+            return;
+        }
+
+        rebuildLocks.computeIfPresent(id, (key, entry) -> token.equals(entry.token()) ? null : entry);
+    }
+
     private CacheEntry activeEntry(Long id) {
         if (id == null) {
             return null;
@@ -98,5 +139,8 @@ public class LocalProductCacheServiceImpl implements ProductCacheService {
         static CacheEntry missing(LocalDateTime expireAt) {
             return new CacheEntry(null, true, expireAt);
         }
+    }
+
+    private record RebuildLockEntry(String token, LocalDateTime expireAt) {
     }
 }
