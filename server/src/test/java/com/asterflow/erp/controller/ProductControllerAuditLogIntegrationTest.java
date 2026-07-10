@@ -6,6 +6,7 @@ import com.asterflow.erp.enums.ProductStatus;
 import com.asterflow.erp.enums.StockChangeType;
 import com.asterflow.erp.mapper.AuditLogMapper;
 import com.asterflow.erp.mapper.ProductMapper;
+import com.asterflow.erp.service.ProductBloomFilter;
 import com.asterflow.erp.entity.AuditLog;
 import com.asterflow.erp.entity.Product;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,6 +29,9 @@ class ProductControllerAuditLogIntegrationTest {
 
     @Autowired
     private ProductMapper productMapper;
+
+    @Autowired
+    private ProductBloomFilter productBloomFilter;
 
     @Autowired
     private AuditLogMapper auditLogMapper;
@@ -86,6 +90,7 @@ class ProductControllerAuditLogIntegrationTest {
         product.setMinStock(0);
 
         productMapper.insert(product);
+        productBloomFilter.put(product.getId());
         return product;
     }
 }

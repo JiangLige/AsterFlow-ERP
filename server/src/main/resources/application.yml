@@ -38,6 +38,8 @@ erp:
     dashboard-summary-ttl-seconds: ${ERP_DASHBOARD_SUMMARY_TTL_SECONDS:60}
     product-detail-ttl-seconds: ${ERP_PRODUCT_DETAIL_TTL_SECONDS:300}
     product-missing-ttl-seconds: ${ERP_PRODUCT_MISSING_TTL_SECONDS:30}
+    product-bloom-key: ${ERP_PRODUCT_BLOOM_KEY:asterflow-erp:bloom:product}
+    product-bloom-bits: ${ERP_PRODUCT_BLOOM_BITS:1000000}
   idempotency:
     store: ${ERP_IDEMPOTENCY_STORE:local}
   rate-limit:

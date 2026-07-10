@@ -65,6 +65,21 @@ AsterFlow ERP 的核心不是简单 CRUD。一次销售审核至少会同时改�
 - local 商品详情缓存可以命中并被清理。
 - local 空值缓存可以标记不存在商品，并在清理后失效。
 
+`server/src/test/java/com/asterflow/erp/service/impl/LocalProductBloomFilterTest.java`
+
+- local 商品布隆过滤器在商品 ID 注册前返回不可能存在。
+- 商品 ID 注册后返回可能存在。
+
+`server/src/test/java/com/asterflow/erp/service/impl/RedisProductBloomFilterTest.java`
+
+- Redis Bitmap 任一位缺失时返回不可能存在。
+- 写入商品 ID 时会设置多个 Bitmap 位。
+- Redis 读取失败时保守放行到数据库，避免误挡真实商品。
+
+`server/src/test/java/com/asterflow/erp/service/impl/ProductBloomFilterInitializerTest.java`
+
+- 应用启动时会把数据库已有商品 ID 预热进布隆过滤器。
+
 `server/src/test/java/com/asterflow/erp/interceptor/RateLimitInterceptorTest.java`
 
 - Redis 限流超限时返回业务错误。
@@ -154,4 +169,4 @@ npm run build:client
 
 AI 和 Redis 可以这样讲：
 
-> AI 和 Redis 都不是测试环境的强依赖。商品详情缓存有 local 实现，Redis 限流异常时会降级放行，AI 工具测试只验证只读数据边界，真实模型调用失败时后端会返回结构化兜底建议。
+> AI 和 Redis 都不是测试环境的强依赖。商品详情缓存和商品布隆过滤器都有 local 实现，Redis 限流或布隆过滤器异常时会降级，AI 工具测试只验证只读数据边界，真实模型调用失败时后端会返回结构化兜底建议。

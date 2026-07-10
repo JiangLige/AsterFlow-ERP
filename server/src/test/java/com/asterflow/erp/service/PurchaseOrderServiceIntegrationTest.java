@@ -42,6 +42,9 @@ class PurchaseOrderServiceIntegrationTest {
     private ProductMapper productMapper;
 
     @Autowired
+    private ProductBloomFilter productBloomFilter;
+
+    @Autowired
     private PurchaseOrderMapper purchaseOrderMapper;
 
     @Autowired
@@ -172,6 +175,7 @@ class PurchaseOrderServiceIntegrationTest {
         product.setMinStock(0);
 
         productMapper.insert(product);
+        productBloomFilter.put(product.getId());
         return product;
     }
 

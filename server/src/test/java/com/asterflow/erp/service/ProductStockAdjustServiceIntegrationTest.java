@@ -31,6 +31,9 @@ class ProductStockAdjustServiceIntegrationTest {
     private ProductMapper productMapper;
 
     @Autowired
+    private ProductBloomFilter productBloomFilter;
+
+    @Autowired
     private StockRecordMapper stockRecordMapper;
 
     @Autowired
@@ -123,6 +126,7 @@ class ProductStockAdjustServiceIntegrationTest {
         product.setMinStock(0);
 
         productMapper.insert(product);
+        productBloomFilter.put(product.getId());
         return product;
     }
 

@@ -11,6 +11,7 @@ import com.asterflow.erp.mapper.ProductMapper;
 import com.asterflow.erp.mapper.StockRecordMapper;
 import com.asterflow.erp.service.DashboardCacheService;
 import com.asterflow.erp.service.InventoryService;
+import com.asterflow.erp.service.ProductBloomFilter;
 import com.asterflow.erp.service.ProductCacheService;
 import com.asterflow.erp.service.ProductService;
 import com.asterflow.erp.entity.Product;
@@ -29,17 +30,20 @@ public class ProductServiceImpl implements ProductService {
     private final InventoryService inventoryService;
     private final DashboardCacheService dashboardCacheService;
     private final ProductCacheService productCacheService;
+    private final ProductBloomFilter productBloomFilter;
 
     public ProductServiceImpl(ProductMapper productMapper,
                               StockRecordMapper stockRecordMapper,
                               InventoryService inventoryService,
                               DashboardCacheService dashboardCacheService,
-                              ProductCacheService productCacheService) {
+                              ProductCacheService productCacheService,
+                              ProductBloomFilter productBloomFilter) {
         this.productMapper = productMapper;
         this.stockRecordMapper = stockRecordMapper;
         this.inventoryService = inventoryService;
         this.dashboardCacheService = dashboardCacheService;
         this.productCacheService = productCacheService;
+        this.productBloomFilter = productBloomFilter;
     }
 
     @Override
@@ -70,6 +74,7 @@ public class ProductServiceImpl implements ProductService {
         dashboardCacheService.evictSummary();
         ProductResponse response = toResponse(product);
         productCacheService.setProduct(response);
+        productBloomFilter.put(product.getId());
 
         return response;
     }
@@ -222,6 +227,11 @@ public class ProductServiceImpl implements ProductService {
 
         if (cachedProduct != null) {
             return cachedProduct;
+        }
+
+        if (!productBloomFilter.mightContain(id)) {
+            productCacheService.setMissing(id);
+            throw new BusinessException("商品不存在");
         }
 
         Product product = productMapper.selectById(id);
