@@ -11,6 +11,7 @@ import com.asterflow.erp.mapper.ProductMapper;
 import com.asterflow.erp.mapper.StockRecordMapper;
 import com.asterflow.erp.service.DashboardCacheService;
 import com.asterflow.erp.service.InventoryService;
+import com.asterflow.erp.service.ProductCacheService;
 import com.asterflow.erp.service.ProductService;
 import com.asterflow.erp.entity.Product;
 import com.asterflow.erp.entity.StockRecord;
@@ -27,13 +28,18 @@ public class ProductServiceImpl implements ProductService {
     private final StockRecordMapper stockRecordMapper;
     private final InventoryService inventoryService;
     private final DashboardCacheService dashboardCacheService;
+    private final ProductCacheService productCacheService;
 
     public ProductServiceImpl(ProductMapper productMapper,
-                              StockRecordMapper stockRecordMapper, InventoryService inventoryService, DashboardCacheService dashboardCacheService) {
+                              StockRecordMapper stockRecordMapper,
+                              InventoryService inventoryService,
+                              DashboardCacheService dashboardCacheService,
+                              ProductCacheService productCacheService) {
         this.productMapper = productMapper;
         this.stockRecordMapper = stockRecordMapper;
         this.inventoryService = inventoryService;
         this.dashboardCacheService = dashboardCacheService;
+        this.productCacheService = productCacheService;
     }
 
     @Override
@@ -62,8 +68,10 @@ public class ProductServiceImpl implements ProductService {
 
         productMapper.insert(product);
         dashboardCacheService.evictSummary();
+        ProductResponse response = toResponse(product);
+        productCacheService.setProduct(response);
 
-        return toResponse(product);
+        return response;
     }
 
     @Override
@@ -78,6 +86,7 @@ public class ProductServiceImpl implements ProductService {
         product.setStatus(ProductStatus.ACTIVE.name());
 
         productMapper.updateById(product);
+        productCacheService.evictProduct(id);
         dashboardCacheService.evictSummary();
     }
 
@@ -91,6 +100,7 @@ public class ProductServiceImpl implements ProductService {
         }
 
         productMapper.deleteById(id);
+        productCacheService.evictProduct(id);
         dashboardCacheService.evictSummary();
     }
 
@@ -204,13 +214,27 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductResponse getById(Long id) {
-        Product product = productMapper.selectById(id);
-
-        if (product == null) {
+        if (productCacheService.isKnownMissing(id)) {
             throw new BusinessException("商品不存在");
         }
 
-        return toResponse(product);
+        ProductResponse cachedProduct = productCacheService.getProduct(id).orElse(null);
+
+        if (cachedProduct != null) {
+            return cachedProduct;
+        }
+
+        Product product = productMapper.selectById(id);
+
+        if (product == null) {
+            productCacheService.setMissing(id);
+            throw new BusinessException("商品不存在");
+        }
+
+        ProductResponse response = toResponse(product);
+        productCacheService.setProduct(response);
+
+        return response;
     }
 
     @Override
@@ -289,9 +313,13 @@ public class ProductServiceImpl implements ProductService {
         product.setMinStock(request.getMinStock() == null ? 0 : request.getMinStock());
 
         productMapper.updateById(product);
+        productCacheService.evictProduct(id);
         dashboardCacheService.evictSummary();
 
-        return toResponse(product);
+        ProductResponse response = toResponse(product);
+        productCacheService.setProduct(response);
+
+        return response;
     }
 
     @Override
@@ -306,6 +334,7 @@ public class ProductServiceImpl implements ProductService {
         product.setStatus(ProductStatus.INACTIVE.name());
 
         productMapper.updateById(product);
+        productCacheService.evictProduct(id);
         dashboardCacheService.evictSummary();
     }
 

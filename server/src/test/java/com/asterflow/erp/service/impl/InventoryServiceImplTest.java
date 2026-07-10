@@ -4,6 +4,7 @@ import com.asterflow.erp.dto.inventory.InventoryChangeCommand;
 import com.asterflow.erp.mapper.ProductMapper;
 import com.asterflow.erp.mapper.StockRecordMapper;
 import com.asterflow.erp.service.DashboardCacheService;
+import com.asterflow.erp.service.ProductCacheService;
 import com.asterflow.erp.entity.Product;
 import com.asterflow.erp.entity.StockRecord;
 import org.junit.jupiter.api.Test;
@@ -27,6 +28,9 @@ class InventoryServiceImplTest {
 
     @Mock
     private DashboardCacheService dashboardCacheService;
+
+    @Mock
+    private ProductCacheService productCacheService;
 
     @InjectMocks
     private InventoryServiceImpl inventoryService;
@@ -61,6 +65,7 @@ class InventoryServiceImplTest {
 
         verify(productMapper).deductStockIfEnough(1L, 3);
         verify(stockRecordMapper).insert(stockRecordCaptor.capture());
+        verify(productCacheService).evictProduct(1L);
 
         assertThat(stockRecordCaptor.getValue().getBeforeStock()).isEqualTo(10);
         assertThat(stockRecordCaptor.getValue().getAfterStock()).isEqualTo(7);

@@ -32,10 +32,10 @@ public class ProductResponse {
     @Schema(description = "当前库存", example = "100")
     private Integer stock;
 
-    @Schema(description = "商品状", example = "ACTIVE")
+    @Schema(description = "商品状态", example = "ACTIVE")
     private String status;
 
-    @Schema(description = "商品描述", example = "适用于日常办公场")
+    @Schema(description = "商品描述", example = "适用于日常办公场景")
     private String description;
 
     @Schema(description = "创建时间")

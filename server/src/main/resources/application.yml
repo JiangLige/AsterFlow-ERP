@@ -36,6 +36,8 @@ erp:
   cache:
     type: ${ERP_CACHE_TYPE:local}
     dashboard-summary-ttl-seconds: ${ERP_DASHBOARD_SUMMARY_TTL_SECONDS:60}
+    product-detail-ttl-seconds: ${ERP_PRODUCT_DETAIL_TTL_SECONDS:300}
+    product-missing-ttl-seconds: ${ERP_PRODUCT_MISSING_TTL_SECONDS:30}
   idempotency:
     store: ${ERP_IDEMPOTENCY_STORE:local}
   rate-limit:

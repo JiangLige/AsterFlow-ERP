@@ -61,7 +61,8 @@ flowchart LR
     Backend --> AI["Spring AI 只读助手"]
     Backend --> OpenApi["OpenAPI / Swagger UI"]
 
-    Redis --> Cache["Dashboard 缓存"]
+    Redis --> Cache["Dashboard/商品详情缓存"]
+    Redis --> NullCache["商品空值缓存"]
     Redis --> Session["登录会话"]
     Redis --> Idempotency["幂等提交"]
     Redis --> RateLimit["接口限流"]
@@ -190,6 +191,8 @@ Swagger UI 是 OpenAPI 文档的网页展示工具。启动后端后，可以通
 - 普通员工不能执行管理员操作
 - 非法请求体返回统一校验错误
 - Redis 限流异常时主流程可降级
+- 商品详情缓存命中时不查数据库
+- 不存在商品会写入短 TTL 空值缓存
 - AI 工具只读调用现有业务服务
 - OpenAPI 文档可以正常生成
 
@@ -227,9 +230,9 @@ Redis 在项目中是可选增强，不是业务数据源。MySQL 仍然负责�
 
 当前 Redis 能力：
 
-- `ERP_CACHE_TYPE=redis`：Dashboard 汇总缓存。
+- `ERP_CACHE_TYPE=redis`：Dashboard 汇总缓存、商品详情缓存、商品空值缓存。
 - `ERP_AUTH_SESSION_STORE=redis`：认证会话存储。
 - `ERP_IDEMPOTENCY_STORE=redis`：幂等提交 Key 存储。
 - `ERP_RATE_LIMIT_ENABLED=true`：Redis Lua 计数限流。
 
-默认本地开发使用 local 模式，避免没有 Redis 时无法启动或测试。后续可以继续补商品详情缓存、缓存空值、布隆过滤器和热点 Key 重建。
+默认本地开发使用 local 模式，避免没有 Redis 时无法启动或测试。后续可以继续补布隆过滤器和热点 Key 重建。

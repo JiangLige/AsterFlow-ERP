@@ -8,6 +8,7 @@ import com.asterflow.erp.mapper.ProductMapper;
 import com.asterflow.erp.mapper.StockRecordMapper;
 import com.asterflow.erp.service.DashboardCacheService;
 import com.asterflow.erp.service.InventoryService;
+import com.asterflow.erp.service.ProductCacheService;
 import com.asterflow.erp.entity.Product;
 import com.asterflow.erp.entity.StockRecord;
 import org.springframework.stereotype.Service;
@@ -20,12 +21,16 @@ public class InventoryServiceImpl implements InventoryService {
     private final ProductMapper productMapper;
     private final StockRecordMapper stockRecordMapper;
     private final DashboardCacheService dashboardCacheService;
+    private final ProductCacheService productCacheService;
 
     public InventoryServiceImpl(ProductMapper productMapper,
-                                StockRecordMapper stockRecordMapper, DashboardCacheService dashboardCacheService) {
+                                StockRecordMapper stockRecordMapper,
+                                DashboardCacheService dashboardCacheService,
+                                ProductCacheService productCacheService) {
         this.productMapper = productMapper;
         this.stockRecordMapper = stockRecordMapper;
         this.dashboardCacheService = dashboardCacheService;
+        this.productCacheService = productCacheService;
     }
 
     @Override
@@ -75,6 +80,7 @@ public class InventoryServiceImpl implements InventoryService {
         stockRecord.setSourceNo(command.getSourceNo());
 
         stockRecordMapper.insert(stockRecord);
+        productCacheService.evictProduct(product.getId());
         dashboardCacheService.evictSummary();
 
     }
@@ -126,6 +132,7 @@ public class InventoryServiceImpl implements InventoryService {
         stockRecord.setSourceNo(command.getSourceNo());
 
         stockRecordMapper.insert(stockRecord);
+        productCacheService.evictProduct(product.getId());
         dashboardCacheService.evictSummary();
     }
 

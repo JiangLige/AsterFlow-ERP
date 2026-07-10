@@ -51,7 +51,19 @@ AsterFlow ERP 的核心不是简单 CRUD。一次销售审核至少会同时改�
 - refresh token 可以换取新的 access token。
 - 退出登录后旧 token 失效。
 
-### Redis 相关轻量测试
+### 缓存和 Redis 相关轻量测试
+
+`server/src/test/java/com/asterflow/erp/service/impl/ProductServiceImplTest.java`
+
+- 商品详情命中缓存时不查询数据库。
+- 数据库命中后会回写商品详情缓存。
+- 不存在商品会写入短 TTL 空值缓存。
+- 空值缓存命中时不查询数据库。
+
+`server/src/test/java/com/asterflow/erp/service/impl/LocalProductCacheServiceImplTest.java`
+
+- local 商品详情缓存可以命中并被清理。
+- local 空值缓存可以标记不存在商品，并在清理后失效。
 
 `server/src/test/java/com/asterflow/erp/interceptor/RateLimitInterceptorTest.java`
 
@@ -142,4 +154,4 @@ npm run build:client
 
 AI 和 Redis 可以这样讲：
 
-> AI 和 Redis 都不是测试环境的强依赖。Redis 限流异常时会降级放行，AI 工具测试只验证只读数据边界，真实模型调用失败时后端会返回结构化兜底建议。
+> AI 和 Redis 都不是测试环境的强依赖。商品详情缓存有 local 实现，Redis 限流异常时会降级放行，AI 工具测试只验证只读数据边界，真实模型调用失败时后端会返回结构化兜底建议。
