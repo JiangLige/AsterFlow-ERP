@@ -17,3 +17,4 @@ client/tsconfig.tsbuildinfo
 # Build/test artifacts
 output/
 server/.m2/
+.worktrees/
