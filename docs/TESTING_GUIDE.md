@@ -1,110 +1,145 @@
-# AsterFlow ERP Testing Guide
+# AsterFlow ERP 测试指南
 
-This document explains the testing files added while hardening the ERP project from a runnable project into a more interview-ready engineering project.
+这份文档说明项目目前的自动化测试覆盖范围，以及面试时如何讲清楚这些测试的价值。
 
-## Why Add Integration Tests
+## 为什么要补自动化测试
 
-The ERP business core is not just CRUD. A sale order approval changes three things in one transaction:
+AsterFlow ERP 的核心不是简单 CRUD。一次销售审核至少会同时改变三类数据：
 
-- the sale order status
-- the product stock
-- the stock record audit trail
+- 销售单状态
+- 商品库存
+- 库存流水
 
-If any part fails, all previous changes in the same business operation must roll back. This is why the project needs Spring integration tests, not only manual page testing.
+如果中间任意一步失败，前面的修改必须回滚。采购审核、采购取消、销售取消、库存调整、审计日志和权限校验也有类似的业务边界。因此项目需要 Spring 集成测试和 API 安全测试，而不是只依赖页面手动演示。
 
-## Files Added
+## 当前测试覆盖
 
-### `server/src/test/resources/schema.sql`
+### 业务事务测试
 
-Spring Boot automatically runs this file for the H2 test database.
+`server/src/test/java/com/asterflow/erp/service/SaleOrderServiceIntegrationTest.java`
 
-It creates the smallest set of tables needed by the sale order tests:
+- 审核销售单会扣减库存并创建出库流水。
+- 取消已审核销售单会恢复库存并创建入库流水。
+- 后续商品库存不足时，整次审核回滚，订单保持草稿状态。
 
-- `t_customer`
-- `t_supplier`
-- `t_product`
-- `t_order_sequence`
-- `t_purchase_order`
-- `t_purchase_order_item`
-- `t_sale_order`
-- `t_sale_order_item`
-- `t_stock_record`
+`server/src/test/java/com/asterflow/erp/service/PurchaseOrderServiceIntegrationTest.java`
 
-The production database still uses `server/src/main/resources/db/init.sql`. The test schema exists so automated tests can run without requiring a local MySQL instance.
+- 审核采购单会增加库存并创建入库流水。
+- 取消已审核采购单会扣回库存并创建出库流水。
+- 当前库存不足以反向扣回时，取消操作回滚。
 
-### `server/src/test/java/com/asterflow/erp/service/SaleOrderServiceIntegrationTest.java`
+`server/src/test/java/com/asterflow/erp/service/ProductStockAdjustServiceIntegrationTest.java`
 
-This test class starts the real Spring application context and uses real MyBatis mappers against the H2 database.
+- 手工入库、出库会更新库存并写入库存流水。
+- 库存不足时不会产生部分写入。
 
-It verifies three business scenarios:
+### API 安全测试
 
-- approving a sale order deducts stock and creates an outbound stock record
-- canceling an approved sale order restores stock and creates an inbound stock record
-- approving an order rolls back when a later item has insufficient stock
+`server/src/test/java/com/asterflow/erp/controller/ApiSecurityIntegrationTest.java`
 
-### `server/src/test/java/com/asterflow/erp/service/PurchaseOrderServiceIntegrationTest.java`
+- 受保护接口缺少 JWT 时返回 `401`。
+- 普通员工访问管理员操作时返回 `403`。
+- 非法请求体返回 `VALIDATION_ERROR`。
 
-This test class uses the same integration-test style for the purchase order flow.
+这些测试证明安全边界在后端，而不是只靠前端隐藏按钮。
 
-It verifies three business scenarios:
+### 认证和会话测试
 
-- approving a purchase order increases stock and creates an inbound stock record
-- canceling an approved purchase order deducts stock and creates an outbound stock record
-- canceling a purchase order rolls back when current stock cannot cover the reversal
+`server/src/test/java/com/asterflow/erp/auth/AuthSessionIntegrationTest.java`
 
-## Important Testing Detail
+- 登录会返回 access token 和 refresh token。
+- refresh token 可以换取新的 access token。
+- 退出登录后旧 token 失效。
 
-The test class intentionally does not use class-level `@Transactional`.
+### Redis 相关轻量测试
 
-Reason: we want `SaleOrderService.approve()` and `SaleOrderService.cancel()` to control their own transaction boundaries. If the test method itself opens an outer transaction, assertions can observe uncommitted state before rollback happens, which can hide or distort the real production behavior.
+`server/src/test/java/com/asterflow/erp/interceptor/RateLimitInterceptorTest.java`
 
-Instead, the test uses `@BeforeEach` to delete rows from the test tables. This keeps each test isolated while preserving realistic service transaction behavior.
+- Redis 限流超限时返回业务错误。
+- Redis 异常时请求默认放行，避免缓存或限流组件拖垮主流程。
 
-## How To Run
+这些测试不要求本地启动 Redis。
 
-From the project root on Windows:
+### Spring AI 相关测试
+
+`server/src/test/java/com/asterflow/erp/ai/InventoryAiToolsTest.java`
+
+- AI 工具只读调用已有业务服务。
+- 工具返回库存预警和 Dashboard 汇总数据。
+
+`server/src/test/java/com/asterflow/erp/dto/ai/AiResponseDtoTest.java`
+
+- AI 结构化响应 DTO 的字段和默认集合行为稳定。
+
+这些测试不要求配置真实 OpenAI API Key。
+
+### OpenAPI 和基础工具测试
+
+- `OpenApiDocumentationTests` 验证 Swagger/OpenAPI 可以生成。
+- `GlobalExceptionHandlerTest` 验证统一异常响应。
+- `PageRequestUtilTest`、`EnumValidatorTest`、`ApiResponseTest` 验证通用工具和响应对象。
+
+## 测试数据库
+
+自动化测试使用 H2。Spring Boot 会加载：
+
+```text
+server/src/test/resources/schema.sql
+```
+
+生产或本地 MySQL 初始化仍使用：
+
+```text
+server/src/main/resources/db/init.sql
+```
+
+这样测试可以在没有本地 MySQL、Redis、OpenAI Key 的情况下运行。
+
+## 如何运行
+
+运行后端完整验证：
 
 ```powershell
-$env:JAVA_HOME='C:\Users\EDY\.jdks\corretto-21.0.11'
-$env:Path="$env:JAVA_HOME\bin;$env:Path"
 cd server
-.\mvnw.cmd -Dtest=SaleOrderServiceIntegrationTest test
+.\mvnw.cmd -B clean verify
 ```
 
-Run the purchase order integration tests:
+运行重点安全和 AI/Redis 轻量测试：
 
 ```powershell
-$env:JAVA_HOME='C:\Users\EDY\.jdks\corretto-21.0.11'
-$env:Path="$env:JAVA_HOME\bin;$env:Path"
 cd server
-.\mvnw.cmd -Dtest=PurchaseOrderServiceIntegrationTest test
+.\mvnw.cmd "-Dtest=ApiSecurityIntegrationTest,AuthSessionIntegrationTest,InventoryAiToolsTest,AiResponseDtoTest,RateLimitInterceptorTest" test
 ```
 
-Run all backend tests and package the server:
+运行采购、销售、库存业务测试：
 
 ```powershell
-$env:JAVA_HOME='C:\Users\EDY\.jdks\corretto-21.0.11'
-$env:Path="$env:JAVA_HOME\bin;$env:Path"
-npm run build:server
+cd server
+.\mvnw.cmd "-Dtest=SaleOrderServiceIntegrationTest,PurchaseOrderServiceIntegrationTest,ProductStockAdjustServiceIntegrationTest" test
 ```
 
-## Interview Talking Points
+前端构建：
 
-You can explain this part like this:
+```powershell
+npm run build:client
+```
 
-> I wrote service-level integration tests for the sale order flow. Approval deducts stock and writes an outbound stock record in the same transaction. Canceling an approved order generates a reverse inbound record. I also tested rollback: if one item has insufficient stock, the whole approval fails, the order remains draft, previous stock deduction is rolled back, and no stock records remain.
+当前完整后端验证结果是 `48` 个测试全部通过。
 
-This shows that the project handles transaction consistency, not only page-level CRUD.
+## 面试讲法
 
-For purchase orders:
+销售流程可以这样讲：
 
-> I also wrote integration tests for the purchase order flow. Approval increases product stock and records inbound inventory. Canceling an approved purchase order creates a reverse outbound record. If current stock is no longer enough to reverse the purchase, the cancel operation fails, the order remains approved, and no partial reverse stock records are written.
+> 我写了销售单的服务级集成测试。审核销售单会扣库存并写出库流水；取消已审核销售单会生成反向入库流水；如果后续商品库存不足，整个审核会回滚，订单保持草稿状态，不会留下部分库存流水。
 
-## Next Testing Step
+采购流程可以这样讲：
 
-After sale and purchase order service flows, the next useful testing step is controller-level API testing:
+> 采购单审核会增加库存并记录入库流水；取消采购单会做反向出库。如果当前库存已经不够反向扣回，取消操作会失败并回滚，避免库存被扣成负数。
 
-- protected endpoints reject requests without JWT
-- admin-only delete endpoints reject staff users
-- invalid request bodies return `VALIDATION_ERROR`
-- list endpoints enforce pagination and status validation
+权限测试可以这样讲：
+
+> 我没有只依赖前端隐藏按钮。后端 API 测试覆盖了缺少 JWT、普通员工越权和非法请求体三个场景，证明权限和校验是在服务端强制执行的。
+
+AI 和 Redis 可以这样讲：
+
+> AI 和 Redis 都不是测试环境的强依赖。Redis 限流异常时会降级放行，AI 工具测试只验证只读数据边界，真实模型调用失败时后端会返回结构化兜底建议。

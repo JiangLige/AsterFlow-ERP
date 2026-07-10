@@ -11,6 +11,8 @@ AsterFlow ERP 是一个面向面试展示的企业级进销存系统，核心目
 - 每一次库存变化都会记录库存流水。
 - 关键业务操作会写入审计日志。
 - 高风险操作由管理员权限控制。
+- Redis 可选承载缓存、会话、幂等和限流。
+- Spring AI 作为只读经营助手生成库存风险和补货建议。
 - OpenAPI / Swagger UI 用于接口联调和面试演示。
 
 ## 2. Mermaid 图表使用说明
@@ -55,7 +57,16 @@ flowchart LR
 
     Service --> Inventory["库存服务"]
     Service --> Audit["审计日志服务"]
+    Backend --> Redis["Redis 可选增强"]
+    Backend --> AI["Spring AI 只读助手"]
     Backend --> OpenApi["OpenAPI / Swagger UI"]
+
+    Redis --> Cache["Dashboard 缓存"]
+    Redis --> Session["登录会话"]
+    Redis --> Idempotency["幂等提交"]
+    Redis --> RateLimit["接口限流"]
+    AI --> Tools["只读 ERP 工具"]
+    Tools --> Service
 ```
 
 ## 4. 后端分层说明
@@ -70,6 +81,7 @@ flowchart LR
 | enums | 订单状态、库存变化类型、商品状态等枚举 |
 | config | OpenAPI、WebMvc、拦截器等配置 |
 | util | JWT、权限校验等工具类 |
+| ai | Spring AI 只读工具 |
 
 ## 5. 采购入库顺序图
 
@@ -174,22 +186,50 @@ Swagger UI 是 OpenAPI 文档的网页展示工具。启动后端后，可以通
 - 销售取消后库存恢复
 - 手动库存调整写入库存流水
 - 关键操作写入审计日志
+- 缺少 JWT 会被拒绝
+- 普通员工不能执行管理员操作
+- 非法请求体返回统一校验错误
+- Redis 限流异常时主流程可降级
+- AI 工具只读调用现有业务服务
 - OpenAPI 文档可以正常生成
 
 这些测试保证业务闭环不是页面演示，而是后端逻辑真实可靠。
 
-## 11. Spring AI Agent 扩展方向
+## 11. Spring AI 只读助手
 
-后续增加 Spring AI Agent 时，不建议让 Agent 直接操作数据库。
+项目已经接入 Spring AI 作为只读经营助手。当前接口是：
 
-更合理的方式是让 Agent 调用已有业务服务或后端 API，例如：
+```text
+GET /api/ai/inventory-advice
+```
+
+当前设计原则：
+
+- AI 不直接操作数据库。
+- AI 不直接调用 Mapper。
+- AI 通过 `InventoryAiTools` 读取现有业务服务。
+- Prompt 要求只根据系统提供的 ERP 数据回答。
+- 模型失败时返回结构化兜底建议，不影响采购、销售、库存等主流程。
+
+当前可用于分析的数据包括：
 
 - 查询库存预警
-- 分析近期采购和销售趋势
-- 查询某个商品的库存流水
+- 查询 Dashboard 汇总
 - 生成补货建议
-- 总结审计日志中的异常操作
 
-Agent 的操作仍然需要遵守现有权限体系。关键动作应该写入审计日志，避免智能功能绕过原有业务规则。
+后续可以继续扩展更多只读工具，例如近期采购/销售趋势、商品库存流水和审计异常摘要。关键动作仍然必须走原有权限体系，避免智能功能绕过业务规则。
 
 这样 Spring AI 不是外挂功能，而是建立在现有 ERP 业务能力之上的智能助手。
+
+## 12. Redis 可选增强
+
+Redis 在项目中是可选增强，不是业务数据源。MySQL 仍然负责订单、库存和流水的最终一致性。
+
+当前 Redis 能力：
+
+- `ERP_CACHE_TYPE=redis`：Dashboard 汇总缓存。
+- `ERP_AUTH_SESSION_STORE=redis`：认证会话存储。
+- `ERP_IDEMPOTENCY_STORE=redis`：幂等提交 Key 存储。
+- `ERP_RATE_LIMIT_ENABLED=true`：Redis Lua 计数限流。
+
+默认本地开发使用 local 模式，避免没有 Redis 时无法启动或测试。后续可以继续补商品详情缓存、缓存空值、布隆过滤器和热点 Key 重建。
