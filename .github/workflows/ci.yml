@@ -152,7 +152,7 @@ jobs:
         run: >-
           ./mvnw -B
           -Dtest=AsterFlowErpApplicationTests
-          -Dspring.datasource.url="jdbc:mysql://127.0.0.1:3306/asterflow_erp?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8"
+          -Dspring.datasource.url="jdbc:mysql://127.0.0.1:3306/asterflow_erp?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&characterEncoding=utf8"
           -Dspring.datasource.username=root
           -Dspring.datasource.password=root
           -Dspring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
