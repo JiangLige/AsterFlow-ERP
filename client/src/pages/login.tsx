@@ -6,7 +6,7 @@ import ErrorMessage from '@/components/ErrorMessage';
 export default function LoginPage() {
     const router = useRouter();
     const [username, setUsername] = useState('admin');
-    const [password, setPassword] = useState('123456');
+    const [password, setPassword] = useState('admin123');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 

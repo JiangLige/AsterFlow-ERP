@@ -12,9 +12,9 @@ public class HealthController {
 
     @GetMapping
     public HealthResponse health() {
-        return new HealthResponse("ok", "ERP Server is running", Instant.now());
+        return new HealthResponse("UP", "asterflow-erp-server", Instant.now());
     }
 
-    public record HealthResponse(String status, String message, Instant timestamp) {
+    public record HealthResponse(String status, String service, Instant timestamp) {
     }
 }

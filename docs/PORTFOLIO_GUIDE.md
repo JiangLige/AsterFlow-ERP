@@ -40,6 +40,8 @@ AsterFlow ERP 是一个可运行、可测试、可演示的进销存系统。它
 - Flyway 版本化管理 MySQL schema 和演示数据。
 - Docker Compose 提供带健康检查和持久化卷的 MySQL、Redis。
 - CI 校验 Compose、前端测试、ESLint、生产构建和后端 `clean verify`。
+- Playwright 在 Chrome 中验证登录、采购入库、销售出库、库存流水和审计日志的完整闭环。
+- `npm audit --audit-level=high` 作为依赖安全门禁，README 提供真实 E2E 截图。
 - `npm run verify` 在本地执行与 CI 对齐的质量门禁。
 
 ## 验收清单
@@ -52,6 +54,8 @@ AsterFlow ERP 是一个可运行、可测试、可演示的进销存系统。它
 - [x] Spring AI 只读助手和结构化降级
 - [x] OpenAPI/Swagger
 - [x] 前后端自动化测试、lint、构建和 CI
+- [x] Chrome 全栈 E2E、可重复 H2 测试环境和失败报告
+- [x] 依赖安全审计和 README 真实运行截图
 - [x] Flyway 迁移、Docker Compose 和环境变量模板
 - [x] 快速开始、演示路径和技术边界说明
 

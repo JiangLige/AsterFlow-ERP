@@ -4,16 +4,26 @@
 
 AsterFlow ERP 是一个面向面试展示的企业进销存系统，后端使用 Spring Boot + MyBatis-Plus，前端使用 Next.js。项目覆盖商品、供应商、客户、采购、销售、库存、权限、审计日志、Redis 可选增强和 Spring AI 库存建议等核心场景。
 
+## 项目截图
+
+| 运营总览 | 采购入库 |
+| --- | --- |
+| ![AsterFlow ERP 运营总览](docs/assets/dashboard.png) | ![采购单审核入库](docs/assets/purchase-orders.png) |
+
+| 销售出库 | 安全登录 |
+| --- | --- |
+| ![销售单审核出库](docs/assets/sale-orders.png) | ![AsterFlow ERP 登录入口](docs/assets/login.png) |
+
 ## 技术栈
 
 - 后端：Java 21、Spring Boot 4.0.5、MyBatis-Plus 3.5.15、Spring Validation
-- 前端：Next.js 14、React、TypeScript
+- 前端：Next.js 16、React 19、TypeScript
 - 数据库：MySQL 8，本地自动化测试使用 H2
 - 认证：JWT access token、refresh token、local/Redis 会话存储
 - 缓存与可靠性：local/Redis Dashboard 缓存、商品详情缓存、空值缓存、商品布隆过滤器、热点 Key 互斥重建、幂等提交、Redis 限流
 - AI：Spring AI 2.0.0、OpenAI ChatClient、只读 Tool Calling
 - 文档：OpenAPI / Swagger UI
-- 测试：JUnit、Spring Boot Test、Mockito、H2
+- 测试：JUnit、Spring Boot Test、Mockito、Vitest、Playwright、H2
 
 ## 核心功能
 
@@ -48,7 +58,7 @@ AsterFlow ERP 是一个面向面试展示的企业进销存系统，后端使用
 
 ## 本地环境要求
 
-- Node.js 20+
+- Node.js 20.9+
 - JDK 21
 - MySQL 8+
 - Maven 可选，项目自带 Maven Wrapper
@@ -160,12 +170,22 @@ npm run verify
 
 该命令依次执行：
 
+- npm high 级依赖安全审计
 - 前端 Vitest 测试
 - 前端 ESLint
 - Next.js 生产构建
 - 后端 Maven `clean verify`
+- Chrome 全栈 E2E：登录、采购入库、销售出库、库存流水和审计日志
 
 后端测试覆盖采购、销售、库存、认证会话、API 安全边界、事务提交后缓存失效、商品详情缓存与互斥重建、商品布隆过滤器、Redis 限流降级、AI 工具 DTO 和 OpenAPI 文档。
+
+如只需运行浏览器主流程：
+
+```bash
+npm run test:e2e
+```
+
+该命令由 Python 启动独立 H2 后端和 Next.js 前端，运行完成后自动清理进程，不会修改本机 MySQL 数据。
 
 ## 演示路径
 

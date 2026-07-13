@@ -4,6 +4,10 @@ out/
 dist/
 target/
 client/tsconfig.tsbuildinfo
+client/playwright-report/
+client/test-results/
+__pycache__/
+*.py[cod]
 
 .env
 .env.*

@@ -1,0 +1,29 @@
+server:
+  port: 3001
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:asterflow_erp_e2e;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  flyway:
+    enabled: false
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+      data-locations: classpath:data.sql,classpath:e2e-data.sql
+  ai:
+    openai:
+      api-key: e2e-placeholder
+
+erp:
+  auth:
+    session-store: local
+  cache:
+    type: local
+  idempotency:
+    store: local
+  rate-limit:
+    enabled: false

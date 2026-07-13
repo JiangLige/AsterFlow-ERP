@@ -12,10 +12,17 @@
     "build:client": "cd client && npm run build",
     "build:server": "cd server && mvnw.cmd clean package",
     "test:client": "npm --workspace client test",
+    "test:e2e": "python scripts/run_e2e.py",
     "verify": "python scripts/verify.py",
     "install:all": "npm install"
   },
   "devDependencies": {
-    "concurrently": "^8.2.0"
+    "concurrently": "^8.2.0",
+    "postcss": "8.5.10",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
+  },
+  "overrides": {
+    "postcss": "8.5.10"
   }
 }
