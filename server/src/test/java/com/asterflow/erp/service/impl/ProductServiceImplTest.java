@@ -98,6 +98,8 @@ class ProductServiceImplTest {
 
         assertThat(response.getId()).isEqualTo(10L);
         verify(productBloomFilter).put(10L);
+        verify(productCacheService).evictProduct(10L);
+        verify(productCacheService, never()).setProduct(any());
     }
 
     @Test
@@ -211,6 +213,7 @@ class ProductServiceImplTest {
                 dashboardCacheService,
                 productCacheService,
                 productBloomFilter,
+                new TransactionAfterCommitExecutor(),
                 5,
                 1
         );

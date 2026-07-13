@@ -22,15 +22,18 @@ public class LocalProductCacheServiceImpl implements ProductCacheService {
     private final Duration detailTtl;
     private final Duration missingTtl;
     private final Duration rebuildLockTtl;
+    private final TransactionAfterCommitExecutor afterCommitExecutor;
 
     public LocalProductCacheServiceImpl(
             @Value("${erp.cache.product-detail-ttl-seconds:300}") long detailTtlSeconds,
             @Value("${erp.cache.product-missing-ttl-seconds:30}") long missingTtlSeconds,
-            @Value("${erp.cache.product-rebuild-lock-ttl-seconds:10}") long rebuildLockTtlSeconds
+            @Value("${erp.cache.product-rebuild-lock-ttl-seconds:10}") long rebuildLockTtlSeconds,
+            TransactionAfterCommitExecutor afterCommitExecutor
     ) {
         this.detailTtl = Duration.ofSeconds(detailTtlSeconds);
         this.missingTtl = Duration.ofSeconds(missingTtlSeconds);
         this.rebuildLockTtl = Duration.ofSeconds(rebuildLockTtlSeconds);
+        this.afterCommitExecutor = afterCommitExecutor;
     }
 
     @Override
@@ -71,7 +74,7 @@ public class LocalProductCacheServiceImpl implements ProductCacheService {
     @Override
     public void evictProduct(Long id) {
         if (id != null) {
-            cache.remove(id);
+            afterCommitExecutor.execute(() -> cache.remove(id));
         }
     }
 

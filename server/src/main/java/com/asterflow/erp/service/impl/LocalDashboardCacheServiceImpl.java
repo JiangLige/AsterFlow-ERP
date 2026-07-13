@@ -13,14 +13,17 @@ import java.time.LocalDateTime;
 public class LocalDashboardCacheServiceImpl implements DashboardCacheService {
 
     private final Duration ttl;
+    private final TransactionAfterCommitExecutor afterCommitExecutor;
 
     private DashboardSummaryResponse cachedSummary;
     private LocalDateTime expireAt;
 
     public LocalDashboardCacheServiceImpl(
-            @Value("${erp.cache.dashboard-summary-ttl-seconds:60}") long ttlSeconds
+            @Value("${erp.cache.dashboard-summary-ttl-seconds:60}") long ttlSeconds,
+            TransactionAfterCommitExecutor afterCommitExecutor
     ) {
         this.ttl = Duration.ofSeconds(ttlSeconds);
+        this.afterCommitExecutor = afterCommitExecutor;
     }
 
     @Override
@@ -45,7 +48,9 @@ public class LocalDashboardCacheServiceImpl implements DashboardCacheService {
 
     @Override
     public void evictSummary() {
-        this.cachedSummary = null;
-        this.expireAt = null;
+        afterCommitExecutor.execute(() -> {
+            this.cachedSummary = null;
+            this.expireAt = null;
+        });
     }
 }

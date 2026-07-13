@@ -32,6 +32,7 @@ public class ProductServiceImpl implements ProductService {
     private final DashboardCacheService dashboardCacheService;
     private final ProductCacheService productCacheService;
     private final ProductBloomFilter productBloomFilter;
+    private final TransactionAfterCommitExecutor afterCommitExecutor;
     private final long rebuildWaitMillis;
     private final long rebuildRetryIntervalMillis;
 
@@ -41,6 +42,7 @@ public class ProductServiceImpl implements ProductService {
                               DashboardCacheService dashboardCacheService,
                               ProductCacheService productCacheService,
                               ProductBloomFilter productBloomFilter,
+                              TransactionAfterCommitExecutor afterCommitExecutor,
                               @Value("${erp.cache.product-rebuild-wait-millis:100}") long rebuildWaitMillis,
                               @Value("${erp.cache.product-rebuild-retry-interval-millis:20}") long rebuildRetryIntervalMillis) {
         this.productMapper = productMapper;
@@ -49,6 +51,7 @@ public class ProductServiceImpl implements ProductService {
         this.dashboardCacheService = dashboardCacheService;
         this.productCacheService = productCacheService;
         this.productBloomFilter = productBloomFilter;
+        this.afterCommitExecutor = afterCommitExecutor;
         this.rebuildWaitMillis = Math.max(0, rebuildWaitMillis);
         this.rebuildRetryIntervalMillis = Math.max(1, rebuildRetryIntervalMillis);
     }
@@ -80,8 +83,8 @@ public class ProductServiceImpl implements ProductService {
         productMapper.insert(product);
         dashboardCacheService.evictSummary();
         ProductResponse response = toResponse(product);
-        productCacheService.setProduct(response);
-        productBloomFilter.put(product.getId());
+        productCacheService.evictProduct(product.getId());
+        afterCommitExecutor.execute(() -> productBloomFilter.put(product.getId()));
 
         return response;
     }
@@ -345,10 +348,7 @@ public class ProductServiceImpl implements ProductService {
         productCacheService.evictProduct(id);
         dashboardCacheService.evictSummary();
 
-        ProductResponse response = toResponse(product);
-        productCacheService.setProduct(response);
-
-        return response;
+        return toResponse(product);
     }
 
     @Override

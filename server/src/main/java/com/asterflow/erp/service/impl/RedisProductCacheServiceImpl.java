@@ -31,17 +31,20 @@ public class RedisProductCacheServiceImpl implements ProductCacheService {
     private final Duration missingTtl;
     private final Duration rebuildLockTtl;
     private final DefaultRedisScript<Long> releaseLockScript;
+    private final TransactionAfterCommitExecutor afterCommitExecutor;
 
     public RedisProductCacheServiceImpl(StringRedisTemplate stringRedisTemplate,
                                         ObjectMapper objectMapper,
                                         @Value("${erp.cache.product-detail-ttl-seconds:300}") long detailTtlSeconds,
                                         @Value("${erp.cache.product-missing-ttl-seconds:30}") long missingTtlSeconds,
-                                        @Value("${erp.cache.product-rebuild-lock-ttl-seconds:10}") long rebuildLockTtlSeconds) {
+                                        @Value("${erp.cache.product-rebuild-lock-ttl-seconds:10}") long rebuildLockTtlSeconds,
+                                        TransactionAfterCommitExecutor afterCommitExecutor) {
         this.stringRedisTemplate = stringRedisTemplate;
         this.objectMapper = objectMapper;
         this.detailTtl = Duration.ofSeconds(detailTtlSeconds);
         this.missingTtl = Duration.ofSeconds(missingTtlSeconds);
         this.rebuildLockTtl = Duration.ofSeconds(rebuildLockTtlSeconds);
+        this.afterCommitExecutor = afterCommitExecutor;
         this.releaseLockScript = new DefaultRedisScript<>("""
                 if redis.call('GET', KEYS[1]) == ARGV[1] then
                     return redis.call('DEL', KEYS[1])
@@ -117,6 +120,10 @@ public class RedisProductCacheServiceImpl implements ProductCacheService {
             return;
         }
 
+        afterCommitExecutor.execute(() -> evictProductImmediately(id));
+    }
+
+    private void evictProductImmediately(Long id) {
         try {
             stringRedisTemplate.delete(key(id));
         } catch (Exception e) {

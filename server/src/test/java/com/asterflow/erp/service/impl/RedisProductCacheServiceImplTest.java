@@ -37,7 +37,8 @@ class RedisProductCacheServiceImplTest {
                 new ObjectMapper(),
                 300,
                 30,
-                10
+                10,
+                new TransactionAfterCommitExecutor()
         );
     }
 

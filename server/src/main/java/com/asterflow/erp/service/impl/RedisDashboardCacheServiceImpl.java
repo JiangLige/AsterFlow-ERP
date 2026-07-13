@@ -22,13 +22,16 @@ public class RedisDashboardCacheServiceImpl implements DashboardCacheService {
     private final StringRedisTemplate stringRedisTemplate;
     private final ObjectMapper objectMapper;
     private final Duration ttl;
+    private final TransactionAfterCommitExecutor afterCommitExecutor;
 
     public RedisDashboardCacheServiceImpl(StringRedisTemplate stringRedisTemplate,
                                           ObjectMapper objectMapper,
-                                          @Value("${erp.cache.dashboard-summary-ttl-seconds:60}") long ttlSeconds) {
+                                          @Value("${erp.cache.dashboard-summary-ttl-seconds:60}") long ttlSeconds,
+                                          TransactionAfterCommitExecutor afterCommitExecutor) {
         this.stringRedisTemplate = stringRedisTemplate;
         this.objectMapper = objectMapper;
         this.ttl = Duration.ofSeconds(ttlSeconds);
+        this.afterCommitExecutor = afterCommitExecutor;
     }
 
     @Override
@@ -59,6 +62,10 @@ public class RedisDashboardCacheServiceImpl implements DashboardCacheService {
 
     @Override
     public void evictSummary() {
+        afterCommitExecutor.execute(this::evictSummaryImmediately);
+    }
+
+    private void evictSummaryImmediately() {
         try {
             stringRedisTemplate.delete(KEY);
         } catch (Exception e) {
