@@ -2,7 +2,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import type { ReactNode } from 'react';
 import { useEffect, useMemo, useState } from 'react';
-import { clearAuthStorage, getStoredUser, hasAccessToken } from '@/lib/auth';
+import { getStoredUser, hasAccessToken } from '@/lib/auth';
+import { logoutSession } from '@/lib/api';
 
 type LayoutProps = {
     children: ReactNode;
@@ -34,6 +35,7 @@ export default function Layout({ children }: LayoutProps) {
     const [ready, setReady] = useState(false);
     const [displayName, setDisplayName] = useState('');
     const [role, setRole] = useState('');
+    const [loggingOut, setLoggingOut] = useState(false);
 
     const currentNav = useMemo(
         () => navItems.find((item) => isActivePath(router.pathname, item.href)),
@@ -53,9 +55,20 @@ export default function Layout({ children }: LayoutProps) {
         setReady(true);
     }, [router]);
 
-    function handleLogout() {
-        clearAuthStorage();
-        router.replace('/login');
+    async function handleLogout() {
+        if (loggingOut) {
+            return;
+        }
+
+        setLoggingOut(true);
+
+        try {
+            await logoutSession();
+        } catch {
+            // logoutSession always clears local authentication in finally.
+        } finally {
+            router.replace('/login');
+        }
     }
 
     if (!ready) {
@@ -102,8 +115,12 @@ export default function Layout({ children }: LayoutProps) {
                             <p className="user-name">{displayName || '当前用户'}</p>
                             {role && <span className="role-pill">{role}</span>}
                         </div>
-                        <button className="logout-button" onClick={handleLogout}>
-                            退出
+                        <button
+                            className="logout-button"
+                            onClick={handleLogout}
+                            disabled={loggingOut}
+                        >
+                            {loggingOut ? '退出中...' : '退出'}
                         </button>
                     </div>
                 </header>

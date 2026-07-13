@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { apiRequest } from './api';
-import { getAccessToken, saveAuth } from './auth';
+import { apiRequest, logoutSession } from './api';
+import { getAccessToken, getRefreshToken, saveAuth } from './auth';
 import {
     installBrowserEnvironment,
     removeBrowserEnvironment,
@@ -195,5 +195,35 @@ describe('apiRequest authentication', () => {
 
         expect(fetchMock).toHaveBeenCalledTimes(3);
         expect(getAccessToken()).toBe('');
+    });
+
+    it('sends both tokens to backend logout and clears local auth', async () => {
+        const fetchMock = vi.fn().mockResolvedValue(jsonResponse({
+            success: true,
+            code: 'SUCCESS',
+            message: '操作成功',
+            data: null,
+        }));
+        vi.stubGlobal('fetch', fetchMock);
+
+        await logoutSession();
+
+        expect(fetchMock).toHaveBeenCalledWith('/api/auth/logout', expect.objectContaining({
+            method: 'POST',
+            body: JSON.stringify({ refreshToken: 'refresh-1' }),
+        }));
+        const request = fetchMock.mock.calls[0][1] as RequestInit;
+        expect(new Headers(request.headers).get('Authorization')).toBe('Bearer access-old');
+        expect(getAccessToken()).toBe('');
+        expect(getRefreshToken()).toBe('');
+    });
+
+    it('clears local auth when backend logout fails', async () => {
+        vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network down')));
+
+        await expect(logoutSession()).rejects.toThrow('network down');
+
+        expect(getAccessToken()).toBe('');
+        expect(getRefreshToken()).toBe('');
     });
 });

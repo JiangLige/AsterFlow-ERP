@@ -128,3 +128,24 @@ async function requestWithAuth<T>(
 export function apiRequest<T>(url: string, options: RequestInit = {}) {
     return requestWithAuth<T>(url, options, true);
 }
+
+export async function logoutSession() {
+    const accessToken = getAccessToken();
+    const refreshToken = getRefreshToken();
+
+    try {
+        const headers = new Headers({ 'Content-Type': 'application/json' });
+
+        if (accessToken) {
+            headers.set('Authorization', `Bearer ${accessToken}`);
+        }
+
+        await fetch('/api/auth/logout', {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({ refreshToken }),
+        });
+    } finally {
+        clearAuthStorage();
+    }
+}
