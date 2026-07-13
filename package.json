@@ -11,6 +11,7 @@
     "dev:server": "cd server && mvnw.cmd spring-boot:run",
     "build:client": "cd client && npm run build",
     "build:server": "cd server && mvnw.cmd clean package",
+    "test:client": "npm --workspace client test",
     "install:all": "npm install"
   },
   "devDependencies": {
