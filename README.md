@@ -40,6 +40,9 @@ AsterFlow ERP 是一个面向面试展示的企业进销存系统，后端使用
 - 商品详情支持 local/Redis 缓存，不存在商品会短 TTL 缓存为空值以降低穿透
 - 商品布隆过滤器会在启动时预热已有商品 ID，明显不存在的商品详情请求可直接拦截
 - 商品详情缓存未命中时使用带 TTL 的重建锁，同一热点商品优先由一个请求回源并回填缓存
+- 数据库事务提交成功后再失效商品和 Dashboard 缓存，回滚不会污染缓存
+- Flyway 管理 MySQL 表结构和演示数据，避免重复初始化时破坏已有数据
+- CI 同时校验前端测试、ESLint、生产构建、后端验证和 Docker Compose 配置
 - Spring AI 只读调用业务服务，模型失败时返回结构化兜底建议
 - OpenAPI 文档方便接口联调和面试演示
 
@@ -50,17 +53,28 @@ AsterFlow ERP 是一个面向面试展示的企业进销存系统，后端使用
 - MySQL 8+
 - Maven 可选，项目自带 Maven Wrapper
 - Redis 可选，仅当启用 Redis 模式时需要
+- Docker Desktop 可选，用于一键启动 MySQL 和 Redis
 - OpenAI API Key 可选，仅当需要真实 AI 模型输出时需要
 
-## 初始化数据库
+## 快速开始
 
-执行初始化脚本：
+安装依赖并启动 MySQL、Redis：
 
 ```bash
-mysql -uroot -proot < server/src/main/resources/db/init.sql
+npm install
+docker compose up -d
 ```
 
-如果本机 MySQL 密码不是 `root`，改成自己的密码。
+随后启动前后端：
+
+```bash
+npm run dev
+```
+
+后端首次连接 MySQL 时，Flyway 会自动执行
+`server/src/main/resources/db/migration/V1__initialize_asterflow_schema.sql`，创建表结构和演示数据。
+
+如果不使用 Docker，请先自行创建空数据库 `asterflow_erp`，然后按 `.env.example` 配置连接信息；不要手动重复执行迁移文件。
 
 默认账号：
 
@@ -91,6 +105,7 @@ ERP_PRODUCT_REBUILD_WAIT_MILLIS=100
 ERP_PRODUCT_REBUILD_RETRY_INTERVAL_MILLIS=20
 ERP_PRODUCT_BLOOM_KEY=asterflow-erp:bloom:product
 ERP_PRODUCT_BLOOM_BITS=1000000
+FLYWAY_ENABLED=true
 ```
 
 本地开发建议先保持 `local` 模式。生产或多实例部署时，再按需启用 Redis：
@@ -104,27 +119,27 @@ ERP_RATE_LIMIT_ENABLED=true
 
 ## 启动项目
 
-安装依赖：
+只启动基础设施：
 
-```powershell
-npm install
+```bash
+docker compose up -d mysql redis
 ```
 
 同时启动前后端：
 
-```powershell
+```bash
 npm run dev
 ```
 
 单独启动前端：
 
-```powershell
+```bash
 npm run dev:client
 ```
 
 单独启动后端：
 
-```powershell
+```bash
 npm run dev:server
 ```
 
@@ -137,20 +152,20 @@ npm run dev:server
 
 ## 构建与测试
 
-前端生产构建：
+一条命令执行作品集完整质量门禁：
 
-```powershell
-npm run build:client
+```bash
+npm run verify
 ```
 
-后端完整验证：
+该命令依次执行：
 
-```powershell
-cd server
-.\mvnw.cmd -B clean verify
-```
+- 前端 Vitest 测试
+- 前端 ESLint
+- Next.js 生产构建
+- 后端 Maven `clean verify`
 
-后端测试覆盖采购、销售、库存、认证会话、API 安全边界、商品详情缓存与互斥重建、商品布隆过滤器、Redis 限流降级、AI 工具 DTO 和 OpenAPI 文档。
+后端测试覆盖采购、销售、库存、认证会话、API 安全边界、事务提交后缓存失效、商品详情缓存与互斥重建、商品布隆过滤器、Redis 限流降级、AI 工具 DTO 和 OpenAPI 文档。
 
 ## 演示路径
 
@@ -165,4 +180,6 @@ cd server
 - Redis 是可选增强，不是业务数据源；MySQL 仍负责订单、库存和流水的最终一致性。
 - 商品详情热点 Key 已支持 local/Redis 互斥重建；真实 Redis 集成验证、缓存雪崩治理和集群高可用仍属于后续增强。
 - 没有真实 `OPENAI_API_KEY` 时，AI 接口会走后端兜底建议，不影响其他 ERP 主流程。
-- 项目定位是面试展示和工程能力说明，不是完整生产级 ERP。
+- 当前仓库按作品集交付标准完成；跨机房容灾、Redis Cluster、Outbox 补偿和大规模压测属于生产平台演进范围。
+
+完整的面试讲解提纲、技术决策和验收清单见 [作品集说明](docs/PORTFOLIO_GUIDE.md)。

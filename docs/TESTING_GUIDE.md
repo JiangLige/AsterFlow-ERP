@@ -123,13 +123,13 @@ AsterFlow ERP 的核心不是简单 CRUD。一次销售审核至少会同时改�
 server/src/test/resources/schema.sql
 ```
 
-生产或本地 MySQL 初始化仍使用：
+生产或本地 MySQL 由 Flyway 管理：
 
 ```text
-server/src/main/resources/db/init.sql
+server/src/main/resources/db/migration/V1__initialize_asterflow_schema.sql
 ```
 
-这样测试可以在没有本地 MySQL、Redis、OpenAI Key 的情况下运行。
+CI 另有 MySQL 8 服务任务验证真实 Flyway 迁移；普通测试仍可在没有本地 MySQL、Redis、OpenAI Key 的情况下运行。
 
 ## 如何运行
 

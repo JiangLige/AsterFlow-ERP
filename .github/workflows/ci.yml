@@ -8,8 +8,19 @@ on:
   workflow_dispatch:
 
 jobs:
+  delivery:
+    name: Delivery Configuration
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Validate Docker Compose
+        run: docker compose config
+
   frontend:
-    name: Frontend Build
+    name: Frontend Quality Gate
     runs-on: ubuntu-latest
 
     steps:
@@ -25,6 +36,12 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Run frontend tests
+        run: npm run test:client
+
+      - name: Lint frontend
+        run: npm --workspace client run lint
 
       - name: Build frontend
         run: npm run build:client
@@ -50,3 +67,48 @@ jobs:
       - name: Test and build backend
         working-directory: server
         run: ./mvnw -B clean verify
+
+  mysql-migration:
+    name: MySQL Flyway Migration
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: asterflow_erp
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -uroot -proot --silent"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+
+      - name: Make Maven Wrapper executable
+        run: chmod +x server/mvnw
+
+      - name: Validate Flyway migration against MySQL 8
+        working-directory: server
+        run: >-
+          ./mvnw -B
+          -Dtest=AsterFlowErpApplicationTests
+          -Dspring.datasource.url="jdbc:mysql://127.0.0.1:3306/asterflow_erp?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8"
+          -Dspring.datasource.username=root
+          -Dspring.datasource.password=root
+          -Dspring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+          -Dspring.flyway.enabled=true
+          -Dspring.sql.init.mode=never
+          test

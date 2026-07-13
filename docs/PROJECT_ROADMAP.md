@@ -29,13 +29,15 @@
 
 ## 1. 本地启动顺序
 
-先初始化 MySQL：
+使用 Docker Compose 启动 MySQL 和 Redis：
 
 ```bash
-mysql -uroot -proot < server/src/main/resources/db/init.sql
+docker compose up -d
 ```
 
-如果本机密码不是 `root`，改成自己的密码。默认账号：
+后端启动时由 Flyway 自动执行 `db/migration` 中尚未应用的版本化迁移。如果不使用 Docker，请先创建空数据库 `asterflow_erp` 并配置连接信息。
+
+默认账号：
 
 - 管理员：`admin / admin123`
 - 普通员工：`staff / user123`

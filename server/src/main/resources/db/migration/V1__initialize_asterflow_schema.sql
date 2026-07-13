@@ -1,34 +1,9 @@
-
--- AsterFlow ERP MySQL initialization script.
--- Target database configuration:
---   jdbc:mysql://localhost:3306/asterflow_erp?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8
---
+-- AsterFlow ERP Flyway baseline migration for MySQL 8.
 -- Default accounts:
 --   admin / admin123
 --   staff / user123
 
-CREATE DATABASE IF NOT EXISTS asterflow_erp
-    DEFAULT CHARACTER SET utf8mb4
-    DEFAULT COLLATE utf8mb4_unicode_ci;
-
-USE asterflow_erp;
-
 SET NAMES utf8mb4;
-SET FOREIGN_KEY_CHECKS = 0;
-
-DROP TABLE IF EXISTS t_audit_log;
-DROP TABLE IF EXISTS t_stock_record;
-DROP TABLE IF EXISTS t_sale_order_item;
-DROP TABLE IF EXISTS t_sale_order;
-DROP TABLE IF EXISTS t_customer;
-DROP TABLE IF EXISTS t_purchase_order_item;
-DROP TABLE IF EXISTS t_purchase_order;
-DROP TABLE IF EXISTS t_order_sequence;
-DROP TABLE IF EXISTS t_product;
-DROP TABLE IF EXISTS t_supplier;
-DROP TABLE IF EXISTS t_user;
-
-SET FOREIGN_KEY_CHECKS = 1;
 
 CREATE TABLE t_user (
     id BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
