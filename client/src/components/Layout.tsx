@@ -1,22 +1,61 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import type { ReactNode } from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
+import {
+    IconAlertTriangle,
+    IconArrowsExchange,
+    IconBuildingStore,
+    IconBuildingWarehouse,
+    IconChevronDown,
+    IconClipboardText,
+    IconLayoutDashboard,
+    IconLogout,
+    IconPackage,
+    IconReceipt,
+    IconRosette,
+    IconSettings,
+    IconShoppingCart,
+    IconUsers,
+    type Icon,
+} from '@tabler/icons-react';
 
 type LayoutProps = {
     children: ReactNode;
 };
 
-const navItems = [
-    { href: '/', label: '运营总览' },
-    { href: '/products', label: '商品管理' },
-    { href: '/purchase-orders', label: '采购订单' },
-    { href: '/sale-orders', label: '销售订单' },
-    { href: '/inventory-warnings', label: '库存预警' },
-    { href: '/stock-records', label: '库存流水' },
-    { href: '/suppliers', label: '供应商' },
-    { href: '/customers', label: '客户' },
-    { href: '/audit-logs', label: '审计日志' },
+type NavItem = {
+    href: string;
+    label: string;
+    icon: Icon;
+};
+
+const navGroups: Array<{ label: string; items: NavItem[] }> = [
+    {
+        label: '工作台',
+        items: [{ href: '/', label: '运营总览', icon: IconLayoutDashboard }],
+    },
+    {
+        label: '基础资料',
+        items: [
+            { href: '/products', label: '商品管理', icon: IconPackage },
+            { href: '/suppliers', label: '供应商', icon: IconBuildingStore },
+            { href: '/customers', label: '客户管理', icon: IconUsers },
+        ],
+    },
+    {
+        label: '业务流转',
+        items: [
+            { href: '/purchase-orders', label: '采购订单', icon: IconShoppingCart },
+            { href: '/sale-orders', label: '销售订单', icon: IconReceipt },
+            { href: '/inventory-warnings', label: '库存预警', icon: IconAlertTriangle },
+            { href: '/stock-records', label: '库存流水', icon: IconArrowsExchange },
+        ],
+    },
+    {
+        label: '系统',
+        items: [{ href: '/audit-logs', label: '审计日志', icon: IconClipboardText }],
+    },
 ];
 
 function isActivePath(currentPath: string, href: string) {
@@ -32,11 +71,6 @@ export default function Layout({ children }: LayoutProps) {
     const [ready, setReady] = useState(false);
     const [displayName, setDisplayName] = useState('');
     const [role, setRole] = useState('');
-
-    const currentNav = useMemo(
-        () => navItems.find((item) => isActivePath(router.pathname, item.href)),
-        [router.pathname]
-    );
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -62,7 +96,8 @@ export default function Layout({ children }: LayoutProps) {
     if (!ready) {
         return (
             <main className="app-loading">
-                <div className="loading-card">正在检查登录状态...</div>
+                <IconRosette size={28} stroke={1.7} />
+                <div className="loading-card">正在准备运营工作台...</div>
             </main>
         );
     }
@@ -70,45 +105,64 @@ export default function Layout({ children }: LayoutProps) {
     return (
         <div className="app-shell">
             <aside className="sidebar">
-                <div className="brand">
-                    <span className="brand-mark">AF</span>
+                <Link className="brand" href="/" aria-label="返回运营总览">
+                    <span className="brand-mark" aria-hidden="true">
+                        <IconRosette size={27} stroke={1.8} />
+                    </span>
                     <div>
                         <p className="brand-title">AsterFlow ERP</p>
-                        <p className="brand-subtitle">进销存运营工作台</p>
+                        <p className="brand-subtitle">进销存运营中枢</p>
                     </div>
-                </div>
+                </Link>
 
                 <nav className="sidebar-nav" aria-label="主导航">
-                    {navItems.map((item) => (
-                        <Link
-                            key={item.href}
-                            className={`nav-link${isActivePath(router.pathname, item.href) ? ' active' : ''}`}
-                            href={item.href}
-                        >
-                            {item.label}
-                        </Link>
+                    {navGroups.map((group) => (
+                        <div className="nav-group" key={group.label}>
+                            <p className="nav-group-label">{group.label}</p>
+                            {group.items.map((item) => {
+                                const ItemIcon = item.icon;
+                                const active = isActivePath(router.pathname, item.href);
+
+                                return (
+                                    <Link
+                                        key={item.href}
+                                        className={`nav-link${active ? ' active' : ''}`}
+                                        href={item.href}
+                                        aria-current={active ? 'page' : undefined}
+                                    >
+                                        <ItemIcon size={19} stroke={1.7} aria-hidden="true" />
+                                        <span>{item.label}</span>
+                                    </Link>
+                                );
+                            })}
+                        </div>
                     ))}
                 </nav>
-            </aside>
 
-            <main className="app-main">
-                <header className="app-topbar">
-                    <div>
-                        <p className="topbar-kicker">当前模块</p>
-                        <p className="topbar-title">{currentNav?.label || '业务页面'}</p>
-                    </div>
+                <div className="sidebar-footer">
+                    <button className="profile-button" type="button" aria-label="当前用户信息">
+                        <span className="avatar">{(displayName || '用').slice(0, 1).toUpperCase()}</span>
+                        <span className="profile-copy">
+                            <strong>{displayName || '当前用户'}</strong>
+                            <small>{role === 'ADMIN' ? '系统管理员' : role || '业务成员'}</small>
+                        </span>
+                        <IconChevronDown size={16} stroke={1.7} aria-hidden="true" />
+                    </button>
 
-                    <div className="user-area">
-                        <div className="user-meta">
-                            <p className="user-name">{displayName || '当前用户'}</p>
-                            {role && <span className="role-pill">{role}</span>}
-                        </div>
-                        <button className="logout-button" onClick={handleLogout}>
+                    <div className="sidebar-utilities">
+                        <span>
+                            <IconSettings size={17} stroke={1.7} aria-hidden="true" />
+                            系统设置
+                        </span>
+                        <button className="logout-button" onClick={handleLogout} type="button">
+                            <IconLogout size={17} stroke={1.7} aria-hidden="true" />
                             退出
                         </button>
                     </div>
-                </header>
+                </div>
+            </aside>
 
+            <main className="app-main">
                 <section className="content-shell">{children}</section>
             </main>
         </div>

@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/JiangLige/AsterFlow-ERP/actions/workflows/ci.yml/badge.svg)](https://github.com/JiangLige/AsterFlow-ERP/actions/workflows/ci.yml)
 
-AsterFlow ERP 是一个面向面试展示的企业进销存系统，后端使用 Spring Boot + MyBatis-Plus，前端使用 Next.js。项目覆盖商品、供应商、客户、采购、销售、库存、权限、审计日志等核心 ERP 场景，并预留后续 Spring AI Agent 能力扩展。
+AsterFlow ERP 是一个企业进销存系统，后端使用 Spring Boot + MyBatis-Plus，前端使用 Next.js。项目覆盖商品、供应商、客户、采购、销售、库存、权限、审计日志等核心 ERP 场景，并预留后续 Spring AI Agent 能力扩展。
 
 ## 技术栈
 
@@ -33,7 +33,7 @@ AsterFlow ERP 是一个面向面试展示的企业进销存系统，后端使用
 - 后端强制管理员权限校验，前端同步做角色按钮控制
 - DTO 参数校验和统一异常响应
 - 集成测试覆盖采购、销售、库存调整和审计日志
-- OpenAPI 文档方便接口联调和面试演示
+- OpenAPI 文档方便接口联调和演示
 
 ## 本地环境要求
 

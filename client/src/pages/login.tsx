@@ -1,5 +1,12 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
+import {
+    IconArrowRight,
+    IconBuildingWarehouse,
+    IconChartHistogram,
+    IconRosette,
+    IconShieldCheck,
+} from '@tabler/icons-react';
 
 export default function LoginPage() {
     const router = useRouter();
@@ -19,10 +26,7 @@ export default function LoginPage() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    username,
-                    password,
-                }),
+                body: JSON.stringify({ username, password }),
             });
 
             const result = await response.json();
@@ -47,43 +51,56 @@ export default function LoginPage() {
     return (
         <main className="login-screen">
             <section className="login-visual">
-                <div className="brand">
-                    <span className="brand-mark">AF</span>
+                <div className="brand login-brand">
+                    <span className="brand-mark" aria-hidden="true">
+                        <IconRosette size={28} stroke={1.8} />
+                    </span>
                     <div>
                         <p className="brand-title">AsterFlow ERP</p>
-                        <p className="brand-subtitle">进销存运营工作台</p>
+                        <p className="brand-subtitle">进销存运营中枢</p>
                     </div>
                 </div>
 
                 <div className="login-heading">
-                    <p className="eyebrow">Enterprise Resource Planning</p>
-                    <h1>把采购、销售和库存放在同一个节奏里。</h1>
+                    <p className="eyebrow">OPERATIONS, IN ONE RHYTHM</p>
+                    <h1>让每一次采购、销售与库存变化都清晰可见。</h1>
                     <p className="login-copy">
-                        登录后即可查看运营总览、处理订单审核、维护商品档案，并追踪库存流水与审计记录。
+                        从待审核订单到实时库存风险，把团队每天最重要的业务动作集中在一个可靠的工作台中。
                     </p>
                 </div>
 
-                <div className="login-summary" aria-label="系统概览">
-                    <div className="login-summary-item">
-                        <strong>9</strong>
-                        <span>核心业务模块</span>
+                <div className="login-capabilities" aria-label="系统能力">
+                    <div>
+                        <IconChartHistogram size={22} stroke={1.7} />
+                        <span>
+                            <strong>经营全景</strong>
+                            <small>关键指标与待办集中呈现</small>
+                        </span>
                     </div>
-                    <div className="login-summary-item">
-                        <strong>24h</strong>
-                        <span>库存与订单追踪</span>
+                    <div>
+                        <IconBuildingWarehouse size={22} stroke={1.7} />
+                        <span>
+                            <strong>库存闭环</strong>
+                            <small>入库、出库与预警全程追踪</small>
+                        </span>
                     </div>
-                    <div className="login-summary-item">
-                        <strong>Role</strong>
-                        <span>按角色控制操作</span>
+                    <div>
+                        <IconShieldCheck size={22} stroke={1.7} />
+                        <span>
+                            <strong>权限审计</strong>
+                            <small>关键业务操作可控可追溯</small>
+                        </span>
                     </div>
                 </div>
+
+                <p className="login-footnote">AsterFlow ERP · 为稳定运营而设计</p>
             </section>
 
             <section className="login-panel-wrap">
                 <div className="login-card">
                     <p className="eyebrow">安全登录</p>
-                    <h1>欢迎回来</h1>
-                    <p className="muted">使用 ERP 账号进入运营工作台。</p>
+                    <h2>欢迎回来</h2>
+                    <p className="muted">使用你的 ERP 账号继续今天的运营工作。</p>
 
                     <form className="login-form" onSubmit={handleLogin}>
                         <div>
@@ -93,6 +110,7 @@ export default function LoginPage() {
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
                                 autoComplete="username"
+                                placeholder="请输入用户名"
                             />
                         </div>
 
@@ -104,15 +122,23 @@ export default function LoginPage() {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 autoComplete="current-password"
+                                placeholder="请输入密码"
                             />
                         </div>
 
                         {error && <div className="alert alert-danger">{error}</div>}
 
-                        <button type="submit" disabled={loading}>
-                            {loading ? '登录中...' : '登录'}
+                        <button className="login-submit" type="submit" disabled={loading}>
+                            <span>{loading ? '正在登录...' : '进入运营工作台'}</span>
+                            <IconArrowRight size={18} stroke={1.8} aria-hidden="true" />
                         </button>
                     </form>
+
+                    <div className="demo-accounts">
+                        <span>演示账号</span>
+                        <code>admin / 123456</code>
+                        <code>staff / 123456</code>
+                    </div>
                 </div>
             </section>
         </main>
