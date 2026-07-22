@@ -4,10 +4,13 @@ import { getActiveModule, isActiveRoute, MODULES } from './navigation';
 describe('AsterFlow navigation', () => {
   it('preserves every approved route label', () => {
     expect(MODULES.flatMap((module) => module.items.map((item) => item.label))).toEqual([
-      '杩愯惀鎬昏',
-      '鍟嗗搧绠＄悊', '渚涘簲鍟?', '瀹㈡埛绠＄悊',
-      '閲囪喘璁㈠崟', '閿€鍞鍗?', '搴撳瓨棰勮', '搴撳瓨娴佹按',
-      '瀹¤鏃ュ織',
+      '运营总览',
+      '商品管理', '供应商', '客户管理',
+      '采购订单', '销售订单', '库存预警', '库存流水',
+      '审计日志',
+    ]);
+    expect(MODULES.map((module) => module.label)).toEqual([
+      '运营总览', '基础资料', '业务流转', '系统',
     ]);
   });
 
