@@ -55,7 +55,11 @@ export default function Layout({ children }: LayoutProps) {
                 onToggleMobile={() => setMobileOpen((value) => !value)}
                 onLogout={handleLogout}
             />
-            <ModuleNavigation pathname={router.pathname} mobileOpen={mobileOpen} />
+            <ModuleNavigation
+                pathname={router.pathname}
+                mobileOpen={mobileOpen}
+                onNavigate={() => setMobileOpen(false)}
+            />
             <main id="main-content" className="aster-main">{children}</main>
         </div>
     );

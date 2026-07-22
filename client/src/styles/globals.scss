@@ -25,6 +25,15 @@
   --surface-soft: var(--aster-layer-muted);
   --surface-muted: var(--aster-layer-muted);
   --canvas: var(--aster-background);
+  --danger: #da1e28;
+  --danger-soft: #fff1f1;
+  --danger-border: #da1e28;
+  --success: #198038;
+  --success-soft: #defbe6;
+  --success-border: #24a148;
+  --warning: #8e6a00;
+  --warning-soft: #fcf4d6;
+  --warning-border: #f1c21b;
   --radius: 0;
   --shadow-soft: none;
 }
@@ -428,7 +437,7 @@ td button {
   font-size: 0.875rem;
   font-weight: 600;
   padding: 0 1rem;
-  transition: background 160ms ease, color 160ms ease, border-color 160ms ease, transform 160ms ease;
+  transition: transform 160ms ease, opacity 160ms ease;
 }
 
 .aster-module-link:hover,
@@ -489,7 +498,7 @@ td button {
   font-size: 0.8125rem;
   font-weight: 600;
   padding: 0 0.875rem;
-  transition: background 160ms ease, color 160ms ease, border-color 160ms ease, transform 160ms ease;
+  transition: transform 160ms ease, opacity 160ms ease;
 }
 
 .aster-context-link:hover,
@@ -577,13 +586,13 @@ td button {
 }
 
 .alert-danger {
-  border-color: #efc2b8;
+  border-color: var(--danger-border);
   background: var(--danger-soft);
   color: var(--danger);
 }
 
 .alert-success {
-  border-color: #b8ded3;
+  border-color: var(--success-border);
   background: var(--success-soft);
   color: var(--success);
 }
@@ -598,7 +607,7 @@ td button {
   margin-top: 1rem;
   border: 1px dashed var(--line-strong);
   border-radius: var(--radius);
-  background: rgba(255, 253, 249, 0.72);
+  background: var(--aster-layer);
   color: var(--muted);
   padding: 1rem;
 }
@@ -856,7 +865,7 @@ td button {
 }
 
 .task-icon.warning {
-  border-color: #efc9a4;
+  border-color: var(--warning-border);
   color: var(--warning);
 }
 
@@ -1327,6 +1336,14 @@ td button {
     width: 100%;
     border-bottom: 1px solid var(--aster-border);
     background: var(--aster-layer);
+  }
+
+  .aster-mobile-panel[hidden] {
+    display: none;
+  }
+
+  .aster-mobile-panel:not([hidden]) {
+    display: block;
   }
 
   .aster-mobile-panel-content {

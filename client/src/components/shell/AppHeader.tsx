@@ -17,7 +17,12 @@ export default function AppHeader(props: AppHeaderProps) {
 
   return (
     <Header aria-label="AsterFlow ERP">
-      <HeaderMenuButton aria-label="打开导航" isActive={props.mobileOpen} onClick={props.onToggleMobile} />
+      <HeaderMenuButton
+        aria-label={props.mobileOpen ? '关闭导航' : '打开导航'}
+        aria-controls="aster-mobile-navigation"
+        isActive={props.mobileOpen}
+        onClick={props.onToggleMobile}
+      />
       <Link className="aster-brand" href="/" aria-label="返回运营总览">
         <BrandMark />
         <span>AsterFlow ERP</span>
