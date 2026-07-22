@@ -1,58 +1,43 @@
+@use '@carbon/react';
+
 :root {
-  --canvas: #f7f3ec;
-  --surface: #fffdf9;
-  --surface-strong: #ffffff;
-  --surface-muted: #f2ede4;
-  --surface-soft: #faf7f1;
-  --ink: #1c1d1e;
-  --ink-soft: #3f4449;
-  --muted: #746f68;
-  --muted-light: #989188;
-  --line: #e4ddd2;
-  --line-strong: #d2c9bc;
-  --navy: #062849;
-  --navy-strong: #041f3a;
-  --navy-soft: #173f64;
-  --accent: #ee5a32;
-  --accent-strong: #d94722;
-  --accent-soft: #fff0ea;
-  --success: #16806a;
-  --success-soft: #e8f5f1;
-  --warning: #bd6a12;
-  --warning-soft: #fff4df;
-  --danger: #c54134;
-  --danger-soft: #fff0ed;
-  --info: #2d6592;
-  --shadow-soft: 0 8px 24px rgba(32, 26, 18, 0.045);
-  --shadow-float: 0 16px 40px rgba(18, 27, 37, 0.09);
-  --radius: 7px;
-  --sidebar-width: 212px;
+  --aster-background: #f4f4f4;
+  --aster-layer: #ffffff;
+  --aster-layer-muted: #e8e8e8;
+  --aster-text: #161616;
+  --aster-text-secondary: #525252;
+  --aster-border: #c6c6c6;
+  --aster-accent: #0f62fe;
+  --aster-header-height: 3rem;
+  --aster-subnav-height: 2.5rem;
+  --aster-content-max: 90rem;
 }
 
-* {
-  box-sizing: border-box;
-}
-
-html,
-body,
-#__next {
-  min-height: 100%;
-}
-
-html {
-  background: var(--canvas);
-  color-scheme: light;
-}
-
+*, *::before, *::after { box-sizing: border-box; }
+html, body, #__next { min-height: 100%; }
+html { background: var(--aster-background); color-scheme: light; }
 body {
   margin: 0;
-  background: var(--canvas);
-  color: var(--ink);
-  font-family: Inter, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", ui-sans-serif, system-ui, sans-serif;
-  font-size: 15px;
-  line-height: 1.55;
+  background: var(--aster-background);
+  color: var(--aster-text);
+  font-family: 'IBM Plex Sans', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.5;
   text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
+}
+
+.numeric, [data-numeric='true'] {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 button,
