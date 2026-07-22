@@ -65,10 +65,10 @@ Design Read：面向采购、销售与库存运营人员的企业 ERP 重设计�
 
 新增前端依赖：
 
-- `@carbon/react`
-- `@carbon/styles`
-- `@carbon/icons-react`
+- `@carbon/react@^1.112.0`
 - `sass`
+
+Carbon v11 的 React 包已经提供组件、样式入口和图标，因此不再单独安装 `@carbon/styles` 或 `@carbon/icons-react`。
 
 Recharts 继续负责现有图表，但必须使用 Carbon 色彩、字体和间距令牌。
 
