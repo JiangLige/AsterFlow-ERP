@@ -189,7 +189,7 @@ textarea {
 
 input::placeholder,
 textarea::placeholder {
-  color: #aaa39a;
+  color: var(--aster-text-secondary);
 }
 
 input:focus,

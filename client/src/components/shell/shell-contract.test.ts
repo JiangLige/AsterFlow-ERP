@@ -21,6 +21,7 @@ describe('Carbon shell style contract', () => {
   it('contains no rejected warm palette values', () => {
     expect(styles.toLowerCase()).not.toContain('rgba(255, 253, 249, 0.72)');
     expect(styles.toLowerCase()).not.toContain('#efc9a4');
+    expect(styles.toLowerCase()).not.toContain('#aaa39a');
   });
 
   it.each([
