@@ -8,8 +8,17 @@ describe('AsterFlow Carbon theme', () => {
   it('loads Carbon and locks the approved visual tokens', () => {
     expect(source).toContain("@use '@carbon/react'");
     expect(source).toContain('--aster-background: #f4f4f4');
+    expect(source).toContain('--aster-layer: #ffffff');
     expect(source).toContain('--aster-text: #161616');
+    expect(source).toContain('--aster-text-secondary: #525252');
+    expect(source).toContain('--aster-border: #c6c6c6');
     expect(source).toContain('--aster-accent: #0f62fe');
-    expect(source).not.toMatch(/#f7f3ec|#ee5a32/i);
+    expect(source).not.toMatch(/#f7f3ec|#062849|#ee5a32/i);
+  });
+
+  it('gives the root application a dynamic viewport minimum height', () => {
+    expect(source).toMatch(
+      /html,\s*body,\s*#__next\s*{\s*min-height:\s*100dvh;\s*}/,
+    );
   });
 });
