@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
 import { apiRequest } from '@/lib/api';
+import { FadeIn } from '@/components/motion';
+import { motion, AnimatePresence } from 'motion/react';
 
 type Supplier = {
     id: number;
@@ -93,95 +95,156 @@ export default function SuppliersPage() {
 
     return (
         <Layout>
-            <section className="page-hero">
-                <div>
-                    <p className="eyebrow">供应网络</p>
-                    <h1>供应商列表</h1>
-                    <p className="muted">管理供应商资料、联系方式和启停状态。</p>
+            <FadeIn direction="up" distance={16}>
+                <section className="page-hero">
+                    <div>
+                        <p className="eyebrow">供应网络</p>
+                        <h1>供应商列表</h1>
+                        <p className="muted">管理供应商资料、联系方式和启停状态。</p>
+                    </div>
+
+                    <div className="page-actions">
+                        <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                            <Link className="btn-primary" href="/suppliers/new">
+                                新增供应商
+                            </Link>
+                        </motion.div>
+                    </div>
+                </section>
+            </FadeIn>
+
+            <FadeIn direction="up" delay={0.1}>
+                <div className="toolbar">
+                    <input
+                        value={keyword}
+                        onChange={(e) => setKeyword(e.target.value)}
+                        placeholder="输入供应商编码/名称/电话"
+                    />
+
+                    <motion.button
+                        onClick={() => loadSuppliers(1)}
+                        disabled={loading}
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                    >
+                        {loading ? '查询中...' : '查询'}
+                    </motion.button>
                 </div>
+            </FadeIn>
 
-                <div className="page-actions">
-                    <Link className="btn-primary" href="/suppliers/new">
-                        新增供应商
-                    </Link>
-                </div>
-            </section>
+            <AnimatePresence mode="wait">
+                {error && (
+                    <FadeIn direction="up" delay={0.05} key="error">
+                        <div className="alert alert-danger">{error}</div>
+                    </FadeIn>
+                )}
+            </AnimatePresence>
 
-            <div className="toolbar">
-                <input
-                    value={keyword}
-                    onChange={(e) => setKeyword(e.target.value)}
-                    placeholder="输入供应商编码/名称/电话"
-                />
+            <FadeIn direction="up" delay={0.15}>
+                <p className="muted" style={{ marginTop: '1rem' }}>
+                    第 {page} / {pages} 页，共 {total} 条
+                </p>
+            </FadeIn>
 
-                <button onClick={() => loadSuppliers(1)} disabled={loading}>
-                    {loading ? '查询中...' : '查询'}
-                </button>
-            </div>
-
-            {error && <div className="alert alert-danger">{error}</div>}
-
-            <p className="muted" style={{ marginTop: '1rem' }}>
-                第 {page} / {pages} 页，共 {total} 条
-            </p>
-
-            <table>
-                <thead>
-                    <tr>
-                        <th>编码</th>
-                        <th>名称</th>
-                        <th>联系人</th>
-                        <th>电话</th>
-                        <th>地址</th>
-                        <th>状态</th>
-                        <th>操作</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {suppliers.map((supplier) => (
-                        <tr key={supplier.id}>
-                            <td>{supplier.supplierCode}</td>
-                            <td>{supplier.name}</td>
-                            <td>{supplier.contactName || '-'}</td>
-                            <td>{supplier.phone || '-'}</td>
-                            <td>{supplier.address || '-'}</td>
-                            <td>
-                                <span className={`status-badge ${supplier.status === 'ACTIVE' ? 'success' : 'warning'}`}>
-                                    {formatStatus(supplier.status)}
-                                </span>
-                            </td>
-                            <td className="action-cell">
-                                <Link href={`/suppliers/${supplier.id}/edit`}>编辑</Link>
-
-                                {role === 'ADMIN' && supplier.status === 'ACTIVE' && (
-                                    <button onClick={() => handleChangeStatus(supplier.id, 'INACTIVE')}>
-                                        停用
-                                    </button>
-                                )}
-
-                                {role === 'ADMIN' && supplier.status === 'INACTIVE' && (
-                                    <button onClick={() => handleChangeStatus(supplier.id, 'ACTIVE')}>
-                                        启用
-                                    </button>
-                                )}
-                            </td>
+            <FadeIn direction="up" delay={0.2}>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>编码</th>
+                            <th>名称</th>
+                            <th>联系人</th>
+                            <th>电话</th>
+                            <th>地址</th>
+                            <th>状态</th>
+                            <th>操作</th>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {suppliers.map((supplier, index) => (
+                            <motion.tr
+                                key={supplier.id}
+                                initial={{ opacity: 0, y: 8 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{
+                                    delay: index * 0.04,
+                                    duration: 0.35,
+                                    ease: [0.16, 1, 0.3, 1],
+                                }}
+                            >
+                                <td>
+                                    <strong>{supplier.supplierCode}</strong>
+                                </td>
+                                <td>{supplier.name}</td>
+                                <td>{supplier.contactName || '-'}</td>
+                                <td>{supplier.phone || '-'}</td>
+                                <td>{supplier.address || '-'}</td>
+                                <td>
+                                    <span className={`status-badge ${supplier.status === 'ACTIVE' ? 'success' : 'warning'}`}>
+                                        {formatStatus(supplier.status)}
+                                    </span>
+                                </td>
+                                <td className="action-cell">
+                                    <Link href={`/suppliers/${supplier.id}/edit`}>编辑</Link>
+
+                                    {role === 'ADMIN' && supplier.status === 'ACTIVE' && (
+                                        <motion.button
+                                            onClick={() => handleChangeStatus(supplier.id, 'INACTIVE')}
+                                            whileHover={{ scale: 1.03 }}
+                                            whileTap={{ scale: 0.97 }}
+                                        >
+                                            停用
+                                        </motion.button>
+                                    )}
+
+                                    {role === 'ADMIN' && supplier.status === 'INACTIVE' && (
+                                        <motion.button
+                                            onClick={() => handleChangeStatus(supplier.id, 'ACTIVE')}
+                                            whileHover={{ scale: 1.03 }}
+                                            whileTap={{ scale: 0.97 }}
+                                        >
+                                            启用
+                                        </motion.button>
+                                    )}
+                                </td>
+                            </motion.tr>
+                        ))}
+                    </tbody>
+                </table>
+            </FadeIn>
 
             {!loading && suppliers.length === 0 && (
-                <div className="empty-state">暂无供应商数据</div>
+                <FadeIn direction="up" delay={0.1}>
+                    <motion.div
+                        className="empty-state"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.3 }}
+                    >
+                        <span>暂无供应商数据</span>
+                    </motion.div>
+                </FadeIn>
             )}
 
-            <div className="toolbar">
-                <button onClick={() => loadSuppliers(page - 1)} disabled={loading || page <= 1}>
-                    上一页
-                </button>
-                <button onClick={() => loadSuppliers(page + 1)} disabled={loading || page >= pages}>
-                    下一页
-                </button>
-            </div>
+            <FadeIn direction="up" delay={0.25}>
+                <div className="toolbar">
+                    <motion.button
+                        onClick={() => loadSuppliers(page - 1)}
+                        disabled={loading || page <= 1}
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                    >
+                        上一页
+                    </motion.button>
+                    <motion.button
+                        onClick={() => loadSuppliers(page + 1)}
+                        disabled={loading || page >= pages}
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                    >
+                        下一页
+                    </motion.button>
+                </div>
+            </FadeIn>
         </Layout>
     );
 }

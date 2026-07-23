@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
 import { apiRequest } from '@/lib/api';
+import { FadeIn } from '@/components/motion';
+import { motion } from 'motion/react';
 
 type Product = {
     id: number;
@@ -113,99 +115,148 @@ export default function ProductsPage() {
 
     return (
         <Layout>
-            <section className="page-hero">
-                <div>
-                    <p className="eyebrow">商品档案</p>
-                    <h1>商品列表</h1>
-                    <p className="muted">维护编码、分类、价格和库存安全线。</p>
+            <FadeIn direction="up" distance={16}>
+                <section className="page-hero">
+                    <div>
+                        <p className="eyebrow">商品档案</p>
+                        <h1>商品列表</h1>
+                        <p className="muted">维护编码、分类、价格和库存安全线。</p>
+                    </div>
+
+                    <div className="page-actions">
+                        <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                            <Link className="btn-primary" href="/products/new">
+                                新增商品
+                            </Link>
+                        </motion.div>
+                    </div>
+                </section>
+            </FadeIn>
+
+            <FadeIn direction="up" delay={0.1}>
+                <div className="toolbar">
+                    <input
+                        value={keyword}
+                        onChange={(e) => setKeyword(e.target.value)}
+                        placeholder="输入商品编码/名称/分类"
+                    />
+                    <motion.button
+                        onClick={() => loadProducts(1)}
+                        disabled={loading}
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                    >
+                        {loading ? '查询中...' : '查询'}
+                    </motion.button>
                 </div>
+            </FadeIn>
 
-                <div className="page-actions">
-                    <Link className="btn-primary" href="/products/new">
-                        新增商品
-                    </Link>
-                </div>
-            </section>
-
-            <div className="toolbar">
-                <input
-                    value={keyword}
-                    onChange={(e) => setKeyword(e.target.value)}
-                    placeholder="输入商品编码/名称/分类"
-                />
-                <button onClick={() => loadProducts(1)} disabled={loading}>
-                    {loading ? '查询中...' : '查询'}
-                </button>
-            </div>
-
-            {error && <div className="alert alert-danger">{error}</div>}
-
-            <p className="muted" style={{ marginTop: '1rem' }}>
-                第 {page} / {pages} 页，共 {total} 条
-            </p>
-
-            <table>
-                <thead>
-                    <tr>
-                        <th>编码</th>
-                        <th>名称</th>
-                        <th>分类</th>
-                        <th>单位</th>
-                        <th>售价</th>
-                        <th>成本</th>
-                        <th>库存</th>
-                        <th>最低库存</th>
-                        <th>状态</th>
-                        <th>操作</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {products.map((product) => (
-                        <tr key={product.id}>
-                            <td>{product.productCode}</td>
-                            <td>{product.name}</td>
-                            <td>{product.category}</td>
-                            <td>{product.unit}</td>
-                            <td>{formatCurrency(product.price)}</td>
-                            <td>{formatCurrency(product.cost)}</td>
-                            <td>
-                                <strong style={{ color: product.stock <= product.minStock ? 'var(--danger)' : 'inherit' }}>
-                                    {product.stock}
-                                </strong>
-                            </td>
-                            <td>{product.minStock}</td>
-                            <td>
-                                <span className={`status-badge ${product.status === 'ACTIVE' ? 'success' : 'warning'}`}>
-                                    {formatStatus(product.status)}
-                                </span>
-                            </td>
-                            <td className="action-cell">
-                                <Link href={`/products/${product.id}/edit`}>编辑</Link>
-                                <Link href={`/products/${product.id}/stock`}>库存调整</Link>
-
-                                {role === 'ADMIN' && (
-                                    <button onClick={() => handleDelete(product.id)}>
-                                        停用
-                                    </button>
-                                )}
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-
-            {!loading && products.length === 0 && (
-                <div className="empty-state">暂无商品数据</div>
+            {error && (
+                <FadeIn direction="up" delay={0.05}>
+                    <div className="alert alert-danger">{error}</div>
+                </FadeIn>
             )}
 
-            <div className="toolbar">
-                <button onClick={() => loadProducts(page - 1)} disabled={loading || page <= 1}>
-                    上一页
-                </button>
-                <button onClick={() => loadProducts(page + 1)} disabled={loading || page >= pages}>
-                    下一页
-                </button>
-            </div>
+            <FadeIn direction="up" delay={0.15}>
+                <p className="muted" style={{ marginTop: '1rem' }}>
+                    第 {page} / {pages} 页，共 {total} 条
+                </p>
+            </FadeIn>
+
+            <FadeIn direction="up" delay={0.2}>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>编码</th>
+                            <th>名称</th>
+                            <th>分类</th>
+                            <th>单位</th>
+                            <th>售价</th>
+                            <th>成本</th>
+                            <th>库存</th>
+                            <th>最低库存</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {products.map((product, index) => (
+                            <motion.tr
+                                key={product.id}
+                                initial={{ opacity: 0, y: 8 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{
+                                    delay: index * 0.04,
+                                    duration: 0.35,
+                                    ease: [0.16, 1, 0.3, 1],
+                                }}
+                            >
+                                <td>{product.productCode}</td>
+                                <td>{product.name}</td>
+                                <td>{product.category}</td>
+                                <td>{product.unit}</td>
+                                <td>{formatCurrency(product.price)}</td>
+                                <td>{formatCurrency(product.cost)}</td>
+                                <td>
+                                    <strong style={{ color: product.stock <= product.minStock ? 'var(--danger)' : 'inherit' }}>
+                                        {product.stock}
+                                    </strong>
+                                </td>
+                                <td>{product.minStock}</td>
+                                <td>
+                                    <span className={`status-badge ${product.status === 'ACTIVE' ? 'success' : 'warning'}`}>
+                                        {formatStatus(product.status)}
+                                    </span>
+                                </td>
+                                <td className="action-cell">
+                                    <Link href={`/products/${product.id}/edit`}>编辑</Link>
+                                    <Link href={`/products/${product.id}/stock`}>库存调整</Link>
+
+                                    {role === 'ADMIN' && (
+                                        <button onClick={() => handleDelete(product.id)}>
+                                            停用
+                                        </button>
+                                    )}
+                                </td>
+                            </motion.tr>
+                        ))}
+                    </tbody>
+                </table>
+            </FadeIn>
+
+            {!loading && products.length === 0 && (
+                <FadeIn direction="up" delay={0.1}>
+                    <motion.div
+                        className="empty-state"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.3 }}
+                    >
+                        <span>暂无商品数据</span>
+                    </motion.div>
+                </FadeIn>
+            )}
+
+            <FadeIn direction="up" delay={0.25}>
+                <div className="toolbar">
+                    <motion.button
+                        onClick={() => loadProducts(page - 1)}
+                        disabled={loading || page <= 1}
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                    >
+                        上一页
+                    </motion.button>
+                    <motion.button
+                        onClick={() => loadProducts(page + 1)}
+                        disabled={loading || page >= pages}
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                    >
+                        下一页
+                    </motion.button>
+                </div>
+            </FadeIn>
         </Layout>
     );
 }

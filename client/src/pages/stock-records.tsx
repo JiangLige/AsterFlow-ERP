@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
 import { apiRequest } from '@/lib/api';
+import { FadeIn } from '@/components/motion';
+import { motion, AnimatePresence } from 'motion/react';
 
 type StockRecord = {
     id: number;
@@ -99,90 +101,141 @@ export default function StockRecordsPage() {
 
     return (
         <Layout>
-            <section className="page-hero">
-                <div>
-                    <p className="eyebrow">库存追踪</p>
-                    <h1>库存流水</h1>
-                    <p className="muted">查看入库、出库和调整记录，追溯来源单据。</p>
+            <FadeIn direction="up" distance={16}>
+                <section className="page-hero">
+                    <div>
+                        <p className="eyebrow">库存追踪</p>
+                        <h1>库存流水</h1>
+                        <p className="muted">查看入库、出库和调整记录，追溯来源单据。</p>
+                    </div>
+                </section>
+            </FadeIn>
+
+            <FadeIn direction="up" delay={0.1}>
+                <div className="toolbar">
+                    <input
+                        value={keyword}
+                        onChange={(e) => setKeyword(e.target.value)}
+                        placeholder="输入商品编码/名称"
+                    />
+
+                    <select value={type} onChange={(e) => setType(e.target.value)}>
+                        <option value="">全部类型</option>
+                        <option value="IN">入库</option>
+                        <option value="OUT">出库</option>
+                        <option value="ADJUST">调整</option>
+                    </select>
+
+                    <motion.button
+                        onClick={() => loadRecords(1)}
+                        disabled={loading}
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                    >
+                        {loading ? '加载中...' : '查询'}
+                    </motion.button>
                 </div>
-            </section>
+            </FadeIn>
 
-            <div className="toolbar">
-                <input
-                    value={keyword}
-                    onChange={(e) => setKeyword(e.target.value)}
-                    placeholder="输入商品编码/名称"
-                />
+            <AnimatePresence mode="wait">
+                {error && (
+                    <FadeIn direction="up" delay={0.05} key="error">
+                        <div className="alert alert-danger">{error}</div>
+                    </FadeIn>
+                )}
+            </AnimatePresence>
 
-                <select value={type} onChange={(e) => setType(e.target.value)}>
-                    <option value="">全部类型</option>
-                    <option value="IN">入库</option>
-                    <option value="OUT">出库</option>
-                    <option value="ADJUST">调整</option>
-                </select>
+            <FadeIn direction="up" delay={0.15}>
+                <p className="muted" style={{ marginTop: '1rem' }}>
+                    第 {page} / {pages} 页，共 {total} 条
+                </p>
+            </FadeIn>
 
-                <button onClick={() => loadRecords(1)} disabled={loading}>
-                    {loading ? '加载中...' : '查询'}
-                </button>
-            </div>
-
-            {error && <div className="alert alert-danger">{error}</div>}
-
-            <p className="muted" style={{ marginTop: '1rem' }}>
-                第 {page} / {pages} 页，共 {total} 条
-            </p>
-
-            <table>
-                <thead>
-                    <tr>
-                        <th>商品编码</th>
-                        <th>商品名称</th>
-                        <th>类型</th>
-                        <th>变化数量</th>
-                        <th>变化前</th>
-                        <th>变化后</th>
-                        <th>来源单据</th>
-                        <th>备注</th>
-                        <th>创建时间</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {records.map((record) => (
-                        <tr key={record.id}>
-                            <td>{record.productCode}</td>
-                            <td>{record.productName}</td>
-                            <td>
-                                <span className={`status-badge ${typeTone(record.type)}`}>
-                                    {formatType(record.type)}
-                                </span>
-                            </td>
-                            <td>
-                                <strong style={{ color: record.changeQuantity < 0 ? 'var(--danger)' : 'var(--success)' }}>
-                                    {record.changeQuantity}
-                                </strong>
-                            </td>
-                            <td>{record.beforeStock}</td>
-                            <td>{record.afterStock}</td>
-                            <td>{formatSource(record)}</td>
-                            <td>{record.remark || '-'}</td>
-                            <td>{record.createdAt}</td>
+            <FadeIn direction="up" delay={0.2}>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>商品编码</th>
+                            <th>商品名称</th>
+                            <th>类型</th>
+                            <th>变化数量</th>
+                            <th>变化前</th>
+                            <th>变化后</th>
+                            <th>来源单据</th>
+                            <th>备注</th>
+                            <th>创建时间</th>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {records.map((record, index) => (
+                            <motion.tr
+                                key={record.id}
+                                initial={{ opacity: 0, y: 8 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{
+                                    delay: index * 0.04,
+                                    duration: 0.35,
+                                    ease: [0.16, 1, 0.3, 1],
+                                }}
+                            >
+                                <td>
+                                    <strong>{record.productCode}</strong>
+                                </td>
+                                <td>{record.productName}</td>
+                                <td>
+                                    <span className={`status-badge ${typeTone(record.type)}`}>
+                                        {formatType(record.type)}
+                                    </span>
+                                </td>
+                                <td>
+                                    <strong style={{ color: record.changeQuantity < 0 ? 'var(--danger)' : 'var(--success)' }}>
+                                        {record.changeQuantity > 0 ? '+' : ''}{record.changeQuantity}
+                                    </strong>
+                                </td>
+                                <td>{record.beforeStock}</td>
+                                <td>{record.afterStock}</td>
+                                <td>{formatSource(record)}</td>
+                                <td>{record.remark || '-'}</td>
+                                <td>{record.createdAt}</td>
+                            </motion.tr>
+                        ))}
+                    </tbody>
+                </table>
+            </FadeIn>
 
             {!loading && records.length === 0 && (
-                <div className="empty-state">暂无库存流水</div>
+                <FadeIn direction="up" delay={0.1}>
+                    <motion.div
+                        className="empty-state"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.3 }}
+                    >
+                        <span>暂无库存流水</span>
+                    </motion.div>
+                </FadeIn>
             )}
 
-            <div className="toolbar">
-                <button onClick={() => loadRecords(page - 1)} disabled={loading || page <= 1}>
-                    上一页
-                </button>
-                <button onClick={() => loadRecords(page + 1)} disabled={loading || page >= pages}>
-                    下一页
-                </button>
-            </div>
+            <FadeIn direction="up" delay={0.25}>
+                <div className="toolbar">
+                    <motion.button
+                        onClick={() => loadRecords(page - 1)}
+                        disabled={loading || page <= 1}
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                    >
+                        上一页
+                    </motion.button>
+                    <motion.button
+                        onClick={() => loadRecords(page + 1)}
+                        disabled={loading || page >= pages}
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                    >
+                        下一页
+                    </motion.button>
+                </div>
+            </FadeIn>
         </Layout>
     );
 }

@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
 import { apiRequest } from '@/lib/api';
+import { FadeIn } from '@/components/motion';
+import { motion, AnimatePresence } from 'motion/react';
 
 type PurchaseOrder = {
     id: number;
@@ -154,108 +156,173 @@ export default function PurchaseOrdersPage() {
 
     return (
         <Layout>
-            <section className="page-hero">
-                <div>
-                    <p className="eyebrow">采购入库</p>
-                    <h1>采购单列表</h1>
-                    <p className="muted">跟踪采购草稿、审核入库和取消流转。</p>
+            <FadeIn direction="up" distance={16}>
+                <section className="page-hero">
+                    <div>
+                        <p className="eyebrow">采购入库</p>
+                        <h1>采购单列表</h1>
+                        <p className="muted">跟踪采购草稿、审核入库和取消流转。</p>
+                    </div>
+
+                    <div className="page-actions">
+                        <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                            <Link className="btn-primary" href="/purchase-orders/new">
+                                新增采购单
+                            </Link>
+                        </motion.div>
+                    </div>
+                </section>
+            </FadeIn>
+
+            <FadeIn direction="up" delay={0.1}>
+                <div className="toolbar">
+                    <input
+                        value={keyword}
+                        onChange={(e) => setKeyword(e.target.value)}
+                        placeholder="输入采购单号/供应商"
+                    />
+
+                    <select value={status} onChange={(e) => setStatus(e.target.value)}>
+                        <option value="">全部状态</option>
+                        <option value="DRAFT">草稿</option>
+                        <option value="APPROVED">已审核</option>
+                        <option value="CANCELED">已取消</option>
+                    </select>
+
+                    <motion.button
+                        onClick={() => loadOrders(1)}
+                        disabled={loading}
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                    >
+                        {loading ? '加载中...' : '查询'}
+                    </motion.button>
                 </div>
+            </FadeIn>
 
-                <div className="page-actions">
-                    <Link className="btn-primary" href="/purchase-orders/new">
-                        新增采购单
-                    </Link>
-                </div>
-            </section>
+            <AnimatePresence mode="wait">
+                {error && (
+                    <FadeIn direction="up" delay={0.05} key="error">
+                        <div className="alert alert-danger">{error}</div>
+                    </FadeIn>
+                )}
+            </AnimatePresence>
 
-            <div className="toolbar">
-                <input
-                    value={keyword}
-                    onChange={(e) => setKeyword(e.target.value)}
-                    placeholder="输入采购单号/供应商"
-                />
+            <FadeIn direction="up" delay={0.15}>
+                <p className="muted" style={{ marginTop: '1rem' }}>
+                    第 {page} / {pages} 页，共 {total} 条
+                </p>
+            </FadeIn>
 
-                <select value={status} onChange={(e) => setStatus(e.target.value)}>
-                    <option value="">全部状态</option>
-                    <option value="DRAFT">草稿</option>
-                    <option value="APPROVED">已审核</option>
-                    <option value="CANCELED">已取消</option>
-                </select>
-
-                <button onClick={() => loadOrders(1)} disabled={loading}>
-                    {loading ? '加载中...' : '查询'}
-                </button>
-            </div>
-
-            {error && <div className="alert alert-danger">{error}</div>}
-
-            <p className="muted" style={{ marginTop: '1rem' }}>
-                第 {page} / {pages} 页，共 {total} 条
-            </p>
-
-            <table>
-                <thead>
-                    <tr>
-                        <th>单号</th>
-                        <th>供应商</th>
-                        <th>金额</th>
-                        <th>状态</th>
-                        <th>备注</th>
-                        <th>创建时间</th>
-                        <th>操作</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {orders.map((order) => (
-                        <tr key={order.id}>
-                            <td>{order.orderNo}</td>
-                            <td>{order.supplierName}</td>
-                            <td>{formatCurrency(order.totalAmount)}</td>
-                            <td>
-                                <span className={`status-badge ${statusTone(order.status)}`}>
-                                    {formatStatus(order.status)}
-                                </span>
-                            </td>
-                            <td>{order.remark || '-'}</td>
-                            <td>{order.createdAt}</td>
-                            <td className="action-cell">
-                                <Link href={`/purchase-orders/${order.id}`}>详情</Link>
-                                {order.status === 'DRAFT' && (
-                                    <Link href={`/purchase-orders/${order.id}/edit`}>编辑</Link>
-                                )}
-                                {order.status === 'DRAFT' && (
-                                    <button onClick={() => handleApprove(order.id)}>
-                                        审核入库
-                                    </button>
-                                )}
-                                {role === 'ADMIN' && order.status === 'DRAFT' && (
-                                    <button onClick={() => handleDelete(order.id)}>
-                                        删除
-                                    </button>
-                                )}
-                                {order.status === 'APPROVED' && (
-                                    <button onClick={() => handleCancel(order.id)}>
-                                        取消采购单
-                                    </button>
-                                )}
-                            </td>
+            <FadeIn direction="up" delay={0.2}>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>单号</th>
+                            <th>供应商</th>
+                            <th>金额</th>
+                            <th>状态</th>
+                            <th>备注</th>
+                            <th>创建时间</th>
+                            <th>操作</th>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {orders.map((order, index) => (
+                            <motion.tr
+                                key={order.id}
+                                initial={{ opacity: 0, y: 8 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{
+                                    delay: index * 0.04,
+                                    duration: 0.35,
+                                    ease: [0.16, 1, 0.3, 1],
+                                }}
+                            >
+                                <td>
+                                    <strong>{order.orderNo}</strong>
+                                </td>
+                                <td>{order.supplierName}</td>
+                                <td>{formatCurrency(order.totalAmount)}</td>
+                                <td>
+                                    <span className={`status-badge ${statusTone(order.status)}`}>
+                                        {formatStatus(order.status)}
+                                    </span>
+                                </td>
+                                <td>{order.remark || '-'}</td>
+                                <td>{order.createdAt}</td>
+                                <td className="action-cell">
+                                    <Link href={`/purchase-orders/${order.id}`}>详情</Link>
+                                    {order.status === 'DRAFT' && (
+                                        <Link href={`/purchase-orders/${order.id}/edit`}>编辑</Link>
+                                    )}
+                                    {order.status === 'DRAFT' && (
+                                        <motion.button
+                                            onClick={() => handleApprove(order.id)}
+                                            whileHover={{ scale: 1.03 }}
+                                            whileTap={{ scale: 0.97 }}
+                                        >
+                                            审核入库
+                                        </motion.button>
+                                    )}
+                                    {role === 'ADMIN' && order.status === 'DRAFT' && (
+                                        <motion.button
+                                            onClick={() => handleDelete(order.id)}
+                                            whileHover={{ scale: 1.03 }}
+                                            whileTap={{ scale: 0.97 }}
+                                        >
+                                            删除
+                                        </motion.button>
+                                    )}
+                                    {order.status === 'APPROVED' && (
+                                        <motion.button
+                                            onClick={() => handleCancel(order.id)}
+                                            whileHover={{ scale: 1.03 }}
+                                            whileTap={{ scale: 0.97 }}
+                                        >
+                                            取消采购单
+                                        </motion.button>
+                                    )}
+                                </td>
+                            </motion.tr>
+                        ))}
+                    </tbody>
+                </table>
+            </FadeIn>
 
             {!loading && orders.length === 0 && (
-                <div className="empty-state">暂无采购单数据</div>
+                <FadeIn direction="up" delay={0.1}>
+                    <motion.div
+                        className="empty-state"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.3 }}
+                    >
+                        <span>暂无采购单数据</span>
+                    </motion.div>
+                </FadeIn>
             )}
 
-            <div className="toolbar">
-                <button onClick={() => loadOrders(page - 1)} disabled={loading || page <= 1}>
-                    上一页
-                </button>
-                <button onClick={() => loadOrders(page + 1)} disabled={loading || page >= pages}>
-                    下一页
-                </button>
-            </div>
+            <FadeIn direction="up" delay={0.25}>
+                <div className="toolbar">
+                    <motion.button
+                        onClick={() => loadOrders(page - 1)}
+                        disabled={loading || page <= 1}
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                    >
+                        上一页
+                    </motion.button>
+                    <motion.button
+                        onClick={() => loadOrders(page + 1)}
+                        disabled={loading || page >= pages}
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                    >
+                        下一页
+                    </motion.button>
+                </div>
+            </FadeIn>
         </Layout>
     );
 }

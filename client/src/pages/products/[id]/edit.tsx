@@ -1,7 +1,11 @@
+"use client";
+
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
+import { motion, AnimatePresence } from 'motion/react';
 import Layout from '@/components/Layout';
 import { apiRequest } from '@/lib/api';
+import { FadeIn, FormField } from '@/components/motion';
 
 type ProductForm = {
     productCode: string;
@@ -33,6 +37,7 @@ export default function ProductEditPage() {
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         if (!router.isReady || !productId) {
@@ -81,6 +86,7 @@ export default function ProductEditPage() {
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
         setError('');
+        setIsSubmitting(true);
 
         try {
             await apiRequest(`/api/products/${productId}`, {
@@ -96,75 +102,111 @@ export default function ProductEditPage() {
             router.push('/products');
         } catch (err) {
             setError(err instanceof Error ? err.message : '保存失败');
+        } finally {
+            setIsSubmitting(false);
         }
     }
 
     return (
         <Layout>
-            <section className="page-hero">
-                <div>
-                    <p className="eyebrow">商品档案</p>
-                    <h1>编辑商品</h1>
-                    <p className="muted">当前商品 ID：{productId || '-'}</p>
-                </div>
-            </section>
+            <FadeIn direction="up" distance={16} duration={0.5}>
+                <section className="page-hero">
+                    <div>
+                        <p className="eyebrow">商品档案</p>
+                        <h1>编辑商品</h1>
+                        <p className="muted">当前商品 ID：{productId || '-'}</p>
+                    </div>
+                </section>
+            </FadeIn>
 
-            {loading && <div className="empty-state">加载中...</div>}
-            {error && <div className="alert alert-danger">{error}</div>}
+            {loading && (
+                <FadeIn direction="up" delay={0.1}>
+                    <div className="empty-state">加载中...</div>
+                </FadeIn>
+            )}
 
-            <form onSubmit={handleSubmit}>
-                <div>
-                    <label>商品编码</label>
-                    <input name="productCode" value={form.productCode} onChange={handleChange} />
-                </div>
+            <AnimatePresence>
+                {error && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -12 }}
+                        transition={{ duration: 0.3 }}
+                    >
+                        <div className="alert alert-danger">{error}</div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
-                <div>
-                    <label>商品名称</label>
-                    <input name="name" value={form.name} onChange={handleChange} />
-                </div>
+            {!loading && (
+                <FadeIn direction="up" delay={0.1} distance={20}>
+                    <form onSubmit={handleSubmit} className="form-container">
+                        <div className="form-grid">
+                            <FormField label="商品编码" index={0}>
+                                <input name="productCode" value={form.productCode} onChange={handleChange} />
+                            </FormField>
 
-                <div>
-                    <label>分类</label>
-                    <input name="category" value={form.category} onChange={handleChange} />
-                </div>
+                            <FormField label="商品名称" index={1}>
+                                <input name="name" value={form.name} onChange={handleChange} />
+                            </FormField>
 
-                <div>
-                    <label>单位</label>
-                    <input name="unit" value={form.unit} onChange={handleChange} />
-                </div>
+                            <FormField label="分类" index={2}>
+                                <input name="category" value={form.category} onChange={handleChange} />
+                            </FormField>
 
-                <div>
-                    <label>售价</label>
-                    <input name="price" type="number" value={form.price} onChange={handleChange} />
-                </div>
+                            <FormField label="单位" index={3}>
+                                <input name="unit" value={form.unit} onChange={handleChange} />
+                            </FormField>
 
-                <div>
-                    <label>成本价</label>
-                    <input name="cost" type="number" value={form.cost} onChange={handleChange} />
-                </div>
+                            <FormField label="售价" index={4}>
+                                <input name="price" type="number" min="0" step="0.01" value={form.price} onChange={handleChange} />
+                            </FormField>
 
-                <div>
-                    <label>库存</label>
-                    <input name="stock" type="number" value={form.stock} onChange={handleChange} />
-                </div>
+                            <FormField label="成本价" index={5}>
+                                <input name="cost" type="number" min="0" step="0.01" value={form.cost} onChange={handleChange} />
+                            </FormField>
 
-                <div>
-                    <label>状态</label>
-                    <select name="status" value={form.status} onChange={handleChange}>
-                        <option value="ACTIVE">启用</option>
-                        <option value="INACTIVE">停用</option>
-                    </select>
-                </div>
+                            <FormField label="库存" index={6}>
+                                <input name="stock" type="number" min="0" value={form.stock} onChange={handleChange} />
+                            </FormField>
 
-                <div>
-                    <label>描述</label>
-                    <textarea name="description" value={form.description} onChange={handleChange} />
-                </div>
+                            <FormField label="状态" index={7}>
+                                <select name="status" value={form.status} onChange={handleChange}>
+                                    <option value="ACTIVE">启用</option>
+                                    <option value="INACTIVE">停用</option>
+                                </select>
+                            </FormField>
 
-                <button type="submit">保存修改</button>
+                            <FormField label="描述" index={8}>
+                                <textarea name="description" value={form.description} onChange={handleChange} rows={4} />
+                            </FormField>
+                        </div>
 
-            </form>
-
+                        <div className="form-actions">
+                            <motion.button
+                                type="button"
+                                className="btn btn-secondary"
+                                onClick={() => router.push('/products')}
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                            >
+                                取消
+                            </motion.button>
+                            <motion.button
+                                type="submit"
+                                className="btn btn-primary"
+                                disabled={isSubmitting}
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                            >
+                                {isSubmitting ? '保存中...' : '保存修改'}
+                            </motion.button>
+                        </div>
+                    </form>
+                </FadeIn>
+            )}
         </Layout>
     );
 }
