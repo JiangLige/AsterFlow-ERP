@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import LoginPage from '@/pages/login';
 
@@ -23,6 +23,44 @@ describe('Carbon login experience', () => {
   afterEach(() => {
     cleanup();
     vi.unstubAllGlobals();
+  });
+
+  it('names the login form with its visible heading', () => {
+    render(<LoginPage />);
+
+    expect(screen.getByRole('form', { name: '登录运营工作台' })).toBeVisible();
+  });
+
+  it('disables repeat submissions while login is pending', async () => {
+    let resolveFetch!: (response: Response) => void;
+    fetchMock.mockReturnValue(new Promise<Response>((resolve) => {
+      resolveFetch = resolve;
+    }));
+
+    render(<LoginPage />);
+    const form = screen.getByRole('form', { name: '登录运营工作台' });
+    fireEvent.submit(form);
+
+    const loadingButton = await screen.findByRole('button', { name: '正在登录' });
+    expect(loadingButton).toBeDisabled();
+
+    fireEvent.click(loadingButton);
+    fireEvent.submit(form);
+    expect(fetchMock).toHaveBeenCalledOnce();
+
+    await act(async () => {
+      resolveFetch(new Response(JSON.stringify({
+        success: true,
+        data: {
+          token: 'token-pending',
+          username: 'admin',
+          realName: '张经理',
+          role: 'ADMIN',
+        },
+      }), { status: 200 }));
+    });
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith('/'));
   });
 
   it('stores the existing auth payload and redirects after success', async () => {

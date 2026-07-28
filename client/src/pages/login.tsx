@@ -12,6 +12,8 @@ export default function LoginPage() {
 
     async function handleLogin(e: React.FormEvent) {
         e.preventDefault();
+        if (loading) return;
+
         setLoading(true);
         setError('');
 
@@ -67,7 +69,7 @@ export default function LoginPage() {
                         />
                     )}
 
-                    <Form onSubmit={handleLogin}>
+                    <Form aria-labelledby="login-title" onSubmit={handleLogin}>
                         <TextInput
                             id="username"
                             labelText="用户名"
