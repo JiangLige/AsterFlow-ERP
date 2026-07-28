@@ -1,7 +1,6 @@
 import type { NextPage } from 'next';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { Button } from '@carbon/react';
 import {
   Add,
   ArrowRight,
@@ -78,9 +77,13 @@ const Home: NextPage = () => {
         title={`运营总览，${displayName}`}
         description={formatDate()}
         actions={(
-          <Button href="/purchase-orders/new" renderIcon={Add}>
+          <Link
+            className="cds--btn cds--btn--primary"
+            href="/purchase-orders/new"
+          >
             新建采购单
-          </Button>
+            <Add aria-hidden="true" className="cds--btn__icon" size={16} />
+          </Link>
         )}
       />
 
