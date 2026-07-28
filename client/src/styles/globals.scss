@@ -975,172 +975,189 @@ td button {
   to { transform: rotate(360deg); }
 }
 
-.login-screen {
+.carbon-login {
   display: grid;
   min-height: 100dvh;
-  grid-template-columns: minmax(460px, 0.92fr) minmax(460px, 1.08fr);
-  background: var(--canvas);
+  grid-template-columns: minmax(420px, 38vw) minmax(0, 1fr);
+  background: var(--aster-layer);
 }
 
-.login-visual {
+.carbon-login__form {
   display: flex;
+  min-width: 0;
   min-height: 100dvh;
   flex-direction: column;
-  background: var(--navy);
-  color: #fff;
-  padding: clamp(2rem, 4vw, 4.5rem);
+  background: var(--aster-layer);
+  padding: clamp(2rem, 4.5vw, 4rem);
 }
 
-.login-brand {
+.carbon-login__brand {
+  display: inline-flex;
   width: fit-content;
-  min-height: auto;
-  padding: 0;
+  align-items: center;
+  gap: 0.625rem;
+  color: var(--aster-text);
+  font-size: 0.875rem;
+  letter-spacing: 0.01em;
 }
 
-.login-heading {
-  max-width: 600px;
-  margin: auto 0 2.7rem;
-}
-
-.login-heading .eyebrow {
+.carbon-login__brand svg {
   color: var(--aster-accent);
 }
 
-.login-heading h1 {
-  margin-bottom: 1.25rem;
-  color: #fff;
-  font-size: clamp(2.45rem, 4.5vw, 4.35rem);
-  font-weight: 700;
-  letter-spacing: -0.055em;
+.carbon-login__content {
+  width: min(420px, 100%);
+  margin: auto 0;
+  padding-block: 2rem;
 }
 
-.login-copy {
-  max-width: 560px;
-  margin: 0;
-  color: rgba(255, 255, 255, 0.66);
-  font-size: 1rem;
-  line-height: 1.85;
+.carbon-login__content h1 {
+  margin-bottom: 0.75rem;
+  color: var(--aster-text);
+  font-size: clamp(2rem, 3.5vw, 2.625rem);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
 }
 
-.login-capabilities {
+.carbon-login__intro {
+  max-width: 27rem;
+  margin-bottom: 2rem;
+  color: var(--aster-text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.carbon-login__content .cds--inline-notification {
+  width: 100%;
+  max-width: none;
+  margin: 0 0 1rem;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.carbon-login__content .cds--inline-notification__title,
+.carbon-login__content .cds--inline-notification__subtitle {
+  color: var(--aster-text);
+}
+
+.carbon-login__content .cds--form {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0;
-  margin: 0 0 2.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.18);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
-}
-
-.login-capabilities > div {
-  display: flex;
-  gap: 0.65rem;
-  min-width: 0;
-  padding: 1rem 0.75rem 1rem 0;
-}
-
-.login-capabilities > div + div {
-  border-left: 1px solid rgba(255, 255, 255, 0.14);
-  padding-left: 0.75rem;
-}
-
-.login-capabilities svg {
-  flex: 0 0 auto;
-  color: var(--aster-accent);
-}
-
-.login-capabilities span {
-  display: grid;
-  min-width: 0;
-  gap: 0.1rem;
-}
-
-.login-capabilities strong {
-  font-size: 0.78rem;
-}
-
-.login-capabilities small {
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 0.64rem;
-  line-height: 1.45;
-}
-
-.login-footnote {
-  margin: 0;
-  color: rgba(255, 255, 255, 0.38);
-  font-size: 0.68rem;
-}
-
-.login-panel-wrap {
-  display: grid;
-  min-height: 100dvh;
-  place-items: center;
-  padding: clamp(2rem, 6vw, 6rem);
-}
-
-.login-card {
-  width: min(430px, 100%);
-}
-
-.login-card > h2 {
-  margin-bottom: 0.55rem;
-  font-size: clamp(2rem, 3vw, 2.75rem);
-  letter-spacing: -0.045em;
-}
-
-.login-form {
   width: 100%;
   grid-template-columns: 1fr;
   gap: 1rem;
-  margin-top: 1.7rem;
+  margin: 0;
   border: 0;
+  border-radius: 0;
   background: transparent;
   box-shadow: none;
   padding: 0;
 }
 
-.login-form input {
+.carbon-login__content .cds--form-item {
   width: 100%;
-  min-height: 3.15rem;
-  background: var(--surface);
 }
 
-.login-submit {
-  width: 100%;
-  min-height: 3.15rem;
-  justify-content: space-between;
-  margin-top: 0.35rem;
-  padding-inline: 1.1rem;
+.carbon-login__content .cds--label {
+  color: var(--aster-text);
+  font-weight: 600;
 }
 
-.demo-accounts {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-  margin-top: 1.4rem;
-  border-top: 1px solid var(--line);
-  color: var(--muted);
-  font-size: 0.68rem;
+.carbon-login__content .cds--text-input,
+.carbon-login__content .cds--password-input {
+  border-radius: 0;
+  color: var(--aster-text);
+}
+
+.carbon-login__content .cds--text-input {
+  min-height: 3rem;
+  border-bottom-color: var(--aster-text-secondary);
+  background: var(--aster-background);
+}
+
+.carbon-login__content .cds--text-input:focus {
+  outline-color: var(--aster-accent);
+}
+
+.carbon-login__content .cds--btn {
+  width: 100%;
+  max-width: none;
+  min-height: 3rem;
+  justify-content: flex-start;
+  margin-top: 0.5rem;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.carbon-login__content .cds--btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.carbon-login__demo {
+  margin: 1.25rem 0 0;
+  border-top: 1px solid var(--aster-border);
+  color: var(--aster-text-secondary);
+  font-size: 0.75rem;
+  line-height: 1.5;
   padding-top: 1rem;
 }
 
-.demo-accounts code {
-  border-radius: 2px;
-  background: var(--surface-muted);
-  color: var(--navy);
-  font-family: inherit;
-  padding: 0.22rem 0.4rem;
+.carbon-login__mobile-capabilities {
+  display: none;
 }
 
-@media (max-width: 1180px) {
-  .login-capabilities {
-    grid-template-columns: 1fr;
-  }
+.carbon-login__brand-panel {
+  display: flex;
+  min-width: 0;
+  min-height: 100dvh;
+  flex-direction: column;
+  justify-content: space-between;
+  background: #161616;
+  color: #f4f4f4;
+  padding: clamp(3rem, 7vw, 7.5rem);
+}
 
-  .login-capabilities > div + div {
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
-    border-left: 0;
-    padding-left: 0;
-  }
+.carbon-login__panel-label {
+  margin-bottom: 1.5rem;
+  color: #a8a8a8;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.carbon-login__brand-panel h2 {
+  max-width: 11ch;
+  margin: 0;
+  color: #f4f4f4;
+  font-size: clamp(2.75rem, 5vw, 5.25rem);
+  font-weight: 300;
+  letter-spacing: -0.045em;
+  line-height: 1.05;
+}
+
+.carbon-login__brand-panel dl {
+  width: min(42rem, 100%);
+  margin: clamp(3rem, 10vh, 7rem) 0 0;
+  border-top: 1px solid #525252;
+}
+
+.carbon-login__brand-panel dl > div {
+  display: grid;
+  grid-template-columns: minmax(5rem, 0.32fr) minmax(0, 1fr);
+  gap: 1rem;
+  border-bottom: 1px solid #525252;
+  padding: 1.25rem 0;
+}
+
+.carbon-login__brand-panel dt {
+  color: #f4f4f4;
+  font-weight: 600;
+}
+
+.carbon-login__brand-panel dd {
+  margin: 0;
+  color: #c6c6c6;
 }
 
 @media (max-width: 980px) {
@@ -1183,28 +1200,6 @@ td button {
     border-top: 0;
   }
 
-  .login-screen {
-    display: block;
-  }
-
-  .login-visual {
-    min-height: auto;
-    padding: 2rem;
-  }
-
-  .login-heading {
-    margin: 4.5rem 0 2.5rem;
-  }
-
-  .login-heading h1 {
-    font-size: clamp(2.2rem, 8vw, 3.6rem);
-  }
-
-  .login-panel-wrap {
-    min-height: auto;
-    place-items: start center;
-    padding: 3rem 2rem 4rem;
-  }
 }
 
 @media (max-width: 680px) {
@@ -1279,23 +1274,6 @@ td button {
     height: 235px;
   }
 
-  .login-visual,
-  .login-panel-wrap {
-    padding-inline: 1.25rem;
-  }
-
-  .login-heading {
-    margin-top: 3.5rem;
-  }
-
-  .login-capabilities {
-    display: none;
-  }
-
-  .demo-accounts {
-    align-items: flex-start;
-    flex-direction: column;
-  }
 }
 
 @media (min-width: 768px) {
@@ -1435,6 +1413,69 @@ td button {
 }
 
 @media (max-width: 767px) {
+  .carbon-login {
+    display: block;
+    min-height: 100dvh;
+  }
+
+  .carbon-login__form {
+    min-height: 100dvh;
+    padding: 1.5rem 1.25rem 1.25rem;
+  }
+
+  .carbon-login__content {
+    margin: 0;
+    padding: clamp(2rem, 8vh, 4rem) 0 0;
+  }
+
+  .carbon-login__content h1 {
+    font-size: 2rem;
+  }
+
+  .carbon-login__intro {
+    margin-bottom: 1.5rem;
+  }
+
+  .carbon-login__content .cds--form {
+    padding: 0;
+  }
+
+  .carbon-login__demo {
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+  }
+
+  .carbon-login__brand-panel {
+    display: none;
+  }
+
+  .carbon-login__mobile-capabilities {
+    display: grid;
+    gap: 0;
+    margin: 0.75rem 0 0;
+    border-top: 1px solid var(--aster-border);
+  }
+
+  .carbon-login__mobile-capabilities > div {
+    display: grid;
+    grid-template-columns: 3.25rem minmax(0, 1fr);
+    gap: 0.75rem;
+    border-bottom: 1px solid var(--aster-border);
+    padding: 0.5rem 0;
+  }
+
+  .carbon-login__mobile-capabilities dt {
+    color: var(--aster-text);
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .carbon-login__mobile-capabilities dd {
+    margin: 0;
+    color: var(--aster-text-secondary);
+    font-size: 0.75rem;
+  }
+
   .cds--header__nav,
   .aster-context-nav {
     display: none;
