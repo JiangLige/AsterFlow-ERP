@@ -45,28 +45,34 @@ export default function CustomersPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [total, setTotal] = useState(0);
   const [role, setRole] = useState('');
   const [pendingDelete, setPendingDelete] = useState<Customer | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  async function loadCustomers(targetPage = page) {
+  async function loadCustomers(
+    targetPage: number,
+    targetPageSize: number,
+    targetKeyword: string,
+  ) {
     setLoading(true);
     setError('');
 
     try {
       const query = new URLSearchParams();
       query.set('page', String(targetPage));
-      query.set('size', '10');
+      query.set('size', String(targetPageSize));
 
-      if (keyword.trim()) {
-        query.set('keyword', keyword.trim());
+      if (targetKeyword.trim()) {
+        query.set('keyword', targetKeyword.trim());
       }
 
       const data = await apiRequest<PageResponse<Customer>>(`/api/customers?${query.toString()}`);
 
       setCustomers(data.records);
       setPage(data.page);
+      setPageSize(data.size);
       setTotal(data.total);
     } catch (err) {
       setError(err instanceof Error ? err.message : '客户加载失败');
@@ -89,8 +95,10 @@ export default function CustomersPage() {
       });
 
       setPendingDelete(null);
-      await loadCustomers(page);
+      const targetPage = customers.length === 1 && page > 1 ? page - 1 : page;
+      await loadCustomers(targetPage, pageSize, keyword);
     } catch (err) {
+      setPendingDelete(null);
       setError(err instanceof Error ? err.message : '删除客户失败');
     } finally {
       setSubmitting(false);
@@ -99,7 +107,7 @@ export default function CustomersPage() {
 
   useEffect(() => {
     setRole(localStorage.getItem('role') || '');
-    loadCustomers(1);
+    loadCustomers(1, pageSize, '');
   }, []);
 
   function customerActions(customer: Customer, currentRole: string): OverflowAction[] {
@@ -152,12 +160,21 @@ export default function CustomersPage() {
           error={error}
           headers={headers}
           loading={loading}
-          onRetry={() => void loadCustomers(page)}
+          onRetry={() => void loadCustomers(page, pageSize, keyword)}
           pagination={{
             page,
-            pageSize: 10,
+            pageSize,
             total,
-            onChange: ({ page: targetPage }: { page: number }) => void loadCustomers(targetPage),
+            onChange: ({
+              page: targetPage,
+              pageSize: targetPageSize,
+            }: {
+              page: number;
+              pageSize: number;
+            }) => {
+              setPageSize(targetPageSize);
+              void loadCustomers(targetPage, targetPageSize, keyword);
+            },
           }}
           rows={rows}
           toolbar={(
@@ -165,10 +182,17 @@ export default function CustomersPage() {
               <Search
                 id="customer-search"
                 labelText="搜索客户"
-                onChange={(event) => setKeyword(event.target.value)}
+                onChange={(event) => {
+                  const nextKeyword = event.target.value;
+                  setKeyword(nextKeyword);
+
+                  if (nextKeyword === '') {
+                    void loadCustomers(1, pageSize, '');
+                  }
+                }}
                 onKeyDown={(event) => {
                   if (event.key === 'Enter') {
-                    void loadCustomers(1);
+                    void loadCustomers(1, pageSize, keyword);
                   }
                 }}
                 placeholder="输入客户编码、名称或电话"
@@ -178,7 +202,7 @@ export default function CustomersPage() {
               <Button
                 disabled={loading}
                 kind="secondary"
-                onClick={() => void loadCustomers(1)}
+                onClick={() => void loadCustomers(1, pageSize, keyword)}
                 size="lg"
                 type="button"
               >

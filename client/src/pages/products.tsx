@@ -59,28 +59,34 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [total, setTotal] = useState(0);
   const [role, setRole] = useState('');
   const [pendingDelete, setPendingDelete] = useState<Product | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const loadProducts = async (targetPage = page) => {
+  const loadProducts = async (
+    targetPage: number,
+    targetPageSize: number,
+    targetKeyword: string,
+  ) => {
     setLoading(true);
     setError('');
 
     try {
       const query = new URLSearchParams();
       query.set('page', String(targetPage));
-      query.set('size', '10');
+      query.set('size', String(targetPageSize));
 
-      if (keyword.trim()) {
-        query.set('keyword', keyword.trim());
+      if (targetKeyword.trim()) {
+        query.set('keyword', targetKeyword.trim());
       }
 
       const data = await apiRequest<PageResponse<Product>>(`/api/products?${query.toString()}`);
 
       setProducts(data.records);
       setPage(data.page);
+      setPageSize(data.size);
       setTotal(data.total);
     } catch (err) {
       setError(err instanceof Error ? err.message : '商品加载失败');
@@ -91,12 +97,12 @@ export default function ProductsPage() {
 
   useEffect(() => {
     setRole(localStorage.getItem('role') || '');
-    loadProducts(1);
+    loadProducts(1, pageSize, '');
   }, []);
 
   useEffect(() => {
     const handleFocus = () => {
-      loadProducts(page);
+      loadProducts(page, pageSize, keyword);
     };
 
     window.addEventListener('focus', handleFocus);
@@ -104,7 +110,7 @@ export default function ProductsPage() {
     return () => {
       window.removeEventListener('focus', handleFocus);
     };
-  }, [page, keyword]);
+  }, [page, pageSize, keyword]);
 
   async function handleDelete() {
     if (!pendingDelete) {
@@ -120,8 +126,10 @@ export default function ProductsPage() {
       });
 
       setPendingDelete(null);
-      await loadProducts(page);
+      const targetPage = products.length === 1 && page > 1 ? page - 1 : page;
+      await loadProducts(targetPage, pageSize, keyword);
     } catch (err) {
+      setPendingDelete(null);
       setError(err instanceof Error ? err.message : '停用失败');
     } finally {
       setSubmitting(false);
@@ -185,12 +193,21 @@ export default function ProductsPage() {
           error={error}
           headers={headers}
           loading={loading}
-          onRetry={() => void loadProducts(page)}
+          onRetry={() => void loadProducts(page, pageSize, keyword)}
           pagination={{
             page,
-            pageSize: 10,
+            pageSize,
             total,
-            onChange: ({ page: targetPage }: { page: number }) => void loadProducts(targetPage),
+            onChange: ({
+              page: targetPage,
+              pageSize: targetPageSize,
+            }: {
+              page: number;
+              pageSize: number;
+            }) => {
+              setPageSize(targetPageSize);
+              void loadProducts(targetPage, targetPageSize, keyword);
+            },
           }}
           rows={rows}
           toolbar={(
@@ -198,10 +215,17 @@ export default function ProductsPage() {
               <Search
                 id="product-search"
                 labelText="搜索商品"
-                onChange={(event) => setKeyword(event.target.value)}
+                onChange={(event) => {
+                  const nextKeyword = event.target.value;
+                  setKeyword(nextKeyword);
+
+                  if (nextKeyword === '') {
+                    void loadProducts(1, pageSize, '');
+                  }
+                }}
                 onKeyDown={(event) => {
                   if (event.key === 'Enter') {
-                    void loadProducts(1);
+                    void loadProducts(1, pageSize, keyword);
                   }
                 }}
                 placeholder="输入商品编码、名称或分类"
@@ -211,7 +235,7 @@ export default function ProductsPage() {
               <Button
                 disabled={loading}
                 kind="secondary"
-                onClick={() => void loadProducts(1)}
+                onClick={() => void loadProducts(1, pageSize, keyword)}
                 size="lg"
                 type="button"
               >

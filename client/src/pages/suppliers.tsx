@@ -50,28 +50,34 @@ export default function SuppliersPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [total, setTotal] = useState(0);
   const [role, setRole] = useState('');
   const [pendingStatusChange, setPendingStatusChange] = useState<PendingStatusChange | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  async function loadSuppliers(targetPage = page) {
+  async function loadSuppliers(
+    targetPage: number,
+    targetPageSize: number,
+    targetKeyword: string,
+  ) {
     setLoading(true);
     setError('');
 
     try {
       const query = new URLSearchParams();
       query.set('page', String(targetPage));
-      query.set('size', '10');
+      query.set('size', String(targetPageSize));
 
-      if (keyword.trim()) {
-        query.set('keyword', keyword.trim());
+      if (targetKeyword.trim()) {
+        query.set('keyword', targetKeyword.trim());
       }
 
       const data = await apiRequest<PageResponse<Supplier>>(`/api/suppliers?${query.toString()}`);
 
       setSuppliers(data.records);
       setPage(data.page);
+      setPageSize(data.size);
       setTotal(data.total);
     } catch (err) {
       setError(err instanceof Error ? err.message : '供应商加载失败');
@@ -93,8 +99,9 @@ export default function SuppliersPage() {
       });
 
       setPendingStatusChange(null);
-      await loadSuppliers(page);
+      await loadSuppliers(page, pageSize, keyword);
     } catch (err) {
+      setPendingStatusChange(null);
       setError(err instanceof Error ? err.message : `${actionText}供应商失败`);
     } finally {
       setSubmitting(false);
@@ -103,7 +110,7 @@ export default function SuppliersPage() {
 
   useEffect(() => {
     setRole(localStorage.getItem('role') || '');
-    loadSuppliers(1);
+    loadSuppliers(1, pageSize, '');
   }, []);
 
   function supplierActions(supplier: Supplier, currentRole: string): OverflowAction[] {
@@ -165,12 +172,21 @@ export default function SuppliersPage() {
           error={error}
           headers={headers}
           loading={loading}
-          onRetry={() => void loadSuppliers(page)}
+          onRetry={() => void loadSuppliers(page, pageSize, keyword)}
           pagination={{
             page,
-            pageSize: 10,
+            pageSize,
             total,
-            onChange: ({ page: targetPage }: { page: number }) => void loadSuppliers(targetPage),
+            onChange: ({
+              page: targetPage,
+              pageSize: targetPageSize,
+            }: {
+              page: number;
+              pageSize: number;
+            }) => {
+              setPageSize(targetPageSize);
+              void loadSuppliers(targetPage, targetPageSize, keyword);
+            },
           }}
           rows={rows}
           toolbar={(
@@ -178,10 +194,17 @@ export default function SuppliersPage() {
               <Search
                 id="supplier-search"
                 labelText="搜索供应商"
-                onChange={(event) => setKeyword(event.target.value)}
+                onChange={(event) => {
+                  const nextKeyword = event.target.value;
+                  setKeyword(nextKeyword);
+
+                  if (nextKeyword === '') {
+                    void loadSuppliers(1, pageSize, '');
+                  }
+                }}
                 onKeyDown={(event) => {
                   if (event.key === 'Enter') {
-                    void loadSuppliers(1);
+                    void loadSuppliers(1, pageSize, keyword);
                   }
                 }}
                 placeholder="输入供应商编码、名称或电话"
@@ -191,7 +214,7 @@ export default function SuppliersPage() {
               <Button
                 disabled={loading}
                 kind="secondary"
-                onClick={() => void loadSuppliers(1)}
+                onClick={() => void loadSuppliers(1, pageSize, keyword)}
                 size="lg"
                 type="button"
               >

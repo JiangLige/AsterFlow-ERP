@@ -21,6 +21,7 @@ export type BusinessDataTableRow = {
 export type BusinessDataTablePagination = {
   page: number;
   pageSize: number;
+  pageSizes?: number[];
   total: number;
   onChange: NonNullable<PaginationProps['onChange']>;
 };
@@ -51,6 +52,9 @@ export default function BusinessDataTable<Row extends BusinessDataTableRow>({
   pagination,
 }: BusinessDataTableProps<Row>) {
   const hasState = loading || Boolean(error) || empty;
+  const pageSizes = Array.from(
+    new Set([10, 20, 50, ...(pagination.pageSizes ?? []), pagination.pageSize]),
+  ).sort((left, right) => left - right);
 
   return (
     <section className="aster-business-table">
@@ -103,7 +107,7 @@ export default function BusinessDataTable<Row extends BusinessDataTableRow>({
             pageNumberText="页码"
             pageRangeText={(current, total) => `${current} / ${total} 页`}
             pageSize={pagination.pageSize}
-            pageSizes={[pagination.pageSize]}
+            pageSizes={pageSizes}
             totalItems={pagination.total}
           />
         </>

@@ -73,6 +73,28 @@ describe('BusinessDataTable', () => {
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ page: 2, pageSize: 10 }));
   });
 
+  it('offers standard Carbon page sizes and preserves a non-standard current size', () => {
+    render(
+      <BusinessDataTable
+        headers={[{ key: 'code', header: '编码' }]}
+        pagination={{
+          page: 1,
+          pageSize: 25,
+          pageSizes: [100],
+          total: 75,
+          onChange: vi.fn(),
+        }}
+        rows={[{ id: 'product-1', code: 'P-001' }]}
+      />,
+    );
+
+    const pageSizeValues = screen
+      .getAllByRole('option')
+      .map((option) => option.getAttribute('value'));
+
+    expect(pageSizeValues).toEqual(expect.arrayContaining(['10', '20', '25', '50', '100']));
+  });
+
   it('prioritizes loading, error, empty, and data states in that order', () => {
     const baseProps = {
       headers: [{ key: 'code', header: '编码' }],
