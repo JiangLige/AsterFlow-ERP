@@ -21,14 +21,23 @@ export default function ConfirmActionModal({
   onConfirm,
   onClose,
 }: ConfirmActionModalProps) {
+  const handleClose = () => {
+    if (submitting) {
+      return false;
+    }
+
+    onClose();
+    return undefined;
+  };
+
   return (
-    <ComposedModal danger={danger} onClose={onClose} open={open} size="sm">
-      <ModalHeader closeModal={onClose} iconDescription="关闭" title={title} />
+    <ComposedModal danger={danger} onClose={handleClose} open={open} size="sm">
+      <ModalHeader closeModal={handleClose} iconDescription="关闭" title={title} />
       <ModalBody>
         <p>{description}</p>
       </ModalBody>
       <ModalFooter>
-        <Button disabled={submitting} kind="secondary" onClick={onClose} type="button">
+        <Button disabled={submitting} kind="secondary" onClick={handleClose} type="button">
           取消
         </Button>
         <Button

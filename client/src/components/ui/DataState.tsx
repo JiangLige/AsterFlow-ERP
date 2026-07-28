@@ -41,13 +41,14 @@ export default function DataState({
           role="alert"
           subtitle={error}
           title="加载失败"
-        >
-          {onRetry ? (
+        />
+        {onRetry ? (
+          <div className="aster-state__actions">
             <Button kind="ghost" onClick={onRetry} size="sm" type="button">
               重试
             </Button>
-          ) : null}
-        </InlineNotification>
+          </div>
+        ) : null}
       </div>
     );
   }
