@@ -1312,6 +1312,38 @@ td button {
   border-radius: 0;
 }
 
+.master-data-list .aster-toolbar {
+  gap: 0;
+  padding: 0;
+}
+
+.master-data-list .aster-toolbar .cds--search {
+  flex: 1 1 20rem;
+  max-width: none;
+  min-width: 14rem;
+}
+
+.master-data-list .aster-toolbar > .cds--btn {
+  flex: 0 0 auto;
+  min-height: 3rem;
+}
+
+.master-data-list--products .aster-table-scroll table {
+  min-width: 70rem;
+}
+
+.master-data-list--contacts .aster-table-scroll table {
+  min-width: 56rem;
+}
+
+.master-data-list .aster-table-scroll [data-risk='true'] {
+  color: var(--danger);
+}
+
+.master-data-list .aster-table-scroll [data-risk='false'] {
+  color: inherit;
+}
+
 .aster-form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1506,6 +1538,11 @@ td button {
   .aster-toolbar,
   .aster-toolbar > * {
     width: 100%;
+  }
+
+  .master-data-list .aster-toolbar .cds--search {
+    max-width: none;
+    min-width: 0;
   }
 
   .aster-form-grid,

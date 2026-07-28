@@ -1,211 +1,239 @@
-import { useEffect, useState } from 'react';
+import { Button, Search } from '@carbon/react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
+import BusinessDataTable from '@/components/ui/BusinessDataTable';
+import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
+import OverflowActions, { type OverflowAction } from '@/components/ui/OverflowActions';
+import PageHeader from '@/components/ui/PageHeader';
+import StatusTag from '@/components/ui/StatusTag';
 import { apiRequest } from '@/lib/api';
 
 type Product = {
-    id: number;
-    productCode: string;
-    name: string;
-    category: string;
-    unit: string;
-    price: number;
-    cost: number;
-    stock: number;
-    minStock: number;
-    status: string;
+  id: number;
+  productCode: string;
+  name: string;
+  category: string;
+  unit: string;
+  price: number;
+  cost: number;
+  stock: number;
+  minStock: number;
+  status: string;
 };
 
 type PageResponse<T> = {
-    records: T[];
-    total: number;
-    page: number;
-    size: number;
-    pages: number;
+  records: T[];
+  total: number;
+  page: number;
+  size: number;
+  pages: number;
 };
 
-function formatStatus(status: string) {
-    if (status === 'ACTIVE') return '启用';
-    if (status === 'INACTIVE') return '停用';
-    return status;
-}
+const headers = [
+  { key: 'code', header: '编码' },
+  { key: 'name', header: '名称' },
+  { key: 'category', header: '分类' },
+  { key: 'unit', header: '单位' },
+  { key: 'price', header: '售价' },
+  { key: 'cost', header: '成本' },
+  { key: 'stock', header: '库存' },
+  { key: 'minStock', header: '最低库存' },
+  { key: 'status', header: '状态' },
+  { key: 'actions', header: '操作' },
+];
 
 function formatCurrency(value: number) {
-    return new Intl.NumberFormat('zh-CN', {
-        style: 'currency',
-        currency: 'CNY',
-        maximumFractionDigits: 2,
-    }).format(value || 0);
+  return new Intl.NumberFormat('zh-CN', {
+    style: 'currency',
+    currency: 'CNY',
+    maximumFractionDigits: 2,
+  }).format(value || 0);
 }
 
 export default function ProductsPage() {
-    const [products, setProducts] = useState<Product[]>([]);
-    const [keyword, setKeyword] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [page, setPage] = useState(1);
-    const [pages, setPages] = useState(1);
-    const [total, setTotal] = useState(0);
-    const [role, setRole] = useState('');
+  const router = useRouter();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [keyword, setKeyword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [role, setRole] = useState('');
+  const [pendingDelete, setPendingDelete] = useState<Product | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
-    const loadProducts = async (targetPage = page) => {
-        setLoading(true);
-        setError('');
+  const loadProducts = async (targetPage = page) => {
+    setLoading(true);
+    setError('');
 
-        try {
-            const query = new URLSearchParams();
-            query.set('page', String(targetPage));
-            query.set('size', '10');
+    try {
+      const query = new URLSearchParams();
+      query.set('page', String(targetPage));
+      query.set('size', '10');
 
-            if (keyword.trim()) {
-                query.set('keyword', keyword.trim());
-            }
+      if (keyword.trim()) {
+        query.set('keyword', keyword.trim());
+      }
 
-            const data = await apiRequest<PageResponse<Product>>(`/api/products?${query.toString()}`);
+      const data = await apiRequest<PageResponse<Product>>(`/api/products?${query.toString()}`);
 
-            setProducts(data.records);
-            setPage(data.page);
-            setPages(data.pages);
-            setTotal(data.total);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : '商品加载失败');
-        } finally {
-            setLoading(false);
-        }
+      setProducts(data.records);
+      setPage(data.page);
+      setTotal(data.total);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '商品加载失败');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    setRole(localStorage.getItem('role') || '');
+    loadProducts(1);
+  }, []);
+
+  useEffect(() => {
+    const handleFocus = () => {
+      loadProducts(page);
     };
 
-    useEffect(() => {
-        setRole(localStorage.getItem('role') || '');
-        loadProducts(1);
-    }, []);
+    window.addEventListener('focus', handleFocus);
 
-    useEffect(() => {
-        const handleFocus = () => {
-            loadProducts(page);
-        };
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [page, keyword]);
 
-        window.addEventListener('focus', handleFocus);
-
-        return () => {
-            window.removeEventListener('focus', handleFocus);
-        };
-    }, [page, keyword]);
-
-    async function handleDelete(id: number) {
-        const ok = window.confirm('确定要停用这个商品吗？');
-
-        if (!ok) {
-            return;
-        }
-
-        setError('');
-
-        try {
-            await apiRequest(`/api/products/${id}`, {
-                method: 'DELETE',
-            });
-
-            loadProducts(page);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : '停用失败');
-        }
+  async function handleDelete() {
+    if (!pendingDelete) {
+      return;
     }
 
-    return (
-        <Layout>
-            <section className="page-hero">
-                <div>
-                    <p className="eyebrow">商品档案</p>
-                    <h1>商品列表</h1>
-                    <p className="muted">维护编码、分类、价格和库存安全线。</p>
-                </div>
+    setSubmitting(true);
+    setError('');
 
-                <div className="page-actions">
-                    <Link className="btn-primary" href="/products/new">
-                        新增商品
-                    </Link>
-                </div>
-            </section>
+    try {
+      await apiRequest(`/api/products/${pendingDelete.id}`, {
+        method: 'DELETE',
+      });
 
-            <div className="toolbar">
-                <input
-                    value={keyword}
-                    onChange={(e) => setKeyword(e.target.value)}
-                    placeholder="输入商品编码/名称/分类"
-                />
-                <button onClick={() => loadProducts(1)} disabled={loading}>
-                    {loading ? '查询中...' : '查询'}
-                </button>
-            </div>
+      setPendingDelete(null);
+      await loadProducts(page);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '停用失败');
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
-            {error && <div className="alert alert-danger">{error}</div>}
+  function productActions(product: Product, currentRole: string): OverflowAction[] {
+    const actions: OverflowAction[] = [
+      {
+        label: '编辑',
+        onClick: () => void router.push(`/products/${product.id}/edit`),
+      },
+      {
+        label: '库存调整',
+        onClick: () => void router.push(`/products/${product.id}/stock`),
+      },
+    ];
 
-            <p className="muted" style={{ marginTop: '1rem' }}>
-                第 {page} / {pages} 页，共 {total} 条
-            </p>
+    if (currentRole === 'ADMIN') {
+      actions.push({
+        label: '停用',
+        danger: true,
+        onClick: () => setPendingDelete(product),
+      });
+    }
 
-            <table>
-                <thead>
-                    <tr>
-                        <th>编码</th>
-                        <th>名称</th>
-                        <th>分类</th>
-                        <th>单位</th>
-                        <th>售价</th>
-                        <th>成本</th>
-                        <th>库存</th>
-                        <th>最低库存</th>
-                        <th>状态</th>
-                        <th>操作</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {products.map((product) => (
-                        <tr key={product.id}>
-                            <td>{product.productCode}</td>
-                            <td>{product.name}</td>
-                            <td>{product.category}</td>
-                            <td>{product.unit}</td>
-                            <td>{formatCurrency(product.price)}</td>
-                            <td>{formatCurrency(product.cost)}</td>
-                            <td>
-                                <strong style={{ color: product.stock <= product.minStock ? 'var(--danger)' : 'inherit' }}>
-                                    {product.stock}
-                                </strong>
-                            </td>
-                            <td>{product.minStock}</td>
-                            <td>
-                                <span className={`status-badge ${product.status === 'ACTIVE' ? 'success' : 'warning'}`}>
-                                    {formatStatus(product.status)}
-                                </span>
-                            </td>
-                            <td className="action-cell">
-                                <Link href={`/products/${product.id}/edit`}>编辑</Link>
-                                <Link href={`/products/${product.id}/stock`}>库存调整</Link>
+    return actions;
+  }
 
-                                {role === 'ADMIN' && (
-                                    <button onClick={() => handleDelete(product.id)}>
-                                        停用
-                                    </button>
-                                )}
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+  const rows = products.map((product) => ({
+    id: String(product.id),
+    code: <span className="numeric">{product.productCode}</span>,
+    name: product.name,
+    category: product.category,
+    unit: product.unit,
+    price: <span className="numeric">{formatCurrency(product.price)}</span>,
+    cost: <span className="numeric">{formatCurrency(product.cost)}</span>,
+    stock: <strong data-risk={product.stock <= product.minStock}>{product.stock}</strong>,
+    minStock: product.minStock,
+    status: <StatusTag status={product.status} />,
+    actions: <OverflowActions actions={productActions(product, role)} />,
+  }));
 
-            {!loading && products.length === 0 && (
-                <div className="empty-state">暂无商品数据</div>
-            )}
+  return (
+    <Layout>
+      <div className="master-data-list master-data-list--products">
+        <PageHeader
+          title="商品管理"
+          description="维护商品编码、分类、价格和库存安全线。"
+          actions={(
+            <Link className="cds--btn cds--btn--primary" href="/products/new">
+              新增商品
+            </Link>
+          )}
+        />
 
-            <div className="toolbar">
-                <button onClick={() => loadProducts(page - 1)} disabled={loading || page <= 1}>
-                    上一页
-                </button>
-                <button onClick={() => loadProducts(page + 1)} disabled={loading || page >= pages}>
-                    下一页
-                </button>
-            </div>
-        </Layout>
-    );
+        <BusinessDataTable
+          empty={products.length === 0}
+          emptyDescription="新增商品后，商品档案会显示在这里。"
+          emptyTitle="暂无商品数据"
+          error={error}
+          headers={headers}
+          loading={loading}
+          onRetry={() => void loadProducts(page)}
+          pagination={{
+            page,
+            pageSize: 10,
+            total,
+            onChange: ({ page: targetPage }: { page: number }) => void loadProducts(targetPage),
+          }}
+          rows={rows}
+          toolbar={(
+            <>
+              <Search
+                id="product-search"
+                labelText="搜索商品"
+                onChange={(event) => setKeyword(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    void loadProducts(1);
+                  }
+                }}
+                placeholder="输入商品编码、名称或分类"
+                size="lg"
+                value={keyword}
+              />
+              <Button
+                disabled={loading}
+                kind="secondary"
+                onClick={() => void loadProducts(1)}
+                size="lg"
+                type="button"
+              >
+                {loading ? '查询中...' : '查询'}
+              </Button>
+            </>
+          )}
+        />
+
+        <ConfirmActionModal
+          confirmLabel="确认停用"
+          danger
+          description={pendingDelete
+            ? `停用后，商品“${pendingDelete.name}”将不能用于新的业务单据。`
+            : ''}
+          onClose={() => setPendingDelete(null)}
+          onConfirm={() => void handleDelete()}
+          open={pendingDelete !== null}
+          submitting={submitting}
+          title="停用商品"
+        />
+      </div>
+    </Layout>
+  );
 }
