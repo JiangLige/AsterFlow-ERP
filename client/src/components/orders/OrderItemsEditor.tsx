@@ -7,6 +7,7 @@ export type OrderItemsEditorProps<T extends EditableOrderItem> = {
   items: T[];
   products: ProductOption[];
   priceLabel: string;
+  disableOutOfStockOptions?: boolean;
   onAdd: () => void;
   onChange: (index: number, field: keyof T, value: string) => void;
   onRemove: (index: number) => void;
@@ -21,6 +22,7 @@ export default function OrderItemsEditor<T extends EditableOrderItem>({
   items,
   products,
   priceLabel,
+  disableOutOfStockOptions = false,
   onAdd,
   onChange,
   onRemove,
@@ -58,6 +60,7 @@ export default function OrderItemsEditor<T extends EditableOrderItem>({
                     {products.map((product) => (
                       <SelectItem
                         key={product.id}
+                        disabled={disableOutOfStockOptions && product.stock !== undefined && product.stock <= 0}
                         text={`${product.productCode} - ${product.name}${product.stock === undefined ? '' : ` - 库存 ${product.stock}`}`}
                         value={String(product.id)}
                       />
@@ -92,7 +95,9 @@ export default function OrderItemsEditor<T extends EditableOrderItem>({
                 <TableCell className="aster-order-items__actions">
                   <Button
                     aria-label={`删除明细 ${index + 1}`}
+                    disabled={items.length === 1}
                     hasIconOnly
+                    iconDescription={`删除明细 ${index + 1}`}
                     kind="danger--ghost"
                     onClick={() => onRemove(index)}
                     renderIcon={TrashCan}

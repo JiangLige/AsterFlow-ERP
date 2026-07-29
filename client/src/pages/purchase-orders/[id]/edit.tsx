@@ -26,13 +26,15 @@ export default function PurchaseOrderEditPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [items, setItems] = useState<PurchaseItemForm[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
+  const [loadError, setLoadError] = useState('');
+  const [formError, setFormError] = useState('');
 
   useEffect(() => {
     if (!router.isReady || !purchaseOrderId) return;
     async function loadData() {
-      setLoading(true); setError('');
+      setLoading(true); setLoaded(false); setLoadError('');
       try {
         const [order, supplierData, productData] = await Promise.all([
           apiRequest<PurchaseOrder>(`/api/purchase-orders/${purchaseOrderId}`),
@@ -42,8 +44,9 @@ export default function PurchaseOrderEditPage() {
         setOrderNo(order.orderNo); setSupplierId(String(order.supplierId)); setRemark(order.remark || ''); setStatus(order.status);
         setSuppliers(supplierData.records); setProducts(productData.records);
         setItems(order.items.map((item) => ({ productId: String(item.productId), quantity: String(item.quantity), price: String(item.price) })));
+        setLoaded(true);
       } catch (requestError) {
-        setError(requestError instanceof Error ? requestError.message : '加载采购单失败');
+        setLoadError(requestError instanceof Error ? requestError.message : '加载采购单失败');
       } finally { setLoading(false); }
     }
     loadData();
@@ -61,29 +64,39 @@ export default function PurchaseOrderEditPage() {
     const nextItems = [...items]; nextItems[index] = { ...nextItems[index], [field]: value }; setItems(nextItems);
   }
   async function handleSubmit(event: React.FormEvent) {
-    event.preventDefault(); setError('');
-    if (status !== 'DRAFT') { setError('只有草稿采购单可以修改'); return; }
-    if (!supplierId || Number(supplierId) <= 0) { setError('请选择供应商'); return; }
+    event.preventDefault(); setFormError('');
+    if (status !== 'DRAFT') { setFormError('只有草稿采购单可以修改'); return; }
+    if (!supplierId || Number(supplierId) <= 0) { setFormError('请选择供应商'); return; }
     const normalizedItems = items.map((item) => ({ productId: Number(item.productId), quantity: Number(item.quantity), price: Number(item.price) }));
     const invalidItem = normalizedItems.some((item) => !item.productId || item.productId <= 0 || !item.quantity || !Number.isInteger(item.quantity) || item.quantity <= 0 || !item.price || item.price <= 0);
-    if (invalidItem) { setError('商品、数量、采购价都必须填写；数量必须是正整数，采购价必须大于0'); return; }
+    if (invalidItem) { setFormError('商品、数量、采购价都必须填写；数量必须是正整数，采购价必须大于0'); return; }
     setSubmitting(true);
     try {
       await apiRequest(`/api/purchase-orders/${purchaseOrderId}`, { method: 'PUT', body: JSON.stringify({ supplierId: Number(supplierId), remark, items: normalizedItems }) });
       router.push(`/purchase-orders/${purchaseOrderId}`);
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : '修改采购单失败');
+      setFormError(requestError instanceof Error ? requestError.message : '修改采购单失败');
     } finally { setSubmitting(false); }
   }
+
+  const optionsEmpty = loaded && !loadError && (suppliers.length === 0 || products.length === 0);
+  const formReady = loaded && !loadError && !optionsEmpty;
 
   return (
     <Layout>
       <main className="aster-form-page aster-order-form-page">
         <PageHeader backHref={`/purchase-orders/${purchaseOrderId}`} description={orderNo ? `单号：${orderNo}` : undefined} title="编辑采购单" />
-        <DataState error="" loading={loading} skeleton="text" />
-        {error ? <InlineNotification hideCloseButton kind="error" lowContrast role="alert" subtitle={error} title="采购单保存失败" /> : null}
+        <DataState
+          empty={optionsEmpty}
+          emptyDescription="请先维护至少一条启用的供应商和商品。"
+          emptyTitle="无法编辑采购单"
+          error={loadError}
+          loading={loading || (!loaded && !loadError)}
+          skeleton="text"
+        />
+        {formError ? <InlineNotification hideCloseButton kind="error" lowContrast role="alert" subtitle={formError} title="采购单保存失败" /> : null}
         {status && status !== 'DRAFT' ? <InlineNotification hideCloseButton kind="error" lowContrast role="alert" subtitle="当前采购单不是草稿状态，不能修改" title="不可编辑" /> : null}
-        {!loading ? <Form className="aster-form-grid" onSubmit={handleSubmit}>
+        {formReady ? <Form className="aster-form-grid" onSubmit={handleSubmit}>
           <Select disabled={status !== 'DRAFT'} id="purchase-supplier" labelText="供应商" onChange={(event) => setSupplierId(event.target.value)} required value={supplierId}>
             <SelectItem text="请选择供应商" value="" />
             {suppliers.map((supplier) => <SelectItem key={supplier.id} text={`${supplier.supplierCode} - ${supplier.name}`} value={String(supplier.id)} />)}

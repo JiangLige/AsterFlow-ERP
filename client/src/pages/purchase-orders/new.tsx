@@ -3,6 +3,7 @@ import { Form, InlineNotification, Select, SelectItem, TextInput } from '@carbon
 import { useRouter } from 'next/router';
 import Layout from '@/components/Layout';
 import OrderItemsEditor from '@/components/orders/OrderItemsEditor';
+import DataState from '@/components/ui/DataState';
 import FormActions from '@/components/ui/FormActions';
 import PageHeader from '@/components/ui/PageHeader';
 import { apiRequest } from '@/lib/api';
@@ -16,7 +17,9 @@ export default function PurchaseOrderCreatePage() {
   const router = useRouter();
   const [supplierId, setSupplierId] = useState('');
   const [remark, setRemark] = useState('');
-  const [error, setError] = useState('');
+  const [loadError, setLoadError] = useState('');
+  const [formError, setFormError] = useState('');
+  const [optionsLoading, setOptionsLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -24,13 +27,17 @@ export default function PurchaseOrderCreatePage() {
 
   useEffect(() => {
     async function loadOptions() {
+      setOptionsLoading(true);
+      setLoadError('');
       try {
         const supplierData = await apiRequest<PageResponse<Supplier>>('/api/suppliers?page=1&size=100&status=ACTIVE');
         const productData = await apiRequest<PageResponse<Product>>('/api/products?page=1&size=100&status=ACTIVE');
         setSuppliers(supplierData.records);
         setProducts(productData.records);
       } catch (requestError) {
-        setError(requestError instanceof Error ? requestError.message : '基础资料加载失败');
+        setLoadError(requestError instanceof Error ? requestError.message : '基础资料加载失败');
+      } finally {
+        setOptionsLoading(false);
       }
     }
     loadOptions();
@@ -38,15 +45,15 @@ export default function PurchaseOrderCreatePage() {
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
-    setError('');
+    setFormError('');
     if (!supplierId || Number(supplierId) <= 0) {
-      setError('请选择供应商');
+      setFormError('请选择供应商');
       return;
     }
     const normalizedItems = items.map((item) => ({ productId: Number(item.productId), quantity: Number(item.quantity), price: Number(item.price) }));
     const invalidItem = normalizedItems.some((item) => !item.productId || item.productId <= 0 || !item.quantity || item.quantity <= 0 || !item.price || item.price <= 0);
     if (invalidItem) {
-      setError('商品、数量、采购价都必须填写，并且数量和采购价必须大于0');
+      setFormError('商品、数量、采购价都必须填写，并且数量和采购价必须大于0');
       return;
     }
     setSubmitting(true);
@@ -57,7 +64,7 @@ export default function PurchaseOrderCreatePage() {
       });
       router.push('/purchase-orders');
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : '新增采购单失败');
+      setFormError(requestError instanceof Error ? requestError.message : '新增采购单失败');
     } finally {
       setSubmitting(false);
     }
@@ -77,12 +84,23 @@ export default function PurchaseOrderCreatePage() {
     setItems(nextItems);
   }
 
+  const optionsEmpty = !optionsLoading && !loadError && (suppliers.length === 0 || products.length === 0);
+  const formReady = !optionsLoading && !loadError && !optionsEmpty;
+
   return (
     <Layout>
       <main className="aster-form-page aster-order-form-page">
         <PageHeader backHref="/purchase-orders" description="选择供应商并录入商品明细，保存后进入采购流转。" title="新增采购单" />
-        {error ? <InlineNotification hideCloseButton kind="error" lowContrast role="alert" subtitle={error} title="采购单保存失败" /> : null}
-        <Form className="aster-form-grid" onSubmit={handleSubmit}>
+        <DataState
+          empty={optionsEmpty}
+          emptyDescription="请先维护至少一条启用的供应商和商品。"
+          emptyTitle="无法创建采购单"
+          error={loadError}
+          loading={optionsLoading}
+          skeleton="text"
+        />
+        {formError ? <InlineNotification hideCloseButton kind="error" lowContrast role="alert" subtitle={formError} title="采购单保存失败" /> : null}
+        {formReady ? <Form className="aster-form-grid" onSubmit={handleSubmit}>
           <Select id="purchase-supplier" labelText="供应商" onChange={(event) => setSupplierId(event.target.value)} required value={supplierId}>
             <SelectItem text="请选择供应商" value="" />
             {suppliers.map((supplier) => <SelectItem key={supplier.id} text={`${supplier.supplierCode} - ${supplier.name}`} value={String(supplier.id)} />)}
@@ -99,7 +117,7 @@ export default function PurchaseOrderCreatePage() {
             />
           </div>
           <FormActions cancelHref="/purchase-orders" submitLabel="保存采购单" submitting={submitting} />
-        </Form>
+        </Form> : null}
       </main>
     </Layout>
   );
