@@ -60,7 +60,7 @@ export default function Layout({ children }: LayoutProps) {
                 mobileOpen={mobileOpen}
                 onNavigate={() => setMobileOpen(false)}
             />
-            <main id="main-content" className="aster-main">{children}</main>
+            <main id="main-content" className="aster-main" tabIndex={-1}>{children}</main>
         </div>
     );
 }

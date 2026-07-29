@@ -524,24 +524,6 @@ td button {
   margin-inline: auto;
 }
 
-.page-hero {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 1.5rem;
-  margin-bottom: 1.4rem;
-  border-bottom: 1px solid var(--line);
-  padding-bottom: 1.35rem;
-}
-
-.page-hero > div:first-child {
-  max-width: 760px;
-}
-
-.page-hero h1 {
-  margin-bottom: 0.45rem;
-}
-
 .eyebrow {
   margin-bottom: 0.45rem;
   color: var(--accent);
@@ -555,26 +537,11 @@ td button {
   color: var(--muted);
 }
 
-.page-actions,
-.toolbar {
+.page-actions {
   display: flex;
   align-items: center;
   gap: 0.65rem;
   flex-wrap: wrap;
-}
-
-.toolbar {
-  width: fit-content;
-  max-width: 100%;
-  margin-top: 1rem;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--surface-soft);
-  padding: 0.55rem;
-}
-
-.toolbar input {
-  min-width: 260px;
 }
 
 .alert {
@@ -610,34 +577,6 @@ td button {
   background: var(--aster-layer);
   color: var(--muted);
   padding: 1rem;
-}
-
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  min-height: 1.55rem;
-  border-radius: 2px;
-  background: var(--aster-layer-muted);
-  color: var(--muted);
-  font-size: 0.7rem;
-  font-weight: 740;
-  padding: 0.16rem 0.55rem;
-  white-space: nowrap;
-}
-
-.status-badge.success {
-  background: var(--success-soft);
-  color: var(--success);
-}
-
-.status-badge.warning {
-  background: var(--warning-soft);
-  color: var(--warning);
-}
-
-.status-badge.danger {
-  background: var(--danger-soft);
-  color: var(--danger);
 }
 
 .detail-grid {
@@ -1115,13 +1054,6 @@ td button {
   color: #c6c6c6;
 }
 
-@media (max-width: 900px) {
-  .page-hero {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-}
-
 @media (max-width: 680px) {
   .aster-main {
     padding: 1.2rem 1rem 2.5rem;
@@ -1131,18 +1063,12 @@ td button {
     font-size: 2rem;
   }
 
-  .page-actions,
-  .toolbar {
+  .page-actions {
     width: 100%;
   }
 
-  .page-actions > *,
-  .toolbar > * {
+  .page-actions > * {
     width: 100%;
-  }
-
-  .toolbar input {
-    min-width: 0;
   }
 
   form {
@@ -1354,23 +1280,26 @@ td button {
 }
 
 .operations-list .aster-toolbar {
+  display: grid;
+  grid-template-columns: minmax(20rem, 1fr) minmax(11rem, 14rem) auto;
   align-items: flex-end;
+  gap: 0.5rem;
   padding: 0;
 }
 
 .operations-list .aster-toolbar .cds--search {
-  flex: 1 1 20rem;
+  width: 100%;
   max-width: none;
   min-width: 14rem;
 }
 
 .operations-list .aster-toolbar .cds--select {
-  flex: 0 1 14rem;
+  width: 100%;
   min-width: 11rem;
 }
 
 .operations-list .aster-toolbar > .cds--btn {
-  flex: 0 0 auto;
+  width: auto;
   min-height: 3rem;
 }
 
@@ -1739,6 +1668,8 @@ td button {
     z-index: 5000;
     top: var(--aster-header-height);
     width: 100%;
+    max-height: calc(100dvh - var(--aster-header-height));
+    overflow-y: auto;
     border-bottom: 1px solid var(--aster-border);
     background: var(--aster-layer);
   }
@@ -1753,17 +1684,33 @@ td button {
 
   .aster-mobile-panel-content {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr;
     align-items: stretch;
     height: auto;
     padding: 0;
   }
 
+  .aster-mobile-group {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-bottom: 1px solid var(--aster-border);
+  }
+
+  .aster-mobile-group-label {
+    grid-column: 1 / -1;
+    min-height: 2rem;
+    background: var(--aster-layer-muted);
+    color: var(--aster-text-secondary);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+  }
+
   .aster-mobile-link {
     min-height: 2.75rem;
-    justify-content: center;
+    justify-content: flex-start;
     border-bottom-width: 2px;
-    padding-inline: 0.75rem;
+    padding-inline: 1rem;
   }
 
   .aster-main {
@@ -1788,6 +1735,10 @@ td button {
   .master-data-list .aster-toolbar .cds--search {
     max-width: none;
     min-width: 0;
+  }
+
+  .operations-list .aster-toolbar {
+    grid-template-columns: 1fr;
   }
 
   .operations-list .aster-toolbar .cds--search,

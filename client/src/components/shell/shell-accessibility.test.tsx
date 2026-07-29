@@ -1,8 +1,10 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { createElement } from 'react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import AppHeader from './AppHeader';
 import ModuleNavigation from './ModuleNavigation';
+
+afterEach(cleanup);
 
 describe('Carbon shell accessibility', () => {
   it('labels and associates the menu button with its current state', () => {
@@ -42,5 +44,35 @@ describe('Carbon shell accessibility', () => {
     fireEvent.click(mobileLink);
 
     expect(onNavigate).toHaveBeenCalledOnce();
+  });
+
+  it('exposes every module and route in the mobile navigation', () => {
+    render(createElement(ModuleNavigation, {
+      pathname: '/',
+      mobileOpen: true,
+      onNavigate: vi.fn(),
+    }));
+
+    const panel = document.getElementById('aster-mobile-navigation');
+    expect(panel).not.toBeNull();
+    const mobileNavigation = within(panel as HTMLElement);
+
+    expect(mobileNavigation.getAllByRole('group').map((group) => group.getAttribute('aria-label'))).toEqual([
+      '运营总览',
+      '基础资料',
+      '业务流转',
+      '系统',
+    ]);
+    expect(mobileNavigation.getAllByRole('link').map((link) => link.textContent)).toEqual([
+      '运营总览',
+      '商品管理',
+      '供应商',
+      '客户管理',
+      '采购订单',
+      '销售订单',
+      '库存预警',
+      '库存流水',
+      '审计日志',
+    ]);
   });
 });

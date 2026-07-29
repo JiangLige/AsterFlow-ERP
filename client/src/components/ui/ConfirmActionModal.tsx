@@ -31,7 +31,7 @@ export default function ConfirmActionModal({
   };
 
   return (
-    <ComposedModal danger={danger} onClose={handleClose} open={open} size="sm">
+    <ComposedModal aria-label={title} danger={danger} onClose={handleClose} open={open} size="sm">
       <ModalHeader closeModal={handleClose} iconDescription="关闭" title={title} />
       <ModalBody>
         <p>{description}</p>

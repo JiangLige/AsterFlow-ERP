@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { getActiveModule, isActiveRoute } from './navigation';
+import { getActiveModule, isActiveRoute, MODULES, type NavigationItem } from './navigation';
 
 type ModuleNavigationProps = {
   pathname: string;
@@ -10,7 +10,11 @@ type ModuleNavigationProps = {
 export default function ModuleNavigation({ pathname, mobileOpen, onNavigate }: ModuleNavigationProps) {
   const items = getActiveModule(pathname)?.items ?? [];
 
-  const links = (className: string, onClick?: () => void) => items.map((item) => {
+  const links = (
+    navigationItems: NavigationItem[],
+    className: string,
+    onClick?: () => void,
+  ) => navigationItems.map((item) => {
     const active = isActiveRoute(pathname, item.href);
 
     return (
@@ -30,10 +34,24 @@ export default function ModuleNavigation({ pathname, mobileOpen, onNavigate }: M
   return (
     <nav className="aster-module-navigation" aria-label="二级导航">
       <div className="aster-context-nav">
-        <div className="aster-context-nav-content">{links('aster-context-link')}</div>
+        <div className="aster-context-nav-content">
+          {links(items, 'aster-context-link')}
+        </div>
       </div>
       <div id="aster-mobile-navigation" className="aster-mobile-panel" hidden={!mobileOpen}>
-        <div className="aster-mobile-panel-content">{links('aster-mobile-link', onNavigate)}</div>
+        <div className="aster-mobile-panel-content">
+          {MODULES.map((module) => (
+            <div
+              key={module.key}
+              aria-label={module.label}
+              className="aster-mobile-group"
+              role="group"
+            >
+              <span className="aster-mobile-group-label">{module.label}</span>
+              {links(module.items, 'aster-mobile-link', onNavigate)}
+            </div>
+          ))}
+        </div>
       </div>
     </nav>
   );

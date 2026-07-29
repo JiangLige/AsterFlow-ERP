@@ -21,4 +21,13 @@ describe('AsterFlow Carbon theme', () => {
       /html,\s*body,\s*#__next\s*{\s*min-height:\s*100dvh;\s*}/,
     );
   });
+
+  it('keeps operations filters on one desktop row and one mobile column', () => {
+    expect(source).toMatch(
+      /\.operations-list \.aster-toolbar\s*\{[^}]*display:\s*grid;[^}]*grid-template-columns:\s*minmax\(20rem,\s*1fr\)\s+minmax\(11rem,\s*14rem\)\s+auto;/,
+    );
+    expect(source).toMatch(
+      /@media\s*\(max-width:\s*767px\)[\s\S]*\.operations-list \.aster-toolbar\s*\{[^}]*grid-template-columns:\s*1fr;/,
+    );
+  });
 });

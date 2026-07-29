@@ -87,6 +87,7 @@ describe('ConfirmActionModal', () => {
       />,
     );
 
+    expect(screen.getByRole('dialog', { name: '确认操作' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: '关闭' }));
 
     expect(onClose).toHaveBeenCalledOnce();

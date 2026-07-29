@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 const styles = readFileSync(resolve(process.cwd(), 'src/styles/globals.scss'), 'utf8');
+const layout = readFileSync(resolve(process.cwd(), 'src/components/Layout.tsx'), 'utf8');
 
 function ruleBody(selector: string) {
   const escapedSelector = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -13,6 +14,10 @@ function ruleBody(selector: string) {
 }
 
 describe('Carbon shell style contract', () => {
+  it('makes the skip-link target programmatically focusable', () => {
+    expect(layout).toMatch(/<main[^>]*id="main-content"[^>]*tabIndex=\{-1\}/);
+  });
+
   it('shows only the open mobile panel at narrow widths', () => {
     expect(styles).toMatch(/@media\s*\(max-width:\s*767px\)[\s\S]*\.aster-mobile-panel:not\(\[hidden\]\)\s*\{\s*display:\s*(?:block|grid|flex);/);
     expect(styles).toMatch(/\.aster-mobile-panel\[hidden\]\s*\{\s*display:\s*none;/);
