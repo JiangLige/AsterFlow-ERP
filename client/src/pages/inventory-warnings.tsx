@@ -1,105 +1,122 @@
 import { useEffect, useState } from 'react';
+import { Button } from '@carbon/react';
 import Layout from '@/components/Layout';
+import BusinessDataTable from '@/components/ui/BusinessDataTable';
+import PageHeader from '@/components/ui/PageHeader';
+import StatusTag from '@/components/ui/StatusTag';
 import { apiRequest } from '@/lib/api';
 
 type Product = {
-    id: number;
-    productCode: string;
-    name: string;
-    category: string;
-    unit: string;
-    price: number;
-    cost: number;
-    stock: number;
-    minStock: number;
-    status: string;
+  id: number;
+  productCode: string;
+  name: string;
+  category: string;
+  unit: string;
+  price: number;
+  cost: number;
+  stock: number;
+  minStock: number;
+  status: string;
 };
 
+const headers = [
+  { key: 'code', header: '编码' },
+  { key: 'name', header: '名称' },
+  { key: 'category', header: '分类' },
+  { key: 'unit', header: '单位' },
+  { key: 'stock', header: '当前库存' },
+  { key: 'minStock', header: '最低库存' },
+  { key: 'status', header: '状态' },
+];
+
 function formatStatus(status: string) {
-    if (status === 'ACTIVE') return '启用';
-    if (status === 'INACTIVE') return '停用';
-    return status;
+  if (status === 'ACTIVE') return '启用';
+  if (status === 'INACTIVE') return '停用';
+  return status;
 }
 
 export default function InventoryWarningsPage() {
-    const [products, setProducts] = useState<Product[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
-    const loadWarnings = async () => {
-        setLoading(true);
-        setError('');
+  const loadWarnings = async () => {
+    setLoading(true);
+    setError('');
 
-        try {
-            const data = await apiRequest<Product[]>('/api/product-warnings');
-            setProducts(data);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : '库存预警加载失败');
-        } finally {
-            setLoading(false);
-        }
-    };
+    try {
+      const data = await apiRequest<Product[]>('/api/product-warnings');
+      setProducts(data);
+      setPage(1);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '库存预警加载失败');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    useEffect(() => {
-        loadWarnings();
-    }, []);
+  useEffect(() => {
+    void loadWarnings();
+  }, []);
 
-    return (
-        <Layout>
-            <section className="page-hero">
-                <div>
-                    <p className="eyebrow">库存风险</p>
-                    <h1>库存预警</h1>
-                    <p className="muted">集中查看低于最低库存线的商品。</p>
-                </div>
+  const visibleProducts = products.slice((page - 1) * pageSize, page * pageSize);
+  const rows = visibleProducts.map((product) => ({
+    id: String(product.id),
+    code: <span className="numeric">{product.productCode}</span>,
+    name: product.name,
+    category: product.category,
+    unit: product.unit,
+    stock: <strong className="aster-risk-value numeric">{product.stock}</strong>,
+    minStock: <span className="numeric">{product.minStock}</span>,
+    status: (
+      <span className="aster-risk-status">
+        <StatusTag status="RISK" />
+        <span className="aster-sr-only">商品状态：{formatStatus(product.status)}</span>
+      </span>
+    ),
+  }));
 
-                <div className="page-actions">
-                    <button className="btn-secondary" onClick={loadWarnings} disabled={loading}>
-                        {loading ? '刷新中...' : '刷新'}
-                    </button>
-                </div>
-            </section>
+  return (
+    <Layout>
+      <div className="operations-list operations-list--warnings">
+        <PageHeader
+          title="库存预警"
+          description="集中查看低于最低库存线的商品。"
+          actions={(
+            <Button
+              disabled={loading}
+              kind="secondary"
+              onClick={() => void loadWarnings()}
+              size="lg"
+              type="button"
+            >
+              {loading ? '刷新中...' : '刷新'}
+            </Button>
+          )}
+        />
 
-            {error && <div className="alert alert-danger">{error}</div>}
-
-            {!loading && products.length === 0 && !error && (
-                <div className="alert alert-success">当前没有库存预警商品</div>
-            )}
-
-            {products.length > 0 && (
-                <table>
-                    <thead>
-                        <tr>
-                            <th>编码</th>
-                            <th>名称</th>
-                            <th>分类</th>
-                            <th>单位</th>
-                            <th>库存</th>
-                            <th>最低库存</th>
-                            <th>状态</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {products.map((product) => (
-                            <tr key={product.id}>
-                                <td>{product.productCode}</td>
-                                <td>{product.name}</td>
-                                <td>{product.category}</td>
-                                <td>{product.unit}</td>
-                                <td>
-                                    <strong style={{ color: 'var(--danger)' }}>{product.stock}</strong>
-                                </td>
-                                <td>{product.minStock}</td>
-                                <td>
-                                    <span className={`status-badge ${product.status === 'ACTIVE' ? 'success' : 'warning'}`}>
-                                        {formatStatus(product.status)}
-                                    </span>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            )}
-        </Layout>
-    );
+        <BusinessDataTable
+          empty={products.length === 0}
+          emptyDescription="所有商品库存均在安全线以上。"
+          emptyTitle="当前没有低于安全库存的商品"
+          error={error}
+          headers={headers}
+          loading={loading}
+          onRetry={() => void loadWarnings()}
+          pagination={{
+            page,
+            pageSize,
+            total: products.length,
+            onChange: ({ page: targetPage, pageSize: targetPageSize }) => {
+              setPage(targetPage);
+              setPageSize(targetPageSize);
+            },
+          }}
+          rows={rows}
+        />
+      </div>
+    </Layout>
+  );
 }
