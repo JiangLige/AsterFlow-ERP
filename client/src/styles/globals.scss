@@ -1537,6 +1537,115 @@ td button {
   margin-top: 0.75rem;
 }
 
+.aster-order-form-page {
+  max-width: 72rem;
+}
+
+.aster-order-form-page > .cds--inline-notification {
+  max-width: none;
+  margin: 0 0 1rem;
+}
+
+.aster-order-items {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.aster-order-items__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.aster-order-items__header h2 {
+  margin-bottom: 0;
+}
+
+.aster-order-items__table {
+  border: 1px solid var(--aster-border);
+}
+
+.aster-order-items__table table {
+  min-width: 56rem;
+}
+
+.aster-order-items__table .cds--form-item,
+.aster-order-items__table .cds--number {
+  min-width: 10rem;
+}
+
+.aster-order-items__table .cds--select {
+  min-width: 17rem;
+}
+
+.aster-order-items__actions {
+  width: 4rem;
+  text-align: right;
+}
+
+.aster-order-items__actions .cds--btn {
+  margin-inline-start: auto;
+}
+
+.aster-order-items-fieldset {
+  min-width: 0;
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+
+.aster-order-detail {
+  display: grid;
+  gap: 1rem;
+}
+
+.aster-order-detail .aster-page-header {
+  margin-bottom: 0;
+}
+
+.aster-order-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0;
+  background: var(--aster-border);
+}
+
+.aster-order-summary > div {
+  display: grid;
+  min-width: 0;
+  gap: 0.375rem;
+  background: var(--aster-layer);
+  padding: 1rem;
+}
+
+.aster-order-summary dt {
+  color: var(--aster-text-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.aster-order-summary dd {
+  min-width: 0;
+  margin: 0;
+  color: var(--aster-text);
+  overflow-wrap: anywhere;
+}
+
+.aster-order-detail__items {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.aster-order-detail__items h2 {
+  margin-bottom: 0;
+}
+
+.aster-order-detail__items table {
+  min-width: 44rem;
+}
+
 @media (max-width: 767px) {
   .carbon-login {
     display: block;
@@ -1688,7 +1797,8 @@ td button {
   }
 
   .aster-form-grid,
-  .aster-detail-grid {
+  .aster-detail-grid,
+  .aster-order-summary {
     grid-template-columns: 1fr;
   }
 
@@ -1706,5 +1816,14 @@ td button {
 
   .aster-detail-grid > * {
     min-height: 0;
+  }
+
+  .aster-order-items__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .aster-order-items__header .cds--btn {
+    width: 100%;
   }
 }
