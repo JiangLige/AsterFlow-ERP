@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-07-31T03:48:16.758Z",
+  "browser": {
+    "engine": "Chromium",
+    "product": "Google Chrome",
+    "version": "150.0.7871.187",
+    "headless": true,
+    "profile": "isolated Playwright context"
+  },
+  "baseUrl": "http://localhost:3000",
+  "viewport": "1440x900",
+  "auth": {
+    "method": "UI login",
+    "account": "admin",
+    "credentialMaterialRead": false
+  },
+  "fixtures": {
+    "enabled": true,
+    "responseEnvelope": "{ success: true, data: ... }",
+    "destructiveMutations": false
+  },
+  "cases": [
+    {
+      "name": "dashboard",
+      "path": "/",
+      "mainCount": 1,
+      "titleFontSize": "32px",
+      "customLegend": true,
+      "customTooltip": true,
+      "pageOverflow": false,
+      "passed": true
+    },
+    {
+      "name": "product-form",
+      "path": "/products/new",
+      "mainCount": 1,
+      "formCount": 1,
+      "headingVisible": true,
+      "motionAllowed": true,
+      "pageOverflow": false,
+      "passed": true
+    },
+    {
+      "name": "sale-detail",
+      "path": "/sale-orders/1",
+      "mainCount": 1,
+      "orderVisible": true,
+      "itemVisible": true,
+      "pageOverflow": false,
+      "passed": true
+    },
+    {
+      "name": "inventory-warnings",
+      "path": "/inventory-warnings",
+      "mainCount": 1,
+      "shortageVisible": true,
+      "stockAction": "/products/1/stock",
+      "replenishAction": "/purchase-orders/new",
+      "pageOverflow": false,
+      "passed": true
+    },
+    {
+      "name": "stock-records",
+      "path": "/stock-records",
+      "mainCount": 1,
+      "beforeVisible": true,
+      "afterVisible": true,
+      "pageOverflow": false,
+      "passed": true
+    }
+  ],
+  "summary": {
+    "caseCount": 5,
+    "passed": 5,
+    "failed": [],
+    "consoleIssues": 0,
+    "pageErrors": 0,
+    "requestFailures": 0,
+    "httpErrors": 0
+  }
+}
