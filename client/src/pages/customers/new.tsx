@@ -46,7 +46,7 @@ export default function CustomerCreatePage() {
 
   return (
     <Layout>
-      <main className="aster-form-page">
+      <div className="aster-form-page">
         <PageHeader
           backHref="/customers"
           description="维护客户基础资料、联系人和业务状态。"
@@ -113,7 +113,7 @@ export default function CustomerCreatePage() {
           </Select>
           <FormActions cancelHref="/customers" submitLabel="保存客户" submitting={saving} />
         </Form>
-      </main>
+      </div>
     </Layout>
   );
 }

@@ -54,7 +54,7 @@ export default function ProductCreatePage() {
 
   return (
     <Layout>
-      <main className="aster-form-page">
+      <div className="aster-form-page">
         <PageHeader
           backHref="/products"
           description="录入商品编码、分类、价格与初始库存。"
@@ -160,7 +160,7 @@ export default function ProductCreatePage() {
           />
           <FormActions cancelHref="/products" submitLabel="保存商品" submitting={submitting} />
         </Form>
-      </main>
+      </div>
     </Layout>
   );
 }

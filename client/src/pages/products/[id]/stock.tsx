@@ -118,7 +118,7 @@ export default function ProductStockAdjustPage() {
 
   return (
     <Layout>
-      <main className="aster-form-page">
+      <div className="aster-form-page">
         <PageHeader
           actions={(
             <Button as={Link} href="/stock-records" kind="ghost" size="sm">
@@ -213,7 +213,7 @@ export default function ProductStockAdjustPage() {
             <FormActions cancelHref="/products" submitLabel="确认调整" submitting={submitting} />
           </Form>
         ) : null}
-      </main>
+      </div>
     </Layout>
   );
 }

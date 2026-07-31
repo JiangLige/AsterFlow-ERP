@@ -17,6 +17,7 @@ import {
   Legend,
   ResponsiveContainer,
   Tooltip,
+  type TooltipContentProps,
   XAxis,
   YAxis,
 } from 'recharts';
@@ -31,6 +32,39 @@ import {
 
 const taskIcons = [Purchase, ShoppingCart, WarningAlt];
 const movementIcons = [InventoryManagement, Delivery];
+
+type OrderStatusTooltipProps = Pick<TooltipContentProps, 'active' | 'label' | 'payload'>;
+
+function OrderStatusTooltip({ active, label, payload }: OrderStatusTooltipProps) {
+  if (!active || !payload.length) return null;
+
+  return (
+    <div className="order-chart__tooltip">
+      <p>{label}</p>
+      <ul>
+        {payload.map((entry) => (
+          <li key={String(entry.dataKey)}>
+            <span>{entry.name}</span>
+            <strong data-numeric="true">{entry.value}</strong>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function OrderStatusLegend({ payload }: { payload?: ReadonlyArray<{ dataKey?: unknown; value?: string }> }) {
+  return (
+    <ul className="order-chart__legend">
+      {payload?.map((entry) => (
+        <li data-series={entry.dataKey} key={String(entry.dataKey)}>
+          <span aria-hidden="true" />
+          {entry.value}
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 function formatDate() {
   return new Intl.DateTimeFormat('zh-CN', {
@@ -180,24 +214,10 @@ const Home: NextPage = () => {
                       tickLine={false}
                       width={42}
                     />
-                    <Tooltip
-                      cursor={{ fill: '#f4f4f4' }}
-                      contentStyle={{
-                        background: '#ffffff',
-                        border: '1px solid #8d8d8d',
-                        borderRadius: 0,
-                        boxShadow: 'none',
-                        fontFamily: 'IBM Plex Sans, Noto Sans SC, sans-serif',
-                      }}
-                    />
+                    <Tooltip content={OrderStatusTooltip} cursor={{ fill: '#f4f4f4' }} />
                     <Legend
+                      content={OrderStatusLegend}
                       iconType="square"
-                      wrapperStyle={{
-                        color: '#525252',
-                        fontFamily: 'IBM Plex Sans, Noto Sans SC, sans-serif',
-                        fontSize: 12,
-                        paddingTop: 12,
-                      }}
                     />
                     <Bar
                       dataKey="purchase"

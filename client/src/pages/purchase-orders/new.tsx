@@ -89,7 +89,7 @@ export default function PurchaseOrderCreatePage() {
 
   return (
     <Layout>
-      <main className="aster-form-page aster-order-form-page">
+      <div className="aster-form-page aster-order-form-page">
         <PageHeader backHref="/purchase-orders" description="选择供应商并录入商品明细，保存后进入采购流转。" title="新增采购单" />
         <DataState
           empty={optionsEmpty}
@@ -118,7 +118,7 @@ export default function PurchaseOrderCreatePage() {
           </div>
           <FormActions cancelHref="/purchase-orders" submitLabel="保存采购单" submitting={submitting} />
         </Form> : null}
-      </main>
+      </div>
     </Layout>
   );
 }

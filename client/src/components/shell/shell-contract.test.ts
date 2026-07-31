@@ -6,7 +6,10 @@ const styles = readFileSync(resolve(process.cwd(), 'src/styles/globals.scss'), '
 const layout = readFileSync(resolve(process.cwd(), 'src/components/Layout.tsx'), 'utf8');
 
 function ruleBody(selector: string) {
-  const escapedSelector = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const escapedSelector = selector
+    .split(/\s+/)
+    .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+    .join('\\s*');
   const match = styles.match(new RegExp(`${escapedSelector}\\s*\\{([^}]*)\\}`));
 
   expect(match, `Missing CSS rule for ${selector}`).not.toBeNull();
@@ -38,16 +41,18 @@ describe('Carbon shell style contract', () => {
     expect(root).toMatch(new RegExp(`${token}:\\s*[^;]+;`));
   });
 
-  it.each(['.aster-module-link', '.aster-context-link,\n.aster-mobile-link'])(
-    'limits %s transitions to motion properties',
-    (selector) => {
-      const body = ruleBody(selector);
-      const transition = body.match(/transition:\s*([^;]+);/)?.[1] ?? '';
+  it('limits all shell, button, and input transitions to motion properties', () => {
+    const transitions = [...styles.matchAll(/transition:\s*([^;]+);/g)].map((match) => match[1]);
+
+    expect(styles).toMatch(/button,[\s\S]{0,800}transition:\s*transform\s+160ms\s+ease;/);
+    expect(styles).toMatch(/input,[\s\S]{0,800}transition:\s*transform\s+160ms\s+ease;/);
+
+    for (const transition of transitions) {
       const properties = transition.split(',').map((part) => part.trim().split(/\s+/)[0]);
 
       expect(transition).toMatch(/(?:150|1[6-9]0|200)ms/);
       expect(properties.length).toBeGreaterThan(0);
       expect(properties.every((property) => ['transform', 'opacity'].includes(property))).toBe(true);
-    },
-  );
+    }
+  });
 });

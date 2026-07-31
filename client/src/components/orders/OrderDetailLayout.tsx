@@ -13,7 +13,7 @@ export type OrderDetailLayoutProps = {
 
 export default function OrderDetailLayout({ title, backHref, status, summary, items }: OrderDetailLayoutProps) {
   return (
-    <main className="aster-order-detail">
+    <div className="aster-order-detail">
       <PageHeader backHref={backHref} status={<StatusTag status={status} />} title={title} />
       <section aria-label="订单基础信息" className="aster-detail-grid">
         <dl className="aster-order-summary">
@@ -52,6 +52,6 @@ export default function OrderDetailLayout({ title, backHref, status, summary, it
           </Table>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

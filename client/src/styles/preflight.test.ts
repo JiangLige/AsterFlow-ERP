@@ -61,6 +61,14 @@ describe('Carbon redesign static pre-flight', () => {
     expect(violations).toEqual([]);
   });
 
+  it('contains no Recharts props that generate inline styles at runtime', () => {
+    const violations = sources.flatMap((path) =>
+      matchingLocations(path, /\b(?:contentStyle|wrapperStyle)\s*=/),
+    );
+
+    expect(violations).toEqual([]);
+  });
+
   it('contains no em or en dash characters', () => {
     const violations = sources.flatMap((path) => matchingLocations(path, /[—–]/));
 

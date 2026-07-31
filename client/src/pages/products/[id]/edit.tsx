@@ -101,7 +101,7 @@ export default function ProductEditPage() {
 
   return (
     <Layout>
-      <main className="aster-form-page">
+      <div className="aster-form-page">
         <PageHeader
           backHref="/products"
           description={`当前商品 ID：${productId || '-'}`}
@@ -198,7 +198,7 @@ export default function ProductEditPage() {
             <FormActions cancelHref="/products" submitLabel="保存商品" submitting={saving} />
           </Form>
         ) : null}
-      </main>
+      </div>
     </Layout>
   );
 }

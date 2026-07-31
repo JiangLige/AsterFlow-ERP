@@ -34,6 +34,7 @@ const headers = [
   { key: 'product', header: '商品' },
   { key: 'type', header: '类型' },
   { key: 'changeQuantity', header: '变更数量' },
+  { key: 'beforeStock', header: '变更前库存' },
   { key: 'afterStock', header: '变更后库存' },
   { key: 'source', header: '来源单据' },
   { key: 'remark', header: '备注' },
@@ -126,6 +127,7 @@ export default function StockRecordsPage() {
         {record.changeQuantity}
       </strong>
     ),
+    beforeStock: <span className="numeric">{record.beforeStock}</span>,
     afterStock: <span className="numeric">{record.afterStock}</span>,
     source: <span className="numeric">{formatSource(record)}</span>,
     remark: record.remark || '-',

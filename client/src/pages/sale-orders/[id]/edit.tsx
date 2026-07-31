@@ -69,7 +69,7 @@ export default function SaleOrderEditPage() {
 
   return (
     <Layout>
-      <main className="aster-form-page aster-order-form-page">
+      <div className="aster-form-page aster-order-form-page">
         <PageHeader backHref={`/sale-orders/${saleOrderId}`} description={orderNo ? `单号：${orderNo}` : undefined} title="编辑销售单" />
         <DataState
           empty={optionsEmpty}
@@ -92,7 +92,7 @@ export default function SaleOrderEditPage() {
           </fieldset>
           <FormActions cancelHref={`/sale-orders/${saleOrderId}`} submitLabel="保存修改" submitting={submitting || status !== 'DRAFT'} />
         </Form> : null}
-      </main>
+      </div>
     </Layout>
   );
 }

@@ -72,7 +72,7 @@ export default function SaleOrderCreatePage() {
 
   return (
     <Layout>
-      <main className="aster-form-page aster-order-form-page">
+      <div className="aster-form-page aster-order-form-page">
         <PageHeader backHref="/sale-orders" description="选择客户并录入销售明细，提交前会校验可用库存。" title="新增销售单" />
         <DataState
           empty={optionsEmpty}
@@ -94,7 +94,7 @@ export default function SaleOrderCreatePage() {
           </div>
           <FormActions cancelHref="/sale-orders" submitLabel="保存销售单" submitting={submitting} />
         </Form> : null}
-      </main>
+      </div>
     </Layout>
   );
 }

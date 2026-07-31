@@ -91,7 +91,7 @@ export default function SupplierEditPage() {
 
   return (
     <Layout>
-      <main className="aster-form-page">
+      <div className="aster-form-page">
         <PageHeader
           backHref="/suppliers"
           description="维护供应商基础资料、联系人和业务状态。"
@@ -161,7 +161,7 @@ export default function SupplierEditPage() {
             <FormActions cancelHref="/suppliers" submitLabel="保存供应商" submitting={saving} />
           </Form>
         ) : null}
-      </main>
+      </div>
     </Layout>
   );
 }

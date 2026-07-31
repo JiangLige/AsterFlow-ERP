@@ -84,7 +84,7 @@ export default function PurchaseOrderEditPage() {
 
   return (
     <Layout>
-      <main className="aster-form-page aster-order-form-page">
+      <div className="aster-form-page aster-order-form-page">
         <PageHeader backHref={`/purchase-orders/${purchaseOrderId}`} description={orderNo ? `单号：${orderNo}` : undefined} title="编辑采购单" />
         <DataState
           empty={optionsEmpty}
@@ -107,7 +107,7 @@ export default function PurchaseOrderEditPage() {
           </fieldset>
           <FormActions cancelHref={`/purchase-orders/${purchaseOrderId}`} submitLabel="保存修改" submitting={submitting || status !== 'DRAFT'} />
         </Form> : null}
-      </main>
+      </div>
     </Layout>
   );
 }

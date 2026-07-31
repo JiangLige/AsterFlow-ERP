@@ -30,4 +30,8 @@ describe('AsterFlow Carbon theme', () => {
       /@media\s*\(max-width:\s*767px\)[\s\S]*\.operations-list \.aster-toolbar\s*\{[^}]*grid-template-columns:\s*1fr;/,
     );
   });
+
+  it('caps authenticated page headings at 2rem', () => {
+    expect(source).toMatch(/\.aster-page-header h1\s*\{[^}]*font-size:\s*2rem;/);
+  });
 });

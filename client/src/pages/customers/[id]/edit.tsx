@@ -91,7 +91,7 @@ export default function CustomerEditPage() {
 
   return (
     <Layout>
-      <main className="aster-form-page">
+      <div className="aster-form-page">
         <PageHeader
           backHref="/customers"
           description="维护客户基础资料、联系人和业务状态。"
@@ -161,7 +161,7 @@ export default function CustomerEditPage() {
             <FormActions cancelHref="/customers" submitLabel="保存客户" submitting={saving} />
           </Form>
         ) : null}
-      </main>
+      </div>
     </Layout>
   );
 }

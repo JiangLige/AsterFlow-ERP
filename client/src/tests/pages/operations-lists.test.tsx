@@ -42,6 +42,9 @@ vi.mock('@carbon/react', () => ({
   }: ButtonHTMLAttributes<HTMLButtonElement> & { kind?: string; size?: string }) => (
     <button {...props}>{children}</button>
   ),
+  Link: ({ children, ...props }: AnchorHTMLAttributes<HTMLAnchorElement> & { children: ReactNode }) => (
+    <a {...props}>{children}</a>
+  ),
   Search: ({
     labelText,
     size: _size,
@@ -90,6 +93,7 @@ vi.mock('@/components/ui/BusinessDataTable', () => ({
     empty,
     emptyTitle,
     error,
+    headers,
     onRetry,
     pagination,
     rows,
@@ -98,6 +102,7 @@ vi.mock('@/components/ui/BusinessDataTable', () => ({
     empty?: boolean;
     emptyTitle?: string;
     error?: string;
+    headers: Array<{ key: string; header: string }>;
     onRetry?: () => void;
     pagination: {
       page: number;
@@ -108,6 +113,7 @@ vi.mock('@/components/ui/BusinessDataTable', () => ({
     toolbar?: ReactNode;
   }) => (
     <section>
+      <div aria-label="表格列">{headers.map((header) => <span key={header.key}>{header.header}</span>)}</div>
       {toolbar}
       {error ? <div role="alert">{error}</div> : null}
       {error && onRetry ? <button onClick={onRetry}>重试</button> : null}
@@ -217,6 +223,64 @@ describe('remaining Carbon operations lists', () => {
     expect(row).not.toBeNull();
     expect(within(row as HTMLElement).getByText('RISK')).toBeInTheDocument();
     expect(within(row as HTMLElement).getByText('商品状态：启用')).toBeInTheDocument();
+  });
+
+  it('shows each warning shortage gap with stock adjustment and replenishment destinations', async () => {
+    vi.mocked(apiRequest).mockResolvedValue([
+      {
+        id: 2,
+        productCode: 'SP-LOW-02',
+        name: '低库存扭矩扳手',
+        category: '工业工具',
+        unit: '把',
+        price: 260,
+        cost: 180,
+        stock: 2,
+        minStock: 8,
+        status: 'ACTIVE',
+      },
+    ]);
+
+    render(<InventoryWarningsPage />);
+
+    expect(await screen.findByText('库存缺口')).toBeInTheDocument();
+    expect(screen.getByText('操作')).toBeInTheDocument();
+    const row = screen.getByText('SP-LOW-02').closest('article');
+    expect(row).not.toBeNull();
+    expect(within(row as HTMLElement).getByText('6')).toBeInTheDocument();
+    expect(within(row as HTMLElement).getByRole('link', { name: '库存调整' })).toHaveAttribute('href', '/products/2/stock');
+    expect(within(row as HTMLElement).getByRole('link', { name: '发起补货' })).toHaveAttribute('href', '/purchase-orders/new');
+  });
+
+  it('shows the prior stock column for each stock record', async () => {
+    vi.mocked(apiRequest).mockResolvedValue({
+      records: [{
+        id: 7,
+        productId: 2,
+        productCode: 'SP-LOW-02',
+        productName: '低库存扭矩扳手',
+        changeQuantity: -3,
+        beforeStock: 8,
+        afterStock: 5,
+        type: 'OUT',
+        remark: '',
+        createdAt: '2026-07-31 10:00:00',
+        sourceType: 'SALE_ORDER',
+        sourceId: 9,
+        sourceNo: 'SO-9',
+      }],
+      total: 1,
+      page: 1,
+      size: 10,
+      pages: 1,
+    } as never);
+
+    render(<StockRecordsPage />);
+
+    expect(await screen.findByText('变更前库存')).toBeInTheDocument();
+    const row = screen.getByText('SP-LOW-02').closest('article');
+    expect(row).not.toBeNull();
+    expect(within(row as HTMLElement).getByText('8')).toBeInTheDocument();
   });
 
   it('retries inventory failures and shows the exact safe-stock empty state', async () => {

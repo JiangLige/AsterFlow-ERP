@@ -96,6 +96,11 @@ not supply the exact QA state. It changed neither source files nor backend data:
 | P1 | The skip link updated the fragment but did not move keyboard focus to the main region. | Made the main region programmatically focusable; added a shell contract test and browser-retested focus transfer. |
 | P1 | The purchase-order operations toolbar expanded into a large empty desktop panel. | Added a compact three-column Carbon toolbar grid with a one-column mobile rule; added a CSS contract test and browser-retested the list. |
 | P1 | The order-item icon-only delete button used the unsupported Carbon `danger--ghost` kind and logged prop validation errors. | Replaced it with the supported `ghost` kind, retained destructive color through a scoped class, added a component regression assertion, and browser-retested the purchase form with a clean console. |
+| P0 | Authenticated form and order-detail pages nested a second `main` landmark inside the shell landmark. | Replaced authenticated page and `OrderDetailLayout` wrappers with `div`; added a rendered regression that proves representative form and detail routes each contain exactly one main landmark. Browser verification is delegated to the final reviewer. |
+| P1 | Inventory warnings omitted the shortage amount and did not provide row-level operational destinations. | Restored `库存缺口`, stock-adjustment, and replenishment destinations using existing routes; added rendered list assertions for both headers, the calculated gap, and each href. Browser verification is delegated to the final reviewer. |
+| P1 | Stock records omitted the existing `beforeStock` field. | Restored the `变更前库存` column and rendered-row regression coverage. Browser verification is delegated to the final reviewer. |
+| P1 | Dashboard Recharts tooltip and legend props created runtime inline styles. | Replaced `contentStyle` and `wrapperStyle` with SCSS-backed custom renderers; preflight now rejects those Recharts props. Browser verification is delegated to the final reviewer. |
+| P2 | Button/input transitions animated visual properties outside the approved motion scope, and authenticated titles could exceed 32px. | Restricted transitions to `transform`, expanded the stylesheet contract beyond navigation, and capped `.aster-page-header h1` at 2rem. Browser verification is delegated to the final reviewer. |
 | P3 | The running local database returned question marks for user real names although the checked-in seed source contains Chinese names. | Recorded as external test-data state. Server and database changes are outside this frontend-only task; the shell remains functional and no P0, P1, or P2 redesign defect remains. |
 
 ## Dependency decision
@@ -104,4 +109,4 @@ not supply the exact QA state. It changed neither source files nor backend data:
 `BrandMark.tsx` and its approved `IconRosette` brand exception. All business
 icons use Carbon icons, so no package or lockfile change was warranted.
 
-final result: passed
+final result: pending final browser verification

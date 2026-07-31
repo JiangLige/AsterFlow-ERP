@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Button } from '@carbon/react';
+import { Button, Link } from '@carbon/react';
 import Layout from '@/components/Layout';
 import BusinessDataTable from '@/components/ui/BusinessDataTable';
 import PageHeader from '@/components/ui/PageHeader';
@@ -26,7 +26,9 @@ const headers = [
   { key: 'unit', header: '单位' },
   { key: 'stock', header: '当前库存' },
   { key: 'minStock', header: '最低库存' },
+  { key: 'shortageGap', header: '库存缺口' },
   { key: 'status', header: '状态' },
+  { key: 'actions', header: '操作' },
 ];
 
 function formatStatus(status: string) {
@@ -70,10 +72,17 @@ export default function InventoryWarningsPage() {
     unit: product.unit,
     stock: <strong className="aster-risk-value numeric">{product.stock}</strong>,
     minStock: <span className="numeric">{product.minStock}</span>,
+    shortageGap: <strong className="aster-risk-value numeric">{Math.max(product.minStock - product.stock, 0)}</strong>,
     status: (
       <span className="aster-risk-status">
         <StatusTag status="RISK" />
         <span className="aster-sr-only">商品状态：{formatStatus(product.status)}</span>
+      </span>
+    ),
+    actions: (
+      <span className="aster-warning-actions">
+        <Link href={`/products/${product.id}/stock`}>库存调整</Link>
+        <Link href="/purchase-orders/new">发起补货</Link>
       </span>
     ),
   }));
