@@ -1,6 +1,11 @@
-import '@/styles/globals.css';
 import type { AppProps } from 'next/app';
+import { Theme } from '@carbon/react';
+import '@/styles/globals.scss';
 
 export default function App({ Component, pageProps }: AppProps) {
-  return <Component {...pageProps} />;
+  return (
+    <Theme theme="white">
+      <Component {...pageProps} />
+    </Theme>
+  );
 }

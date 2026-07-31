@@ -1,328 +1,326 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
+import { Button, Search, Select, SelectItem } from '@carbon/react';
 import Layout from '@/components/Layout';
+import BusinessDataTable from '@/components/ui/BusinessDataTable';
+import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
+import OverflowActions, { type OverflowAction } from '@/components/ui/OverflowActions';
+import PageHeader from '@/components/ui/PageHeader';
+import StatusTag from '@/components/ui/StatusTag';
 import { apiRequest } from '@/lib/api';
-import { FadeIn } from '@/components/motion';
-import { motion, AnimatePresence } from 'motion/react';
 
 type PurchaseOrder = {
-    id: number;
-    orderNo: string;
-    supplierId: number;
-    supplierName: string;
-    totalAmount: number;
-    status: string;
-    remark: string;
-    createdAt: string;
-    updatedAt: string;
+  id: number;
+  orderNo: string;
+  supplierId: number;
+  supplierName: string;
+  totalAmount: number;
+  status: string;
+  remark: string;
+  createdAt: string;
+  updatedAt: string;
 };
 
 type PageResponse<T> = {
-    records: T[];
-    total: number;
-    page: number;
-    size: number;
-    pages: number;
+  records: T[];
+  total: number;
+  page: number;
+  size: number;
+  pages: number;
 };
 
-function formatStatus(status: string) {
-    if (status === 'DRAFT') return '草稿';
-    if (status === 'APPROVED') return '已审核';
-    if (status === 'CANCELED') return '已取消';
-    return status;
-}
+type PendingAction = {
+  kind: 'approve' | 'cancel' | 'delete';
+  order: PurchaseOrder;
+};
 
-function statusTone(status: string) {
-    if (status === 'APPROVED') return 'success';
-    if (status === 'CANCELED') return 'danger';
-    return 'warning';
-}
+const headers = [
+  { key: 'orderNo', header: '单号' },
+  { key: 'counterparty', header: '往来单位' },
+  { key: 'amount', header: '金额' },
+  { key: 'status', header: '状态' },
+  { key: 'remark', header: '备注' },
+  { key: 'createdAt', header: '创建时间' },
+  { key: 'actions', header: '操作' },
+];
 
 function formatCurrency(value: number) {
-    return new Intl.NumberFormat('zh-CN', {
-        style: 'currency',
-        currency: 'CNY',
-        maximumFractionDigits: 2,
-    }).format(value || 0);
+  return new Intl.NumberFormat('zh-CN', {
+    style: 'currency',
+    currency: 'CNY',
+    maximumFractionDigits: 2,
+  }).format(value || 0);
+}
+
+function modalContent(action: PendingAction | null) {
+  if (!action) {
+    return {
+      confirmLabel: '',
+      danger: false,
+      description: '',
+      title: '',
+    };
+  }
+
+  if (action.kind === 'approve') {
+    return {
+      confirmLabel: '确认审核',
+      danger: false,
+      description: `审核采购单“${action.order.orderNo}”后，将按明细数量增加商品库存。`,
+      title: '审核采购单',
+    };
+  }
+
+  if (action.kind === 'cancel') {
+    return {
+      confirmLabel: '确认取消',
+      danger: true,
+      description: `取消采购单“${action.order.orderNo}”后，将扣回该订单审核时增加的商品库存。`,
+      title: '取消采购单',
+    };
+  }
+
+  return {
+    confirmLabel: '确认删除',
+    danger: true,
+    description: `删除草稿采购单“${action.order.orderNo}”。草稿尚未影响商品库存。`,
+    title: '删除采购单',
+  };
 }
 
 export default function PurchaseOrdersPage() {
-    const [orders, setOrders] = useState<PurchaseOrder[]>([]);
-    const [keyword, setKeyword] = useState('');
-    const [status, setStatus] = useState('');
-    const [page, setPage] = useState(1);
-    const [pages, setPages] = useState(1);
-    const [total, setTotal] = useState(0);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [role, setRole] = useState('');
+  const router = useRouter();
+  const [orders, setOrders] = useState<PurchaseOrder[]>([]);
+  const [keyword, setKeyword] = useState('');
+  const [status, setStatus] = useState('');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [role, setRole] = useState('');
+  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
-    const loadOrders = async (targetPage = page) => {
-        setLoading(true);
-        setError('');
+  const loadOrders = async (
+    targetPage: number,
+    targetPageSize: number,
+    targetKeyword: string,
+    targetStatus: string,
+  ) => {
+    setLoading(true);
+    setError('');
 
-        try {
-            const query = new URLSearchParams();
-            query.set('page', String(targetPage));
-            query.set('size', '10');
+    try {
+      const query = new URLSearchParams();
+      query.set('page', String(targetPage));
+      query.set('size', String(targetPageSize));
 
-            if (keyword.trim()) {
-                query.set('keyword', keyword.trim());
-            }
+      if (targetKeyword.trim()) {
+        query.set('keyword', targetKeyword.trim());
+      }
 
-            if (status) {
-                query.set('status', status);
-            }
+      if (targetStatus) {
+        query.set('status', targetStatus);
+      }
 
-            const data = await apiRequest<PageResponse<PurchaseOrder>>(
-                `/api/purchase-orders?${query.toString()}`
-            );
+      const data = await apiRequest<PageResponse<PurchaseOrder>>(
+        `/api/purchase-orders?${query.toString()}`,
+      );
 
-            setOrders(data.records);
-            setPage(data.page);
-            setPages(data.pages);
-            setTotal(data.total);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : '加载采购单失败');
-        } finally {
-            setLoading(false);
-        }
-    };
+      setOrders(data.records);
+      setPage(data.page);
+      setPageSize(data.size);
+      setTotal(data.total);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '加载采购单失败');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    async function handleApprove(id: number) {
-        const ok = window.confirm('确定要审核入库这个采购单吗？');
+  useEffect(() => {
+    setRole(localStorage.getItem('role') || '');
+    void loadOrders(1, 10, '', '');
+  }, []);
 
-        if (!ok) {
-            return;
-        }
-
-        setError('');
-
-        try {
-            await apiRequest(`/api/purchase-orders/${id}/approve`, {
-                method: 'PATCH',
-            });
-
-            loadOrders(page);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : '审核入库失败');
-        }
+  async function handleConfirmedAction() {
+    if (!pendingAction) {
+      return;
     }
 
-    async function handleDelete(id: number) {
-        const ok = window.confirm('确定要删除这个草稿采购单吗？');
+    const action = pendingAction;
+    setSubmitting(true);
+    setError('');
 
-        if (!ok) {
-            return;
-        }
+    try {
+      const suffix = action.kind === 'delete' ? '' : `/${action.kind}`;
+      const method = action.kind === 'delete' ? 'DELETE' : 'PATCH';
+      await apiRequest(`/api/purchase-orders/${action.order.id}${suffix}`, { method });
 
-        setError('');
+      setPendingAction(null);
+      const targetPage = action.kind === 'delete' && orders.length === 1 && page > 1
+        ? page - 1
+        : page;
+      await loadOrders(targetPage, pageSize, keyword, status);
+    } catch (err) {
+      setPendingAction(null);
+      setError(
+        err instanceof Error
+          ? err.message
+          : action.kind === 'approve'
+            ? '审核入库失败'
+            : action.kind === 'cancel'
+              ? '取消采购单失败'
+              : '删除采购单失败',
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
-        try {
-            await apiRequest(`/api/purchase-orders/${id}`, {
-                method: 'DELETE',
-            });
+  function orderActions(order: PurchaseOrder): OverflowAction[] {
+    const actions: OverflowAction[] = [
+      {
+        label: '查看',
+        onClick: () => void router.push(`/purchase-orders/${order.id}`),
+      },
+    ];
 
-            loadOrders(page);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : '删除采购单失败');
-        }
+    if (order.status === 'DRAFT') {
+      actions.push(
+        {
+          label: '编辑',
+          onClick: () => void router.push(`/purchase-orders/${order.id}/edit`),
+        },
+        {
+          label: '审核通过',
+          onClick: () => setPendingAction({ kind: 'approve', order }),
+        },
+      );
+
+      if (role === 'ADMIN') {
+        actions.push({
+          label: '删除',
+          danger: true,
+          onClick: () => setPendingAction({ kind: 'delete', order }),
+        });
+      }
     }
 
-    async function handleCancel(id: number) {
-        const ok = window.confirm('确定要取消这个采购单并扣回库存吗？');
-
-        if (!ok) {
-            return;
-        }
-
-        setError('');
-
-        try {
-            await apiRequest(`/api/purchase-orders/${id}/cancel`, {
-                method: 'PATCH',
-            });
-
-            loadOrders(page);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : '取消采购单失败');
-        }
+    if (order.status === 'APPROVED') {
+      actions.push({
+        label: '取消订单',
+        danger: true,
+        onClick: () => setPendingAction({ kind: 'cancel', order }),
+      });
     }
 
-    useEffect(() => {
-        setRole(localStorage.getItem('role') || '');
-        loadOrders();
-    }, []);
+    return actions;
+  }
 
-    return (
-        <Layout>
-            <FadeIn direction="up" distance={16}>
-                <section className="page-hero">
-                    <div>
-                        <p className="eyebrow">采购入库</p>
-                        <h1>采购单列表</h1>
-                        <p className="muted">跟踪采购草稿、审核入库和取消流转。</p>
-                    </div>
+  const rows = orders.map((order) => ({
+    id: String(order.id),
+    orderNo: <span className="numeric">{order.orderNo}</span>,
+    counterparty: order.supplierName,
+    amount: <span className="numeric">{formatCurrency(order.totalAmount)}</span>,
+    status: <StatusTag status={order.status} />,
+    remark: order.remark || '-',
+    createdAt: order.createdAt,
+    actions: <OverflowActions actions={orderActions(order)} />,
+  }));
+  const modal = modalContent(pendingAction);
 
-                    <div className="page-actions">
-                        <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-                            <Link className="btn-primary" href="/purchase-orders/new">
-                                新增采购单
-                            </Link>
-                        </motion.div>
-                    </div>
-                </section>
-            </FadeIn>
+  return (
+    <Layout>
+      <div className="operations-list operations-list--orders">
+        <PageHeader
+          title="采购单列表"
+          description="跟踪采购草稿、审核入库和取消流转。"
+          actions={(
+            <Link className="cds--btn cds--btn--primary" href="/purchase-orders/new">
+              新增采购单
+            </Link>
+          )}
+        />
 
-            <FadeIn direction="up" delay={0.1}>
-                <div className="toolbar">
-                    <input
-                        value={keyword}
-                        onChange={(e) => setKeyword(e.target.value)}
-                        placeholder="输入采购单号/供应商"
-                    />
+        <BusinessDataTable
+          empty={orders.length === 0}
+          emptyDescription="新增采购单后，订单会显示在这里。"
+          emptyTitle="暂无采购单数据"
+          error={error}
+          headers={headers}
+          loading={loading}
+          onRetry={() => void loadOrders(page, pageSize, keyword, status)}
+          pagination={{
+            page,
+            pageSize,
+            total,
+            onChange: ({ page: targetPage, pageSize: targetPageSize }) => {
+              setPageSize(targetPageSize);
+              void loadOrders(targetPage, targetPageSize, keyword, status);
+            },
+          }}
+          rows={rows}
+          toolbar={(
+            <>
+              <Search
+                id="purchase-order-search"
+                labelText="搜索采购单"
+                onChange={(event) => {
+                  const nextKeyword = event.target.value;
+                  setKeyword(nextKeyword);
 
-                    <select value={status} onChange={(e) => setStatus(e.target.value)}>
-                        <option value="">全部状态</option>
-                        <option value="DRAFT">草稿</option>
-                        <option value="APPROVED">已审核</option>
-                        <option value="CANCELED">已取消</option>
-                    </select>
+                  if (nextKeyword === '') {
+                    void loadOrders(1, pageSize, '', status);
+                  }
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    void loadOrders(1, pageSize, keyword, status);
+                  }
+                }}
+                placeholder="输入采购单号或供应商"
+                size="lg"
+                value={keyword}
+              />
+              <Select
+                id="purchase-order-status"
+                labelText="订单状态"
+                onChange={(event) => setStatus(event.target.value)}
+                size="lg"
+                value={status}
+              >
+                <SelectItem text="全部状态" value="" />
+                <SelectItem text="草稿" value="DRAFT" />
+                <SelectItem text="已审核" value="APPROVED" />
+                <SelectItem text="已取消" value="CANCELED" />
+              </Select>
+              <Button
+                disabled={loading}
+                kind="secondary"
+                onClick={() => void loadOrders(1, pageSize, keyword, status)}
+                size="lg"
+                type="button"
+              >
+                {loading ? '查询中...' : '查询'}
+              </Button>
+            </>
+          )}
+        />
 
-                    <motion.button
-                        onClick={() => loadOrders(1)}
-                        disabled={loading}
-                        whileHover={{ scale: 1.03 }}
-                        whileTap={{ scale: 0.97 }}
-                    >
-                        {loading ? '加载中...' : '查询'}
-                    </motion.button>
-                </div>
-            </FadeIn>
-
-            <AnimatePresence mode="wait">
-                {error && (
-                    <FadeIn direction="up" delay={0.05} key="error">
-                        <div className="alert alert-danger">{error}</div>
-                    </FadeIn>
-                )}
-            </AnimatePresence>
-
-            <FadeIn direction="up" delay={0.15}>
-                <p className="muted" style={{ marginTop: '1rem' }}>
-                    第 {page} / {pages} 页，共 {total} 条
-                </p>
-            </FadeIn>
-
-            <FadeIn direction="up" delay={0.2}>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>单号</th>
-                            <th>供应商</th>
-                            <th>金额</th>
-                            <th>状态</th>
-                            <th>备注</th>
-                            <th>创建时间</th>
-                            <th>操作</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {orders.map((order, index) => (
-                            <motion.tr
-                                key={order.id}
-                                initial={{ opacity: 0, y: 8 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{
-                                    delay: index * 0.04,
-                                    duration: 0.35,
-                                    ease: [0.16, 1, 0.3, 1],
-                                }}
-                            >
-                                <td>
-                                    <strong>{order.orderNo}</strong>
-                                </td>
-                                <td>{order.supplierName}</td>
-                                <td>{formatCurrency(order.totalAmount)}</td>
-                                <td>
-                                    <span className={`status-badge ${statusTone(order.status)}`}>
-                                        {formatStatus(order.status)}
-                                    </span>
-                                </td>
-                                <td>{order.remark || '-'}</td>
-                                <td>{order.createdAt}</td>
-                                <td className="action-cell">
-                                    <Link href={`/purchase-orders/${order.id}`}>详情</Link>
-                                    {order.status === 'DRAFT' && (
-                                        <Link href={`/purchase-orders/${order.id}/edit`}>编辑</Link>
-                                    )}
-                                    {order.status === 'DRAFT' && (
-                                        <motion.button
-                                            onClick={() => handleApprove(order.id)}
-                                            whileHover={{ scale: 1.03 }}
-                                            whileTap={{ scale: 0.97 }}
-                                        >
-                                            审核入库
-                                        </motion.button>
-                                    )}
-                                    {role === 'ADMIN' && order.status === 'DRAFT' && (
-                                        <motion.button
-                                            onClick={() => handleDelete(order.id)}
-                                            whileHover={{ scale: 1.03 }}
-                                            whileTap={{ scale: 0.97 }}
-                                        >
-                                            删除
-                                        </motion.button>
-                                    )}
-                                    {order.status === 'APPROVED' && (
-                                        <motion.button
-                                            onClick={() => handleCancel(order.id)}
-                                            whileHover={{ scale: 1.03 }}
-                                            whileTap={{ scale: 0.97 }}
-                                        >
-                                            取消采购单
-                                        </motion.button>
-                                    )}
-                                </td>
-                            </motion.tr>
-                        ))}
-                    </tbody>
-                </table>
-            </FadeIn>
-
-            {!loading && orders.length === 0 && (
-                <FadeIn direction="up" delay={0.1}>
-                    <motion.div
-                        className="empty-state"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.3 }}
-                    >
-                        <span>暂无采购单数据</span>
-                    </motion.div>
-                </FadeIn>
-            )}
-
-            <FadeIn direction="up" delay={0.25}>
-                <div className="toolbar">
-                    <motion.button
-                        onClick={() => loadOrders(page - 1)}
-                        disabled={loading || page <= 1}
-                        whileHover={{ scale: 1.03 }}
-                        whileTap={{ scale: 0.97 }}
-                    >
-                        上一页
-                    </motion.button>
-                    <motion.button
-                        onClick={() => loadOrders(page + 1)}
-                        disabled={loading || page >= pages}
-                        whileHover={{ scale: 1.03 }}
-                        whileTap={{ scale: 0.97 }}
-                    >
-                        下一页
-                    </motion.button>
-                </div>
-            </FadeIn>
-        </Layout>
-    );
+        <ConfirmActionModal
+          confirmLabel={modal.confirmLabel}
+          danger={modal.danger}
+          description={modal.description}
+          onClose={() => setPendingAction(null)}
+          onConfirm={() => void handleConfirmedAction()}
+          open={pendingAction !== null}
+          submitting={submitting}
+          title={modal.title}
+        />
+      </div>
+    </Layout>
+  );
 }
