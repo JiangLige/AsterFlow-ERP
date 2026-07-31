@@ -200,6 +200,20 @@ textarea:focus {
   outline-offset: 1px;
 }
 
+button,
+input,
+select,
+textarea,
+.cds--btn,
+.cds--header__action,
+.cds--header__global-action,
+.cds--text-input,
+.cds--password-input,
+.cds--select-input,
+.cds--text-area {
+  transition-property: transform, opacity !important;
+}
+
 input:disabled,
 select:disabled,
 textarea:disabled {

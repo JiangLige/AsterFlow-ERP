@@ -55,4 +55,20 @@ describe('Carbon shell style contract', () => {
       expect(properties.every((property) => ['transform', 'opacity'].includes(property))).toBe(true);
     }
   });
+
+  it('overrides Carbon control transition properties with the approved motion set', () => {
+    const body = ruleBody(`button,
+input,
+select,
+textarea,
+.cds--btn,
+.cds--header__action,
+.cds--header__global-action,
+.cds--text-input,
+.cds--password-input,
+.cds--select-input,
+.cds--text-area`);
+
+    expect(body).toMatch(/transition-property:\s*transform,\s*opacity\s*!important;/);
+  });
 });
