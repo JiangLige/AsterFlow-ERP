@@ -95,10 +95,11 @@ export default function OrderItemsEditor<T extends EditableOrderItem>({
                 <TableCell className="aster-order-items__actions">
                   <Button
                     aria-label={`删除明细 ${index + 1}`}
+                    className="aster-order-items__delete"
                     disabled={items.length === 1}
                     hasIconOnly
                     iconDescription={`删除明细 ${index + 1}`}
-                    kind="danger--ghost"
+                    kind="ghost"
                     onClick={() => onRemove(index)}
                     renderIcon={TrashCan}
                     size="sm"

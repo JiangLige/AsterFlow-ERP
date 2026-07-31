@@ -19,6 +19,7 @@
 | `/` | 1024x768 | `docs/superpowers/qa/carbon-precision/dashboard-tablet.jpg` |
 | `/` | 390x844 | `docs/superpowers/qa/carbon-precision/dashboard-mobile.jpg` |
 | `/products` | 1440x900 | `docs/superpowers/qa/carbon-precision/products-desktop.jpg` |
+| `/products` | 390x844 | `docs/superpowers/qa/carbon-precision/products-mobile.jpg` |
 | `/products/new` | 1440x900 | `docs/superpowers/qa/carbon-precision/product-form-desktop.jpg` |
 | `/products/new` | 390x844 | `docs/superpowers/qa/carbon-precision/product-form-mobile.jpg` |
 | `/purchase-orders` | 1440x900 | `docs/superpowers/qa/carbon-precision/purchase-orders-desktop.jpg` |
@@ -58,6 +59,10 @@
 
 ## Console, network, and accessibility
 
+- Machine-readable route, assertion, console, and network evidence:
+  `docs/superpowers/qa/carbon-precision/browser-qa-log.json`.
+- Evidence environment and replay outline:
+  `docs/superpowers/qa/carbon-precision/README.md`.
 - The final route checks produced zero browser console errors, zero browser
   console warnings, zero page errors, zero request failures, and zero HTTP
   responses at or above 400.
@@ -90,6 +95,7 @@ not supply the exact QA state. It changed neither source files nor backend data:
 | P1 | Confirmation dialogs displayed a heading but the dialog landmark had no accessible name. | Connected the title through the modal `aria-label`; added a regression assertion and browser-retested approve and cancel dialogs. |
 | P1 | The skip link updated the fragment but did not move keyboard focus to the main region. | Made the main region programmatically focusable; added a shell contract test and browser-retested focus transfer. |
 | P1 | The purchase-order operations toolbar expanded into a large empty desktop panel. | Added a compact three-column Carbon toolbar grid with a one-column mobile rule; added a CSS contract test and browser-retested the list. |
+| P1 | The order-item icon-only delete button used the unsupported Carbon `danger--ghost` kind and logged prop validation errors. | Replaced it with the supported `ghost` kind, retained destructive color through a scoped class, added a component regression assertion, and browser-retested the purchase form with a clean console. |
 | P3 | The running local database returned question marks for user real names although the checked-in seed source contains Chinese names. | Recorded as external test-data state. Server and database changes are outside this frontend-only task; the shell remains functional and no P0, P1, or P2 redesign defect remains. |
 
 ## Dependency decision

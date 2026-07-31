@@ -1517,6 +1517,10 @@ td button {
   margin-inline-start: auto;
 }
 
+.aster-order-items__delete {
+  color: var(--cds-support-error);
+}
+
 .aster-order-items-fieldset {
   min-width: 0;
   margin: 0;

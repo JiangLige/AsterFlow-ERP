@@ -137,3 +137,46 @@ P3 only: the running local database's user real-name values are encoded as
 question marks. This frontend-only task made no server or database change. A
 separate environment cleanup can reload those rows from the checked-in UTF-8
 seed if current local display fidelity is required.
+
+## Review follow-up: durable browser evidence
+
+The first evidence draft exposed the correct routes but used an unwrapped
+pagination fixture. `apiRequest` requires `{ success: true, data: ... }`, so
+the product and order pages entered their retry state. The corrected fixture
+uses the production response envelope and waits for named fixture rows rather
+than counting Carbon skeleton rows.
+
+The corrected browser matrix also exposed a real console defect:
+`OrderItemsEditor` supplied `danger--ghost` to a `hasIconOnly` Carbon button,
+whose icon-button contract accepts only primary, secondary, ghost, or tertiary.
+
+### RED
+
+`npm run test -w client -- src/components/orders/OrderItemsEditor.test.tsx`
+
+- Result: 1 failed, 1 passed.
+- The delete action rendered `cds--btn--danger--ghost` instead of the supported
+  `cds--btn--ghost` class.
+- Carbon emitted both invalid-kind prop validation errors.
+
+### GREEN
+
+- Changed the icon-only delete action to `kind="ghost"`.
+- Added the scoped `aster-order-items__delete` class to retain destructive
+  support-error color.
+- Added class-contract assertions to the component test.
+- Re-ran the focused test: 2 tests passed.
+
+### Browser evidence
+
+- `docs/superpowers/qa/carbon-precision/browser-qa-log.json` contains the raw
+  route, DOM assertion, console, page-error, request-failure, HTTP-error, and
+  network status evidence.
+- `docs/superpowers/qa/carbon-precision/README.md` records the runtime,
+  fixture envelope, safety boundary, evidence contract, and replay outline.
+- `docs/superpowers/qa/carbon-precision/products-mobile.jpg` is the rendered
+  390x844 product table.
+- Final matrix: 11/11 cases passed; 0 console issues, 0 page errors,
+  0 request failures, and 0 HTTP errors.
+- Mobile product containment: 1120px table, 356px Carbon scrolling container,
+  and no page-level horizontal overflow at the 390px viewport.

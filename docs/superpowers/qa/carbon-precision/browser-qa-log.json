@@ -1,0 +1,390 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-07-31T02:38:59.017Z",
+  "browser": {
+    "engine": "Chromium",
+    "product": "Google Chrome",
+    "version": "150.0.7871.187",
+    "headless": true,
+    "profile": "isolated Playwright context"
+  },
+  "baseUrl": "http://localhost:3000",
+  "auth": {
+    "method": "UI login",
+    "account": "admin",
+    "credentialMaterialRead": false
+  },
+  "fixtures": {
+    "enabled": true,
+    "scope": [
+      "GET /api/products",
+      "GET /api/purchase-orders",
+      "GET /api/suppliers"
+    ],
+    "responseEnvelope": "{ success: true, data: ... }",
+    "destructiveMutations": false
+  },
+  "cases": [
+    {
+      "name": "login-desktop",
+      "path": "/login",
+      "viewport": "1440x900",
+      "navigationStatus": 200,
+      "heading": "登录运营工作台",
+      "pageOverflow": false,
+      "assertions": {
+        "headingVisible": true,
+        "usernameLabelled": true,
+        "passwordLabelled": true,
+        "submitNamed": true
+      },
+      "console": [],
+      "pageErrors": [],
+      "requestFailures": [],
+      "httpErrors": [],
+      "network": [
+        {
+          "method": "GET",
+          "path": "/login",
+          "status": 200,
+          "resourceType": "document"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "login-mobile",
+      "path": "/login",
+      "viewport": "390x844",
+      "navigationStatus": 200,
+      "heading": "登录运营工作台",
+      "pageOverflow": false,
+      "assertions": {
+        "headingVisible": true,
+        "usernameLabelled": true,
+        "passwordLabelled": true,
+        "submitNamed": true
+      },
+      "console": [],
+      "pageErrors": [],
+      "requestFailures": [],
+      "httpErrors": [],
+      "network": [
+        {
+          "method": "GET",
+          "path": "/login",
+          "status": 200,
+          "resourceType": "document"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "dashboard-desktop",
+      "path": "/",
+      "viewport": "1440x900",
+      "navigationStatus": 200,
+      "heading": "运营总览",
+      "pageOverflow": false,
+      "assertions": {
+        "headingVisible": true,
+        "mainVisible": true,
+        "navigationPresent": true
+      },
+      "console": [],
+      "pageErrors": [],
+      "requestFailures": [],
+      "httpErrors": [],
+      "network": [
+        {
+          "method": "GET",
+          "path": "/",
+          "status": 200,
+          "resourceType": "document"
+        },
+        {
+          "method": "GET",
+          "path": "/api/dashboard-summary",
+          "status": 200,
+          "resourceType": "fetch"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "dashboard-tablet",
+      "path": "/",
+      "viewport": "768x1024",
+      "navigationStatus": 200,
+      "heading": "运营总览",
+      "pageOverflow": false,
+      "assertions": {
+        "headingVisible": true,
+        "mainVisible": true,
+        "navigationPresent": true
+      },
+      "console": [],
+      "pageErrors": [],
+      "requestFailures": [],
+      "httpErrors": [],
+      "network": [
+        {
+          "method": "GET",
+          "path": "/",
+          "status": 200,
+          "resourceType": "document"
+        },
+        {
+          "method": "GET",
+          "path": "/api/dashboard-summary",
+          "status": 200,
+          "resourceType": "fetch"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "dashboard-mobile",
+      "path": "/",
+      "viewport": "390x844",
+      "navigationStatus": 200,
+      "heading": "运营总览",
+      "pageOverflow": false,
+      "assertions": {
+        "headingVisible": true,
+        "mainVisible": true,
+        "navigationPresent": true
+      },
+      "console": [],
+      "pageErrors": [],
+      "requestFailures": [],
+      "httpErrors": [],
+      "network": [
+        {
+          "method": "GET",
+          "path": "/",
+          "status": 200,
+          "resourceType": "document"
+        },
+        {
+          "method": "GET",
+          "path": "/api/dashboard-summary",
+          "status": 200,
+          "resourceType": "fetch"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "products-desktop",
+      "path": "/products",
+      "viewport": "1440x900",
+      "navigationStatus": 200,
+      "heading": "商品管理",
+      "pageOverflow": false,
+      "assertions": {
+        "rowsAtLeastFive": true,
+        "tableExists": true,
+        "noRetry": true,
+        "scrollContainerOwnsOverflow": true,
+        "tableWidth": 1352,
+        "containerWidth": 1352,
+        "containerScrollWidth": 1352,
+        "containerOverflowX": "auto"
+      },
+      "console": [],
+      "pageErrors": [],
+      "requestFailures": [],
+      "httpErrors": [],
+      "network": [
+        {
+          "method": "GET",
+          "path": "/products",
+          "status": 200,
+          "resourceType": "document"
+        },
+        {
+          "method": "GET",
+          "path": "/api/products?page=1&size=10",
+          "status": 200,
+          "resourceType": "fetch"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "products-mobile",
+      "path": "/products",
+      "viewport": "390x844",
+      "navigationStatus": 200,
+      "heading": "商品管理",
+      "pageOverflow": false,
+      "assertions": {
+        "rowsAtLeastFive": true,
+        "tableExists": true,
+        "noRetry": true,
+        "scrollContainerOwnsOverflow": true,
+        "tableWidth": 1120,
+        "containerWidth": 356,
+        "containerScrollWidth": 1120,
+        "containerOverflowX": "auto"
+      },
+      "console": [],
+      "pageErrors": [],
+      "requestFailures": [],
+      "httpErrors": [],
+      "network": [
+        {
+          "method": "GET",
+          "path": "/products",
+          "status": 200,
+          "resourceType": "document"
+        },
+        {
+          "method": "GET",
+          "path": "/api/products?page=1&size=10",
+          "status": 200,
+          "resourceType": "fetch"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "product-form-desktop",
+      "path": "/products/new",
+      "viewport": "1440x900",
+      "navigationStatus": 200,
+      "heading": "新增商品",
+      "pageOverflow": false,
+      "assertions": {
+        "codeLabelled": true,
+        "nameLabelled": true,
+        "statusLabelled": true,
+        "submitNamed": true
+      },
+      "console": [],
+      "pageErrors": [],
+      "requestFailures": [],
+      "httpErrors": [],
+      "network": [
+        {
+          "method": "GET",
+          "path": "/products/new",
+          "status": 200,
+          "resourceType": "document"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "product-form-mobile",
+      "path": "/products/new",
+      "viewport": "390x844",
+      "navigationStatus": 200,
+      "heading": "新增商品",
+      "pageOverflow": false,
+      "assertions": {
+        "codeLabelled": true,
+        "nameLabelled": true,
+        "statusLabelled": true,
+        "submitNamed": true
+      },
+      "console": [],
+      "pageErrors": [],
+      "requestFailures": [],
+      "httpErrors": [],
+      "network": [
+        {
+          "method": "GET",
+          "path": "/products/new",
+          "status": 200,
+          "resourceType": "document"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "purchase-orders-desktop",
+      "path": "/purchase-orders",
+      "viewport": "1440x900",
+      "navigationStatus": 200,
+      "heading": "采购单列表",
+      "pageOverflow": false,
+      "assertions": {
+        "rowsAtLeastThree": true,
+        "tableExists": true,
+        "noRetry": true,
+        "toolbarSearch": true
+      },
+      "console": [],
+      "pageErrors": [],
+      "requestFailures": [],
+      "httpErrors": [],
+      "network": [
+        {
+          "method": "GET",
+          "path": "/purchase-orders",
+          "status": 200,
+          "resourceType": "document"
+        },
+        {
+          "method": "GET",
+          "path": "/api/purchase-orders?page=1&size=10",
+          "status": 200,
+          "resourceType": "fetch"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "purchase-order-form-desktop",
+      "path": "/purchase-orders/new",
+      "viewport": "1440x900",
+      "navigationStatus": 200,
+      "heading": "新增采购单",
+      "pageOverflow": false,
+      "assertions": {
+        "supplierControl": true,
+        "supplierOptions": true,
+        "productControl": true,
+        "productOptions": true,
+        "quantityControl": true,
+        "submitNamed": true
+      },
+      "console": [],
+      "pageErrors": [],
+      "requestFailures": [],
+      "httpErrors": [],
+      "network": [
+        {
+          "method": "GET",
+          "path": "/purchase-orders/new",
+          "status": 200,
+          "resourceType": "document"
+        },
+        {
+          "method": "GET",
+          "path": "/api/suppliers?page=1&size=100&status=ACTIVE",
+          "status": 200,
+          "resourceType": "fetch"
+        },
+        {
+          "method": "GET",
+          "path": "/api/products?page=1&size=100&status=ACTIVE",
+          "status": 200,
+          "resourceType": "fetch"
+        }
+      ],
+      "passed": true
+    }
+  ],
+  "summary": {
+    "caseCount": 11,
+    "passed": 11,
+    "failed": [],
+    "consoleIssues": 0,
+    "pageErrors": 0,
+    "requestFailures": 0,
+    "httpErrors": 0
+  }
+}

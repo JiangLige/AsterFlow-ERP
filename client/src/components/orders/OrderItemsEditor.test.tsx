@@ -32,7 +32,11 @@ describe('OrderItemsEditor', () => {
     fireEvent.change(screen.getAllByLabelText('商品')[0], { target: { value: '3' } });
     fireEvent.change(screen.getAllByLabelText('数量')[0], { target: { value: '4' } });
     fireEvent.change(screen.getAllByLabelText('单价')[0], { target: { value: '20' } });
-    fireEvent.click(screen.getByRole('button', { name: '删除明细 2' }));
+    const deleteButton = screen.getByRole('button', { name: '删除明细 2' });
+    expect(deleteButton).toHaveClass('cds--btn--ghost');
+    expect(deleteButton).toHaveClass('aster-order-items__delete');
+    expect(deleteButton).not.toHaveClass('cds--btn--danger--ghost');
+    fireEvent.click(deleteButton);
 
     expect(onChange).toHaveBeenNthCalledWith(1, 0, 'productId', '3');
     expect(onChange).toHaveBeenNthCalledWith(2, 0, 'quantity', '4');
