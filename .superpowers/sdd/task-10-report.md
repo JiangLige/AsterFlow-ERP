@@ -178,5 +178,7 @@ whose icon-button contract accepts only primary, secondary, ghost, or tertiary.
   390x844 product table.
 - Final matrix: 11/11 cases passed; 0 console issues, 0 page errors,
   0 request failures, and 0 HTTP errors.
+- The dashboard tablet case was replayed at the exact required 1024x768
+  viewport and the matching screenshot was recaptured.
 - Mobile product containment: 1120px table, 356px Carbon scrolling container,
   and no page-level horizontal overflow at the 390px viewport.

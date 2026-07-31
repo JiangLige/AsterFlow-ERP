@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-31T02:38:59.017Z",
+  "generatedAt": "2026-07-31T02:53:08.481Z",
   "browser": {
     "engine": "Chromium",
     "product": "Google Chrome",
@@ -114,7 +114,7 @@
     {
       "name": "dashboard-tablet",
       "path": "/",
-      "viewport": "768x1024",
+      "viewport": "1024x768",
       "navigationStatus": 200,
       "heading": "运营总览",
       "pageOverflow": false,
